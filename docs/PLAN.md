@@ -1,4 +1,4 @@
-# Navill 计划书 v0.5（待审核，2026-10-14）
+# Navill 计划书 v0.6（待审核，2026-10-14）
 
 > 标【已定】为 Rei 已确认；标【建议】为待审核的默认方案，审核通过即定稿。
 
@@ -47,7 +47,7 @@ Navill 是一个 Chrome / Edge 扩展：**一次性**导入浏览器书签，按
 
 ## 4. 数据模型
 ```
-Workspace  { id, name, icon, order, viewMode: 'icon'|'row'|'tile'|'bento', source: 'bookmark_bar'|'edge_workspace'|'manual'|'inbox', sourceNodeId?, createdAt }
+Workspace  { id, name, emoji?, color, description?, order, viewMode: 'icon'|'row'|'tile'|'bento', source: 'bookmark_bar'|'other'|'mobile'|'edge_workspace'|'manual'|'inbox', sourceNodeId?, createdAt }
 Drawer     { id, workspaceId, name, path: string[], order, collapsed, viewMode?: 'icon'|'row'|'tile'|'bento', sortMode?: 'manual'|'name-asc'|'name-desc'|'clicks-asc'|'clicks-desc' }  // viewMode 为空时继承工作区
 Bookmark   { id, url, title, faviconUrl, note?, archivedAt?, openCount, lastOpenedAt?, createdAt, updatedAt }
 OpenEvent  { id, bookmarkId, placementId, openedAt }   // 每次打开一条时间戳记录
@@ -65,7 +65,16 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 
 ## 5. 界面
 - 入口【已定】：**替换新标签页**（完整界面）+ **工具栏弹窗**（快速搜索、切换工作区、收藏当前页到指定抽屉）。不做侧边栏。
-- 新标签页：左侧工作区列表（排序、重命名、图标）；主区抽屉卡片，可折叠、拖拽排序、书签跨抽屉拖拽、抽屉一键全部打开。
+- 新标签页：工作区导航 + 主区抽屉卡片，可折叠、拖拽排序、书签跨抽屉拖拽、抽屉一键全部打开。
+- **工作区导航布局**【已定】：两种，可在设置中切换【建议：全局设置，默认侧边栏】
+  - 侧边栏：在左侧纵向排列，可收缩成只显示图标的窄栏（收缩状态按设备记住）
+  - 顶部横铺：在顶栏横向排列，超出宽度时左右滚动（滚轮 / 触控板横滑 / 两端箭头）
+  - 两种布局都支持拖拽排序工作区
+- **工作区显示方式**【已定】：只显示图标 / 只显示名称 / 图标 + 名称【建议：全局设置，默认图标 + 名称】；侧边栏收缩时强制只显示图标。没有 emoji 的工作区用名称首字配工作区颜色作图标【建议】。悬停显示说明（tooltip）。
+- **工作区右键菜单**【已定】：编辑；另含「标记为 18+ / 取消 18+」（见下）、删除【建议】。
+  - 编辑：名称、图标（emoji 选择器）、颜色、说明（一句话，用作 tooltip，上限 50 字【建议】）。
+  - 颜色：从一组预设色中选，新建 / 导入时自动轮流分配默认色【建议】；颜色用于图标底色与选中态。
+  - 「待整理」可编辑图标、颜色、说明，名称与删除不可改【建议】。
 - 全局搜索：标题 + URL + 备注；`/` 聚焦，回车打开，键盘全程可用。
 - **抽屉标题栏**【已定】（从右到左）：
   - 最右 **ellipsis（⋯）菜单**，按可用空间自动向下或向上展开：创建分身（即把本抽屉作为分身书签组挂到其他抽屉）、解散、删除、打乱
@@ -95,6 +104,7 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 ### 6.1 通用
 - 语言（默认中文）、主题、书签打开方式（当前标签 / 新标签 / 后台）
 - 抽屉名显示：完整路径 / 仅末级
+- 工作区导航：侧边栏 / 顶部横铺；工作区显示：图标 / 名称 / 图标 + 名称
 - 新标签页是否接管、默认进入的工作区（上次 / 固定）
 - 导入 / 重新导入；导出 Navill JSON 备份；导出标准 Netscape 书签 HTML
 

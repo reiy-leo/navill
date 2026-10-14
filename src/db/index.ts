@@ -6,7 +6,7 @@ export type SortMode = 'manual' | 'name-asc' | 'name-desc' | 'clicks-asc' | 'cli
 export type WorkspaceSource = 'bookmark_bar' | 'other' | 'mobile' | 'edge_workspace' | 'manual' | 'inbox';
 
 export interface Workspace {
-  id: string; name: string; icon?: string; order: number; viewMode: ViewMode;
+  id: string; name: string; emoji?: string; color?: string; description?: string; order: number; viewMode: ViewMode;
   source: WorkspaceSource; sourceNodeId?: string; adult?: boolean; createdAt: number;
 }
 export interface Drawer {
