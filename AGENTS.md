@@ -62,3 +62,7 @@ docs/                PLAN.md、PRODUCT.md
 - 每轮修改完成后 commit 并 push 到 `main`（提交信息用中文，前缀 feat/fix/docs/chore）。
 - 推送前跑 `pnpm compile && pnpm test`。
 - 决策有变时同步更新 `docs/PLAN.md`。
+
+## 尺寸与提示文字（2026-10-14）
+- 按钮/图标向浏览器工具栏看齐：按钮约 32px、图标 20px。`assets/app.css` 统一放大了 Kumo 的 xs/sm 按钮和按钮内 svg，照常写 `size="sm"` 即可，不要再手动缩小图标。
+- 说明性文字不要常驻占版面，用 `src/ui/InfoTip.tsx`（ⓘ，悬停或点击显示）。状态类短文字（已授权、上次同步时间）可以常显。

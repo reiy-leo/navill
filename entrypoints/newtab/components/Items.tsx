@@ -77,9 +77,9 @@ function BookmarkItem({
   const selected = selection.has(p.id);
   const horizontal = view !== 'row';
   const badge = mountedFrom ? (
-    <LinkSimple size={12} className="shrink-0 text-kumo-subtle" aria-label="挂载" />
+    <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label="挂载" />
   ) : p.isAlias ? (
-    <Copy size={12} className="shrink-0 text-kumo-subtle" aria-label="分身" />
+    <Copy size={14} className="shrink-0 text-kumo-subtle" aria-label="分身" />
   ) : null;
   const title = [b.title, b.url, b.note, mountedFrom ? `源自抽屉「${mountedFrom.drawer.name}」` : p.isAlias ? '分身' : '', b.openCount ? `打开 ${b.openCount} 次` : '']
     .filter(Boolean)

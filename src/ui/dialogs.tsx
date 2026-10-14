@@ -7,6 +7,7 @@ import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db
 import { createTag, setTags, toggleTagOn, updateBookmark, updateWorkspace } from '@/src/lib/store';
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
+import { InfoTip } from './InfoTip';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
 import { HistoryAutocomplete, useHistoryPermission } from './HistoryAutocomplete';
@@ -220,7 +221,7 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
     onClose();
   };
   return (
-    <Modal open title="编辑书签" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+    <Modal open title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-3">
           <div className="flex items-end gap-3">
@@ -231,10 +232,9 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
           <Input label="图标地址（可选，留空用网站图标）" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">关联链接</span>
+              <span className="flex items-center gap-1 text-sm font-medium">关联链接<InfoTip>同一个书签的其他地址，如 GitHub、文档、社交账号。添加后图标右上角出现小红点，点击即可展开。</InfoTip></span>
               <Button size="sm" variant="ghost" icon={<Plus />} onClick={() => setForm({ ...form, links: [...form.links, { url: '', title: '' }] })}>添加</Button>
             </div>
-            {form.links.length === 0 && <Text variant="secondary" as="p">同一个书签的其他地址，如 GitHub、文档、社交账号。添加后图标右上角出现小红点，点击即可展开。</Text>}
             {form.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
                 <Input className="w-32" placeholder="名称（可选）" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
@@ -244,7 +244,6 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
             ))}
           </div>
           <InputArea label="备注" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-          <Text variant="secondary" as="p">改动会同步到这个书签的全部分身。</Text>
         </div>
       )}
     </Modal>
@@ -282,7 +281,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
                 <Button size="xs" variant={tab === 'emoji' ? 'secondary' : 'ghost'} onClick={() => setTab('emoji')}>Emoji</Button>
                 <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>线性图标</Button>
               </span>
-              <span className="text-xs text-kumo-subtle">两种都会保存，显示哪种在「设置 → 通用」切换</span>
+              <InfoTip>两种都会保存，显示哪种在「设置 → 通用」切换。</InfoTip>
             </div>
             {tab === 'lucide' ? <LucidePicker value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
             <div className="flex flex-wrap gap-1">

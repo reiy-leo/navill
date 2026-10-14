@@ -1,3 +1,4 @@
+import { InfoTip } from '@/src/ui/InfoTip';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -47,11 +48,12 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
   );
 }
 
-function Row({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+/** hint：状态类短文字（常显）；info：说明类文字（收进 ⓘ） */
+function Row({ label, children, hint, info }: { label: string; children: ReactNode; hint?: string; info?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-6 border-b border-kumo-line py-3 last:border-0">
       <div>
-        <div className="text-sm font-medium">{label}</div>
+        <div className="flex items-center gap-1 text-sm font-medium">{label}{info && <InfoTip label={`${label}说明`}>{info}</InfoTip>}</div>
         {hint && <div className="text-xs text-kumo-subtle">{hint}</div>}
       </div>
       <div className="shrink-0">{children}</div>
@@ -71,7 +73,7 @@ function IconRows() {
   const [msg, setMsg] = useState('');
   return (
     <>
-      <Row label="读取网页自带的高清图标" hint="授权后优先用网站自己的 apple-touch-icon / manifest 图标，最清晰；不授权则用 icon.horse 与 Google 图标服务">
+      <Row label="读取网页自带的高清图标" info="授权后优先用网站自己的 apple-touch-icon / manifest 图标，最清晰；不授权则用 icon.horse 与 Google 图标服务">
         {has ? (
           <Button size="sm" onClick={async () => { await browser.permissions.remove({ origins: ['<all_urls>'] }); setGranted(false); }}>撤销授权</Button>
         ) : (
@@ -93,14 +95,14 @@ function General() {
   return (
     <div>
       <Row label="主题"><Pick label="主题" value={settings.theme} items={{ system: '跟随系统', light: '浅色', dark: '深色' }} onChange={(theme) => set({ theme })} /></Row>
-      <Row label="书签打开方式" hint="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
+      <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
       <Row label="工作区导航"><Pick label="工作区导航" value={settings.navLayout} items={{ sidebar: '侧边栏', top: '顶部横铺' }} onChange={(navLayout) => set({ navLayout })} /></Row>
-      <Row label="工作区显示" hint="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
-      <Row label="工作区图标" hint="两种图标都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标（Lucide）' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
+      <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
+      <Row label="工作区图标" info="两种图标都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标（Lucide）' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
       <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
       <IconRows />
-      <Row label="新标签页" hint="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
+      <Row label="新标签页" info="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
     </div>
   );
 }
@@ -149,7 +151,7 @@ function ModeEditor({ mode, onDeleted }: { mode: Mode; onDeleted: () => void }) 
       </div>
       <Switch label="显示 18+ 内容" checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
       {isDefault ? (
-        <Text variant="secondary" as="p">「默认」场景显示全部工作区与抽屉，可见性不可编辑。</Text>
+        <div><InfoTip text="可见性">「默认」场景显示全部工作区与抽屉，可见性不可编辑。</InfoTip></div>
       ) : (
         <div>
           <div className="mb-2 text-sm font-medium">在此场景中可见的工作区与抽屉</div>
@@ -190,7 +192,7 @@ function Tags() {
   const dialogs = useDialogs();
   return (
     <div className="flex flex-col gap-2">
-      <Text variant="secondary" as="p">标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。</Text>
+      <div><InfoTip text="说明">标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。</InfoTip></div>
       {tags.map((t) => (
         <div key={t.id} className="flex items-center gap-2 rounded-md border border-kumo-line px-3 py-2">
           {t.builtin ? <span className="flex-1 text-sm">#{t.name} <Badge variant="neutral">内置</Badge></span> : (
@@ -237,7 +239,7 @@ function Sync() {
   const signedIn = status.state !== 'signed-out';
   return (
     <div className="flex flex-col gap-1">
-      <Text variant="secondary" as="p">数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。</Text>
+      <div><InfoTip text="数据存在哪">数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。</InfoTip></div>
       {err && <Banner variant="error" description={err} />}
       {status.state === 'error' && status.message && <Banner variant="error" title="上次同步失败" description={status.message} />}
       <Row label="Google 账号" hint={signedIn ? '已授权' : '未登录'}>
@@ -248,12 +250,12 @@ function Sync() {
         )}
       </Row>
       <Row label="自动同步"><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
-      <Row label="同步频率" hint="只在有改动时上传"><Select aria-label="同步频率" className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': '每 5 分钟', '15': '每 15 分钟', '60': '每 60 分钟', '0': '仅手动' }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
+      <Row label="同步频率" info="只在有改动时上传"><Select aria-label="同步频率" className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': '每 5 分钟', '15': '每 15 分钟', '60': '每 60 分钟', '0': '仅手动' }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
       <Row label="立即同步" hint={status.lastSyncAt ? `上次同步：${new Date(status.lastSyncAt).toLocaleString('zh-CN')}` : '尚未同步'}>
         <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncNow(db))}>立即同步</Button>
       </Row>
-      <Row label="冲突策略" hint="按条目合并，修改时间新的一方胜出"><Badge variant="neutral">按条目合并</Badge></Row>
-      <Row label="删除云端数据" hint="只删除 Drive 中的 Navill 数据，本地不受影响">
+      <Row label="冲突策略" info="按条目合并，修改时间新的一方胜出"><Badge variant="neutral">按条目合并</Badge></Row>
+      <Row label="删除云端数据" info="只删除 Drive 中的 Navill 数据，本地不受影响">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} disabled={!signedIn} onClick={async () => {
           if (await dialogs.confirm({ title: '删除云端的 Navill 数据？', okText: '删除', danger: true })) await run(() => deleteRemoteData(db));
         }}>删除</Button>
@@ -283,8 +285,7 @@ function Aliases() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h3 className="mb-2 text-sm font-semibold">分身书签组（{data?.groups.length ?? 0}）</h3>
-        {data?.groups.length === 0 && <Text variant="secondary" as="p">在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。</Text>}
+        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身书签组（{data?.groups.length ?? 0}）<InfoTip>在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。</InfoTip></h3>
         {data?.groups.map(({ g, from, to }) => (
           <div key={g.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="flex-1">{from} <span className="text-kumo-subtle">→ 挂载到 →</span> {to}</span>
@@ -342,25 +343,25 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
   return (
     <div className="flex flex-col gap-1">
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
-      <Row label="重新导入浏览器书签" hint="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
-      <Row label="导入书签 HTML 文件" hint="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
-      <Row label="从名称解析工作区图标" hint="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标（每次启动也会自动执行）">
+      <Row label="重新导入浏览器书签" info="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
+      <Row label="导入书签 HTML 文件" info="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
+      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标（每次启动也会自动执行）">
         <Button size="sm" icon={<Smiley />} onClick={async () => {
           const n = await parseWorkspaceIcons(db);
           setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
         }}>解析</Button>
       </Row>
-      <Row label="导出 Navill 备份（JSON）" hint="包含工作区、抽屉、书签、分身、场景、标签和使用统计">
+      <Row label="导出 Navill 备份（JSON）" info="包含工作区、抽屉、书签、分身、场景、标签和使用统计">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>导出</Button>
       </Row>
       <Row label="恢复 Navill 备份（JSON）">
         <Button size="sm" icon={<FileArrowUp />} onClick={() => file.current?.click()}>选择文件</Button>
         <input ref={file} type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void restore(f); e.target.value = ''; }} />
       </Row>
-      <Row label="导出为浏览器书签 HTML" hint="工作区 → 文件夹，抽屉 → 子文件夹">
+      <Row label="导出为浏览器书签 HTML" info="工作区 → 文件夹，抽屉 → 子文件夹">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>导出</Button>
       </Row>
-      <Row label="清空使用统计" hint="清除全部打开记录与次数">
+      <Row label="清空使用统计" info="清除全部打开记录与次数">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
           if (await dialogs.confirm({ title: '清空使用统计？', okText: '清空', danger: true })) await clearOpenEvents(db);
         }}>清空</Button>
