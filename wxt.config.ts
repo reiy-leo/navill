@@ -19,6 +19,8 @@ export default defineConfig({
     host_permissions: ['https://www.googleapis.com/*', 'https://icon.horse/*', 'https://www.google.com/s2/*', 'https://*.gstatic.com/*'],
     // 可选：读取网页自身的高清图标（apple-touch-icon / manifest），在 设置 → 通用 里授权
     optional_host_permissions: ['<all_urls>'],
+    // 可选：新建 / 编辑书签时用浏览记录自动补全
+    optional_permissions: ['history'],
     action: { default_title: 'Navill' },
     ...(key ? { key } : {}),
   },

@@ -7,6 +7,7 @@ import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db
 import { createTag, setTags, toggleTagOn, updateBookmark, updateWorkspace } from '@/src/lib/store';
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
+import { HistoryAutocomplete, useHistoryPermission } from './HistoryAutocomplete';
 
 export interface Target { workspaceId: string; drawerId: string | null }
 
@@ -21,6 +22,8 @@ interface DialogsApi {
   pickTarget(o: PickOpts): Promise<Target | null>;
   /** 当前处于非默认场景时，新建项询问可见范围；默认场景直接返回 'all' */
   askVisibility(currentModeId: string, what: string): Promise<'current' | 'all' | null>;
+  /** 新建书签：名称 + URL，支持浏览记录补全 */
+  newBookmark(): Promise<{ url: string; title: string } | null>;
   editBookmark(bookmarkId: string): void;
   editWorkspace(workspaceId: string): void;
   editTags(bookmarkIds: string[]): void;
@@ -34,6 +37,7 @@ type Pending =
   | { kind: 'choose'; o: ChoiceOpts<string>; resolve: (v: string | null) => void }
   | { kind: 'prompt'; title: string; initial: string; placeholder?: string; resolve: (v: string | null) => void }
   | { kind: 'pick'; o: PickOpts; resolve: (v: Target | null) => void }
+  | { kind: 'newBookmark'; resolve: (v: { url: string; title: string } | null) => void }
   | { kind: 'bookmark'; id: string }
   | { kind: 'workspace'; id: string }
   | { kind: 'tags'; ids: string[] };
@@ -48,6 +52,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       choose: <T extends string>(o: ChoiceOpts<T>) =>
         new Promise<T | null>((resolve) => setP({ kind: 'choose', o, resolve: resolve as (v: string | null) => void })),
       prompt: (title, initial = '', placeholder) => new Promise((resolve) => setP({ kind: 'prompt', title, initial, placeholder, resolve })),
+      newBookmark: () => new Promise((resolve) => setP({ kind: 'newBookmark', resolve })),
       pickTarget: (o) => new Promise((resolve) => setP({ kind: 'pick', o, resolve })),
       askVisibility: async (modeId, what) => {
         if (modeId === MODE_DEFAULT) return 'all';
@@ -109,6 +114,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       )}
       {p?.kind === 'prompt' && <PromptDialog {...p} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'pick' && <PickDialog o={p.o} onDone={(v) => { p.resolve(v); close(); }} />}
+      {p?.kind === 'newBookmark' && <NewBookmarkDialog onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'bookmark' && <EditBookmarkDialog id={p.id} onClose={close} />}
       {p?.kind === 'workspace' && <EditWorkspaceDialog id={p.id} onClose={close} />}
       {p?.kind === 'tags' && <TagsDialog ids={p.ids} onClose={close} />}
@@ -182,8 +188,26 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
   );
 }
 
+function NewBookmarkDialog({ onDone }: { onDone: (v: { url: string; title: string } | null) => void }) {
+  const [form, setForm] = useState({ title: '', url: '' });
+  const history = useHistoryPermission();
+  const ok = form.url.trim().length > 0;
+  return (
+    <Modal open title="新建书签" onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" disabled={!ok} onClick={() => onDone(form)}>添加</Button></>}>
+      <div className="grid gap-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !(e.target as HTMLElement).closest('[aria-expanded=true]')) onDone(form); }}>
+        <div className="flex items-end gap-3">
+          <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url || 'https://'} size={32} /></div>
+          <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" placeholder="可留空，用网页标题" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ title: s.title || form.title, url: s.url })} /></div>
+        </div>
+        <HistoryAutocomplete label="URL" placeholder="https://" enabled={history.granted} description={history.hint} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ url: s.url, title: form.title.trim() ? form.title : s.title })} />
+      </div>
+    </Modal>
+  );
+}
+
 function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const b = useLiveQuery(() => db.bookmarks.get(id), [id]);
+  const history = useHistoryPermission();
   const [form, setForm] = useState<{ title: string; url: string; note: string; faviconUrl: string; links: { url: string; title: string }[] } | null>(null);
   if (b && !form) setForm({ title: b.title, url: b.url, note: b.note ?? '', faviconUrl: b.faviconUrl ?? '', links: (b.links ?? []).map((l) => ({ url: l.url, title: l.title ?? '' })) });
   const setLink = (i: number, patch: Partial<{ url: string; title: string }>) =>
@@ -199,9 +223,9 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
         <div className="grid gap-3">
           <div className="flex items-end gap-3">
             <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
-            <div className="min-w-0 flex-1"><Input label="名称" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+            <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
-          <Input label="URL" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+          <HistoryAutocomplete label="URL" enabled={history.granted} description={history.hint} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
           <Input label="图标地址（可选，留空用网站图标）" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
           <div className="grid gap-2">
             <div className="flex items-center justify-between">

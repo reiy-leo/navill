@@ -154,6 +154,10 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 - 来源顺序：网页自带 apple-touch-icon / manifest / svg（需在 设置 → 通用 授权可选权限「访问所有网站」）→ icon.horse（识别并跳过它的字母占位图）→ Google s2 sz=128；小于 48px 视为不清晰。都失败时用浏览器自带 favicon。
 - 用户在编辑书签里填的图标地址优先。设置里可「重新获取」清空缓存。
 
+### 6.8 新建 / 编辑书签自动补全【已定 2026-10-14】
+- 名称和 URL 输入框都可补全：按关键词搜本机浏览记录（chrome.history，可选权限 history，对话框里点「开启」授权），按访问次数排序取前 8 条。
+- 选中一条同时回填 URL 和名称（在 URL 框选中时，已填的名称保留）。新建书签由单行提示框改为「名称 + URL」对话框。
+
 ## 7. 技术方案
 - Manifest V3，一套代码同时发布 Chrome 与 Edge。
 - 框架：WXT + TypeScript + Vite；UI 用 React + Kumo【已定】。

@@ -36,8 +36,8 @@ export function DrawerCard({
   };
 
   const addBookmark = async () => {
-    const url = await dialogs.prompt('新建书签', '', 'https://');
-    if (url?.trim()) await createBookmark(db, { url }, workspace.id, drawer.id);
+    const nb = await dialogs.newBookmark();
+    if (nb?.url.trim()) await createBookmark(db, { url: nb.url, title: nb.title.trim() || undefined }, workspace.id, drawer.id);
   };
 
   const mount = async () => {

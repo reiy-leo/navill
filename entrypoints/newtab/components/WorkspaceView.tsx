@@ -29,8 +29,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined);
   };
   const newBookmark = async () => {
-    const url = await dialogs.prompt('新建书签（工作区顶层）', '', 'https://');
-    if (url?.trim()) await createBookmark(db, { url }, workspace.id, null);
+    const nb = await dialogs.newBookmark();
+    if (nb?.url.trim()) await createBookmark(db, { url: nb.url, title: nb.title.trim() || undefined }, workspace.id, null);
   };
   const reveal = (item: Item) => {
     const src = item.mountedFrom?.drawer;
