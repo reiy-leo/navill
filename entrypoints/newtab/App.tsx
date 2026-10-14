@@ -1,3 +1,4 @@
+import { WorkspaceBackdrop } from '@/src/ui/WorkspaceBackdrop';
 import { Loader, TooltipProvider } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -85,7 +86,8 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   const top = settings.navLayout === 'top';
 
   return (
-    <div className={`flex h-full ${top ? 'flex-col' : ''}`}>
+    <div className={`relative isolate flex h-full ${top ? 'flex-col' : ''}`}>
+      {view !== 'archive' && <WorkspaceBackdrop color={current?.color} />}
       {!top && <Nav current={current?.id} {...menu} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {top && <Nav current={current?.id} {...menu} />}

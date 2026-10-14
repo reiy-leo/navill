@@ -104,7 +104,7 @@ function BookmarkItem({
         );
       case 'tile':
         return (
-          <div className="flex items-center gap-2 rounded-lg border border-kumo-line bg-kumo-base p-2">
+          <div className="flex items-center gap-2 rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
             <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={24} /></IconWithLinks>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{b.title}</div>
@@ -115,7 +115,7 @@ function BookmarkItem({
         );
       case 'bento':
         return (
-          <div className="flex h-full flex-col justify-between rounded-lg border border-kumo-line bg-kumo-base p-2">
+          <div className="flex h-full flex-col justify-between rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
             <div className="flex items-center justify-between">
               <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={size === 'sm' ? 20 : 32} /></IconWithLinks>
               {badge}

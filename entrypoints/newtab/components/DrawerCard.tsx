@@ -53,7 +53,7 @@ export function DrawerCard({
 
   return (
     <section
-      className={`flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated p-3 ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
+      className={`flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated/75 p-3 backdrop-blur-sm ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
       onDragOver={(e) => {
         if (!hasType(e, DND_DRAWER)) return;
         e.preventDefault();
