@@ -194,9 +194,9 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
     <Modal open title="编辑书签" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-3">
-          <div className="flex items-center gap-3">
-            <BookmarkIcon url={form.url} src={form.faviconUrl} size={32} />
-            <div className="flex-1"><Input label="名称" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+          <div className="flex items-end gap-3">
+            <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
+            <div className="min-w-0 flex-1"><Input label="名称" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           </div>
           <Input label="URL" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
           <Input label="图标地址（可选，留空用网站图标）" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
@@ -233,9 +233,9 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
           <div>
             <div className="mb-1 text-sm font-medium">图标</div>
             <div className="flex flex-wrap gap-1">
-              <button className={`h-8 rounded-md border px-2 text-xs ${!form.emoji ? 'border-kumo-brand' : 'border-kumo-line'}`} onClick={() => setForm({ ...form, emoji: '' })}>首字</button>
+              <Button size="sm" variant={!form.emoji ? 'outline' : 'ghost'} className={!form.emoji ? '!ring-kumo-brand' : ''} onClick={() => setForm({ ...form, emoji: '' })}>首字</Button>
               {EMOJIS.map((e) => (
-                <button key={e} className={`h-8 w-8 rounded-md border text-lg ${form.emoji === e ? 'border-kumo-brand' : 'border-transparent hover:bg-kumo-tint'}`} onClick={() => setForm({ ...form, emoji: e })}>{e}</button>
+                <Button key={e} size="sm" shape="square" variant={form.emoji === e ? 'outline' : 'ghost'} className={`text-lg ${form.emoji === e ? '!ring-kumo-brand' : ''}`} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
               ))}
               <Input size="sm" className="w-24" placeholder="自定义（≤2）" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
             </div>
