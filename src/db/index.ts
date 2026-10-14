@@ -1,0 +1,44 @@
+import Dexie, { type EntityTable } from 'dexie';
+
+// 数据模型见 docs/PLAN.md §4。IndexedDB 为本地事实来源，界面不等待网络。
+export type ViewMode = 'icon' | 'row' | 'tile' | 'bento';
+export type SortMode = 'manual' | 'name-asc' | 'name-desc' | 'clicks-asc' | 'clicks-desc';
+
+export interface Workspace {
+  id: string; name: string; icon?: string; order: number; viewMode: ViewMode;
+  source: 'bookmark_bar' | 'edge_workspace' | 'manual' | 'inbox'; sourceNodeId?: string; createdAt: number;
+}
+export interface Drawer {
+  id: string; workspaceId: string; name: string; path: string[]; order: number; collapsed: boolean;
+  viewMode?: ViewMode; sortMode?: SortMode;
+}
+export interface Bookmark {
+  id: string; url: string; title: string; faviconUrl?: string; note?: string; archivedAt?: number;
+  openCount: number; lastOpenedAt?: number; createdAt: number; updatedAt: number;
+}
+export interface Placement {
+  id: string; bookmarkId: string; workspaceId: string; drawerId: string | null; order: number; isAlias: boolean;
+}
+export interface OpenEvent { id: string; bookmarkId: string; placementId: string; openedAt: number }
+export interface AliasGroup { id: string; sourceDrawerId: string; targetDrawerId: string; order: number; createdAt: number }
+export interface OutboxItem { id: string; entity: string; entityId: string; op: 'put' | 'delete'; updatedAt: number }
+
+export const db = new Dexie('navill') as Dexie & {
+  workspaces: EntityTable<Workspace, 'id'>;
+  drawers: EntityTable<Drawer, 'id'>;
+  bookmarks: EntityTable<Bookmark, 'id'>;
+  placements: EntityTable<Placement, 'id'>;
+  openEvents: EntityTable<OpenEvent, 'id'>;
+  aliasGroups: EntityTable<AliasGroup, 'id'>;
+  outbox: EntityTable<OutboxItem, 'id'>;
+};
+
+db.version(1).stores({
+  workspaces: 'id, order',
+  drawers: 'id, workspaceId, order',
+  bookmarks: 'id, url, archivedAt',
+  placements: 'id, bookmarkId, workspaceId, drawerId, [workspaceId+drawerId]',
+  openEvents: 'id, bookmarkId, openedAt',
+  aliasGroups: 'id, sourceDrawerId, targetDrawerId',
+  outbox: 'id, [entity+entityId], updatedAt',
+});
