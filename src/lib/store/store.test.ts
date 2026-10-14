@@ -5,7 +5,7 @@ import { loadWorkspace, search, visibilityOf } from '../view';
 import {
   createAlias, createBookmark, createDrawer, createMode, createTag, createWorkspace, deleteDrawer, deleteTag,
   deleteWorkspace, dissolveDrawer, ensureSeed, mountDrawer, movePlacement, recordOpen, removePlacement,
-  setShowAdult, setTags, setVisible, shuffleDrawer, updateDrawer, updateWorkspace, wouldCycle, AliasCycleError, parseWorkspaceIcons,
+  setShowAdult, setTags, updateBookmark, setVisible, shuffleDrawer, updateDrawer, updateWorkspace, wouldCycle, AliasCycleError, parseWorkspaceIcons,
 } from './index';
 
 let db: NavillDB;
@@ -186,6 +186,18 @@ describe('搜索', () => {
     await setVisible(db, 'mode-work', 'drawer', a.id, false);
     expect(await search(db, 'x', visibilityOf(await db.modes.get('mode-work')))).toEqual([]);
     expect(ws).toBeTruthy();
+  });
+});
+
+describe('关联链接', () => {
+  it('保存时去掉空行并规范 URL，搜索能命中关联链接', async () => {
+    const { x } = await setup();
+    await updateBookmark(db, x.bookmark.id, { links: [{ url: 'github.com/x/x', title: ' 源码 ' }, { url: '  ' }] });
+    expect((await db.bookmarks.get(x.bookmark.id))!.links).toEqual([{ url: 'https://github.com/x/x', title: '源码' }]);
+    const v = visibilityOf(await db.modes.get(MODE_DEFAULT));
+    expect((await search(db, 'github', v)).map((h) => h.item.bookmark.title)).toEqual(['X']);
+    await updateBookmark(db, x.bookmark.id, { links: [] });
+    expect((await db.bookmarks.get(x.bookmark.id))!.links).toBeUndefined();
   });
 });
 

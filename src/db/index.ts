@@ -13,8 +13,12 @@ export interface Drawer {
   id: string; workspaceId: string; name: string; path: string[]; order: number; collapsed: boolean;
   viewMode?: ViewMode; sortMode?: SortMode; adult?: boolean; sourceNodeId?: string; updatedAt: number;
 }
+/** 关联链接：同一个书签的其他方面（GitHub、文档、社交账号…） */
+export interface BookmarkLink { url: string; title?: string }
 export interface Bookmark {
   id: string; url: string; title: string; faviconUrl?: string; note?: string; archivedAt?: number;
+  /** 关联链接，按数组顺序显示 */
+  links?: BookmarkLink[];
   tagIds: string[]; openCount: number; lastOpenedAt?: number; createdAt: number; updatedAt: number;
 }
 export interface Placement {

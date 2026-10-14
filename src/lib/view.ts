@@ -113,7 +113,7 @@ export async function search(db: NavillDB, query: string, v: Visibility, limit =
   for (const b of bookmarks) {
     if (!bookmarkVisible(b, v)) continue;
     if (!wantTags.every((ids) => ids.some((id) => b.tagIds.includes(id)))) continue;
-    const hay = `${b.title}\n${b.url}\n${b.note ?? ''}`.toLowerCase();
+    const hay = `${b.title}\n${b.url}\n${b.note ?? ''}\n${(b.links ?? []).map((l) => `${l.title ?? ''} ${l.url}`).join('\n')}`.toLowerCase();
     if (!words.every((w) => hay.includes(w))) continue;
     // 取一个可见的位置，原书签优先
     const ps = (byBookmark.get(b.id) ?? []).sort((x, y) => Number(x.isAlias) - Number(y.isAlias));

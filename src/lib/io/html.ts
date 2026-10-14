@@ -12,7 +12,7 @@ export async function exportNetscapeHtml(db: NavillDB): Promise<string> {
   const line = (b: { url: string; title: string; createdAt: number }, ind: string) =>
     `${ind}<DT><A HREF="${esc(b.url)}" ADD_DATE="${Math.floor(b.createdAt / 1000)}">${esc(b.title)}</A>\n`;
   const items = (ps: typeof placements, ind: string) =>
-    ps.sort((a, b) => a.order - b.order).map((p) => bm.get(p.bookmarkId)).filter((b) => b && !b.archivedAt).map((b) => line(b!, ind)).join('');
+    ps.sort((a, b) => a.order - b.order).map((p) => bm.get(p.bookmarkId)).filter((b) => b && !b.archivedAt).map((b) => line(b!, ind) + (b!.links ?? []).map((l) => line({ url: l.url, title: `${b!.title} · ${l.title || hostOfUrl(l.url)}`, createdAt: b!.createdAt }, ind)).join('')).join('');
 
   let out = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n';
   for (const w of workspaces) {
@@ -58,4 +58,8 @@ export function parseNetscapeHtml(html: string): BookmarkNode {
   const children = top ? walk(top) : [];
   const bar = { id: '1', title: '书签栏', children, syncing: false } as BookmarkNode;
   return { id: '0', title: '', children: [bar], syncing: false } as BookmarkNode;
+}
+
+function hostOfUrl(url: string) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }

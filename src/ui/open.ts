@@ -7,8 +7,11 @@ import type { Item } from '@/src/lib/view';
 export async function openItem(
   item: Item, settings: Settings, e?: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean; button?: number },
   context: 'newtab' | 'popup' = 'newtab',
+  /** 打开关联链接时传入；计数仍算在这个书签上 */
+  urlOverride?: string,
 ) {
-  const { bookmark, placement } = item;
+  const { placement } = item;
+  const bookmark = { ...item.bookmark, url: urlOverride ?? item.bookmark.url };
   await recordOpen(db, bookmark.id, placement.id);
   let mode = settings.openMode;
   if (e?.ctrlKey || e?.metaKey || e?.button === 1) mode = 'background';

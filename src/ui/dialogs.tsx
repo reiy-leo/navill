@@ -1,3 +1,4 @@
+import { Plus, Trash } from '@phosphor-icons/react';
 import { limitIcon } from '@/src/lib/emoji';
 import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -183,11 +184,13 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
 
 function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const b = useLiveQuery(() => db.bookmarks.get(id), [id]);
-  const [form, setForm] = useState<{ title: string; url: string; note: string; faviconUrl: string } | null>(null);
-  if (b && !form) setForm({ title: b.title, url: b.url, note: b.note ?? '', faviconUrl: b.faviconUrl ?? '' });
+  const [form, setForm] = useState<{ title: string; url: string; note: string; faviconUrl: string; links: { url: string; title: string }[] } | null>(null);
+  if (b && !form) setForm({ title: b.title, url: b.url, note: b.note ?? '', faviconUrl: b.faviconUrl ?? '', links: (b.links ?? []).map((l) => ({ url: l.url, title: l.title ?? '' })) });
+  const setLink = (i: number, patch: Partial<{ url: string; title: string }>) =>
+    form && setForm({ ...form, links: form.links.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
   const save = async () => {
     if (!form) return;
-    await updateBookmark(db, id, { title: form.title.trim() || form.url, url: form.url, note: form.note || undefined, faviconUrl: form.faviconUrl || undefined });
+    await updateBookmark(db, id, { title: form.title.trim() || form.url, url: form.url, note: form.note || undefined, faviconUrl: form.faviconUrl || undefined, links: form.links });
     onClose();
   };
   return (
@@ -200,6 +203,20 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
           </div>
           <Input label="URL" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
           <Input label="图标地址（可选，留空用网站图标）" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">关联链接</span>
+              <Button size="sm" variant="ghost" icon={<Plus />} onClick={() => setForm({ ...form, links: [...form.links, { url: '', title: '' }] })}>添加</Button>
+            </div>
+            {form.links.length === 0 && <Text variant="secondary" as="p">同一个书签的其他地址，如 GitHub、文档、社交账号。添加后图标右上角出现小红点，点击即可展开。</Text>}
+            {form.links.map((l, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input className="w-32" placeholder="名称（可选）" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
+                <div className="min-w-0 flex-1"><Input placeholder="https://" aria-label="关联链接地址" value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} /></div>
+                <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label="删除关联链接" onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
+              </div>
+            ))}
+          </div>
           <InputArea label="备注" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
           <Text variant="secondary" as="p">改动会同步到这个书签的全部分身。</Text>
         </div>

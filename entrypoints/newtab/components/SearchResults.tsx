@@ -7,6 +7,7 @@ import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
+import { IconWithLinks } from '@/src/ui/LinksDot';
 import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { search, visibilityOf } from '@/src/lib/view';
@@ -56,7 +57,7 @@ export function SearchResults() {
                 onContextMenu={(e) => menu(e, bookmarkMenu(h.item, dialogs, settings))}
               >
                 {organize && <Checkbox checked={selection.has(h.item.placement.id)} aria-label="选择" />}
-                <BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} />
+                <IconWithLinks item={h.item}><BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} /></IconWithLinks>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? '（已归档）' : ''}</div>
                   <div className="truncate text-xs text-kumo-subtle">{hostOf(h.item.bookmark.url)}</div>

@@ -7,6 +7,7 @@ import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
+import { IconWithLinks } from '@/src/ui/LinksDot';
 import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { DND_PLACEMENT, hasType, insertAfter } from './dnd';
@@ -89,14 +90,14 @@ function BookmarkItem({
       case 'icon':
         return (
           <div className="flex flex-col items-center gap-1 p-2 text-center">
-            <div className="relative"><BookmarkIcon url={b.url} src={b.faviconUrl} size={32} /><span className="absolute -right-1 -top-1">{badge}</span></div>
+            <div className="relative"><IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={32} /></IconWithLinks><span className="absolute -bottom-1 -left-1">{badge}</span></div>
             <span className="line-clamp-2 w-full break-all text-xs leading-tight">{b.title}</span>
           </div>
         );
       case 'row':
         return (
           <div className="flex items-center gap-2 px-2 py-1">
-            <BookmarkIcon url={b.url} src={b.faviconUrl} size={16} />
+            <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={16} /></IconWithLinks>
             <span className="min-w-0 flex-1 truncate text-sm">{b.title}</span>
             {badge}
           </div>
@@ -104,7 +105,7 @@ function BookmarkItem({
       case 'tile':
         return (
           <div className="flex items-center gap-2 rounded-lg border border-kumo-line bg-kumo-base p-2">
-            <BookmarkIcon url={b.url} src={b.faviconUrl} size={24} />
+            <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={24} /></IconWithLinks>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{b.title}</div>
               <div className="truncate text-xs text-kumo-subtle">{hostOf(b.url)}</div>
@@ -116,7 +117,7 @@ function BookmarkItem({
         return (
           <div className="flex h-full flex-col justify-between rounded-lg border border-kumo-line bg-kumo-base p-2">
             <div className="flex items-center justify-between">
-              <BookmarkIcon url={b.url} src={b.faviconUrl} size={size === 'sm' ? 20 : 32} />
+              <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={size === 'sm' ? 20 : 32} /></IconWithLinks>
               {badge}
             </div>
             <div className="min-w-0">

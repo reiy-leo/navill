@@ -32,9 +32,16 @@ export async function createBookmark(
 }
 
 export async function updateBookmark(
-  db: NavillDB, id: string, changes: Partial<Pick<Bookmark, 'title' | 'url' | 'note' | 'faviconUrl' | 'tagIds'>>,
+  db: NavillDB, id: string, changes: Partial<Pick<Bookmark, 'title' | 'url' | 'note' | 'faviconUrl' | 'tagIds' | 'links'>>,
 ) {
   if (changes.url !== undefined) changes.url = normalizeUrl(changes.url);
+  if (changes.links !== undefined) {
+    const links = changes.links
+      .map((l) => ({ url: l.url.trim(), title: l.title?.trim() || undefined }))
+      .filter((l) => l.url)
+      .map((l) => ({ ...l, url: normalizeUrl(l.url) }));
+    changes.links = links.length ? links : undefined;
+  }
   await patch<Bookmark>(db, 'bookmarks', id, changes);
 }
 
