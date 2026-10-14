@@ -51,7 +51,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
         <Dialog.Title className="sr-only">搜索书签</Dialog.Title>
         <div className="relative">
           <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-kumo-subtle" size={18} />
-          <Input ref={ref} size="lg" className="w-full pl-10" placeholder="搜索书签（#标签 筛选，↑↓ 选择，回车打开）" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="搜索" autoFocus />
+          <Input ref={ref} size="lg" className="w-full pl-10" placeholder="搜索书签，#标签 筛选" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="搜索" autoFocus />
         </div>
         {query.trim() && <div className="-m-1 min-h-0 flex-1 overflow-y-auto p-1"><SearchResults onOpen={onClose} /></div>}
       </Dialog>

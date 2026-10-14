@@ -23,7 +23,7 @@ export function LucidePicker({ value, onChange }: { value?: string; onChange: (n
   }, [q]);
   return (
     <div className="grid gap-2">
-      <Input size="sm" placeholder="搜索图标（英文，如 book、code、home）" aria-label="搜索图标" value={q} onChange={(e) => setQ(e.target.value)} />
+      <Input size="sm" placeholder="搜索图标，如 book、code、home" aria-label="搜索图标" value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
         <Button size="sm" variant={!value ? 'outline' : 'ghost'} className={!value ? '!ring-kumo-brand' : ''} onClick={() => onChange(undefined)}>首字</Button>
         {list.map((n) => (

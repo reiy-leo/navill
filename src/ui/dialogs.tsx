@@ -229,7 +229,7 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
             <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
           <HistoryAutocomplete label="URL" enabled={history.granted} description={history.hint} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
-          <Input label="图标地址（可选，留空用网站图标）" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
+          <Input label="图标地址" placeholder="留空用网站图标" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1 text-sm font-medium">关联链接<InfoTip>同一个书签的其他地址，如 GitHub、文档、社交账号。添加后图标右上角出现小红点，点击即可展开。</InfoTip></span>
@@ -237,7 +237,7 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
             </div>
             {form.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
-                <Input className="w-32" placeholder="名称（可选）" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
+                <Input className="w-32" placeholder="名称" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
                 <div className="min-w-0 flex-1"><Input placeholder="https://" aria-label="关联链接地址" value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} /></div>
                 <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label="删除关联链接" onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
               </div>
@@ -289,7 +289,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
               {EMOJIS.map((e) => (
                 <Button key={e} size="sm" shape="square" variant={form.emoji === e ? 'outline' : 'ghost'} className={`text-lg ${form.emoji === e ? '!ring-kumo-brand' : ''}`} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
               ))}
-              <Input size="sm" className="w-24" placeholder="自定义（≤2）" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
+              <Input size="sm" className="w-24" placeholder="自定义" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
             </div>)}
           </div>
           <div>
@@ -300,7 +300,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
               ))}
             </div>
           </div>
-          <Input label="说明（悬停提示，最多 50 字）" value={form.description} maxLength={50} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <Input label="说明" placeholder="悬停时显示，最多 50 字" value={form.description} maxLength={50} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
       )}
     </Modal>

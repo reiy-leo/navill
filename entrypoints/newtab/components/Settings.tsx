@@ -329,7 +329,7 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
         description: `备份时间：${new Date(backup.exportedAt).toLocaleString('zh-CN')}`,
         choices: [
           { value: 'merge', label: '合并到现有数据' },
-          { value: 'replace', label: '覆盖现有数据（会先自动下载一份当前备份）', danger: true },
+          { value: 'replace', label: '覆盖现有数据，先自动下载当前备份', danger: true },
         ],
       });
       if (!mode) return;
@@ -345,16 +345,16 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
       <Row label="重新导入浏览器书签" info="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
       <Row label="导入书签 HTML 文件" info="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
-      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标（每次启动也会自动执行）">
+      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行">
         <Button size="sm" icon={<Smiley />} onClick={async () => {
           const n = await parseWorkspaceIcons(db);
           setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
         }}>解析</Button>
       </Row>
-      <Row label="导出 Navill 备份（JSON）" info="包含工作区、抽屉、书签、分身、场景、标签和使用统计">
+      <Row label="导出 Navill 备份" info="JSON 文件，包含工作区、抽屉、书签、分身、场景、标签和使用统计">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>导出</Button>
       </Row>
-      <Row label="恢复 Navill 备份（JSON）">
+      <Row label="恢复 Navill 备份">
         <Button size="sm" icon={<FileArrowUp />} onClick={() => file.current?.click()}>选择文件</Button>
         <input ref={file} type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void restore(f); e.target.value = ''; }} />
       </Row>

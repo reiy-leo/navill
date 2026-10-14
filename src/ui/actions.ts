@@ -29,7 +29,7 @@ export async function askDelete(d: Dialogs, item: Item) {
     title: `删除「${item.bookmark.title}」`,
     description: `这个书签还有 ${others - 1} 个分身。`,
     choices: [
-      { value: 'here', label: '仅删此处（由一个分身接任原书签）' },
+      { value: 'here', label: '仅删此处，由一个分身接任原书签' },
       { value: 'all', label: '删除原书签及全部分身', danger: true },
     ],
   });
@@ -57,6 +57,7 @@ export function bookmarkMenu(
   if (item.mountedFrom) {
     return [
       open,
+      { divider: true },
       { label: '分身到…', icon: Copy, onSelect: () => void aliasTo(d, [item.bookmark.id]) },
       { label: `在源抽屉「${item.mountedFrom.drawer.name}」中显示`, icon: Eye, onSelect: () => extra.onReveal?.(item) },
     ];
@@ -64,6 +65,7 @@ export function bookmarkMenu(
   if (item.bookmark.archivedAt) {
     return [
       open,
+      { divider: true },
       { label: '恢复', icon: ArrowCounterClockwise, onSelect: () => void archiveBookmark(db, item.bookmark.id, false) },
       { divider: true },
       { label: '彻底删除', icon: Trash, danger: true, onSelect: () => void deleteForever(d, item) },
@@ -72,6 +74,7 @@ export function bookmarkMenu(
   if (item.placement.isAlias) {
     return [
       open,
+      { divider: true },
       { label: '分身到…', icon: Copy, onSelect: () => void aliasTo(d, [item.bookmark.id]) },
       { label: '移动', icon: ArrowsOutCardinal, onSelect: () => void moveTo(d, [item.placement.id]) },
       { label: '转为独立书签', icon: LinkBreak, onSelect: () => void detachAlias(db, item.placement.id) },
@@ -81,8 +84,10 @@ export function bookmarkMenu(
   }
   return [
     open,
+    { divider: true },
     { label: '编辑', icon: PencilSimple, onSelect: () => d.editBookmark(item.bookmark.id) },
     { label: '标签…', icon: Tag, onSelect: () => d.editTags([item.bookmark.id]) },
+    { divider: true },
     { label: '分身到…', icon: Copy, onSelect: () => void aliasTo(d, [item.bookmark.id]) },
     { label: '移动', icon: ArrowsOutCardinal, onSelect: () => void moveTo(d, [item.placement.id]) },
     { label: '归档', icon: Archive, onSelect: () => void archiveBookmark(db, item.bookmark.id) },

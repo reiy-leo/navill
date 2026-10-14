@@ -39,7 +39,7 @@ function Popup() {
     const items: Record<string, string> = {};
     if (inbox) items[`${inbox.id}|`] = '待整理';
     for (const w of ws) {
-      if (w.source !== 'inbox') items[`${w.id}|`] = `${w.name}（顶层）`;
+      if (w.source !== 'inbox') items[`${w.id}|`] = `${w.name} · 顶层`;
       for (const d of ds.filter((x) => x.workspaceId === w.id).sort((a, b) => a.order - b.order)) items[`${w.id}|${d.id}`] = `${w.name} / ${d.name}`;
     }
     return items;
@@ -100,7 +100,7 @@ function Popup() {
           autoFocus
           size="sm"
           className="w-full pl-7"
-          placeholder={`搜索（场景：${mode?.name ?? '默认'}，#标签）`}
+          placeholder="搜索书签，#标签 筛选"
           value={q}
           onChange={(e) => { setQ(e.target.value); setActive(0); }}
           onKeyDown={(e) => {

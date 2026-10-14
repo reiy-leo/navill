@@ -96,7 +96,7 @@ export function DrawerCard({
             aria-label="抽屉名称"
           />
         ) : (
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-semibold" title={`${drawer.name}（双击改名）`} onDoubleClick={() => setEditing(true)}>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-semibold" title={`${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
             {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
             {display}
             <span className="ml-1.5 text-xs font-normal text-kumo-subtle">{all.length}</span>
@@ -108,23 +108,27 @@ export function DrawerCard({
           <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (
-              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开（{all.length}）</DropdownMenu.Item>
+              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开</DropdownMenu.Item>
             )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>新建书签</DropdownMenu.Item>
-            <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身（挂载到其他抽屉）</DropdownMenu.Item>
+            <DropdownMenu.Separator />
+            <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身</DropdownMenu.Item>
             {groups.map((g) => (
               <DropdownMenu.Item key={g.group.id} icon={LinkBreak} onClick={() => void unmount(db, g.group.id)}>解除挂载「{g.drawer.name}」</DropdownMenu.Item>
             ))}
+            <DropdownMenu.Separator />
             <DropdownMenu.Item icon={ArrowsOutCardinal} onClick={async () => {
               const t = await dialogs.pickTarget({ title: '移动抽屉到工作区…', workspacesOnly: true });
               if (t) await moveDrawer(db, drawer.id, t.workspaceId);
             }}>移动到工作区…</DropdownMenu.Item>
             <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? '取消 18+' : '标记为 18+'}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>打乱</DropdownMenu.Item>
+            <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Archive} onClick={() => void archiveDrawer(db, drawer.id)}>归档</DropdownMenu.Item>
             <DropdownMenu.Item icon={Package} onClick={async () => {
               if (await dialogs.confirm({ title: `解散「${drawer.name}」？`, description: '抽屉会删除，其中的书签移到工作区顶层。', okText: '解散' })) await dissolveDrawer(db, drawer.id);
             }}>解散</DropdownMenu.Item>
+            <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Trash} variant="danger" onClick={async () => {
               if (await dialogs.confirm({ title: `删除「${drawer.name}」？`, description: `抽屉连同其中 ${items.length} 个书签一起删除。原书签有分身时，由分身接任。`, okText: '删除', danger: true })) await deleteDrawer(db, drawer.id);
             }}>删除</DropdownMenu.Item>

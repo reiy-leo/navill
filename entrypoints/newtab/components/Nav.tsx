@@ -46,6 +46,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const ctx = (e: React.MouseEvent, w: Workspace) =>
     menu(e, [
       { label: '编辑', icon: PencilSimple, onSelect: () => dialogs.editWorkspace(w.id) },
+      { divider: true },
       { label: w.adult ? '取消 18+' : '标记为 18+', icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
       { divider: true },
       {

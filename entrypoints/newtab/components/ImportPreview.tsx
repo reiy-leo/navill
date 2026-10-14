@@ -118,12 +118,12 @@ export default function ImportPreview({
       {(plan.available.other > 0 || plan.available.mobile > 0 || includeOther || includeMobile) && (
         <Surface className="flex flex-col gap-2 rounded-lg p-4">
           {(includeOther || plan.available.other > 0) && <Checkbox
-            label={`同时导入「其他书签」${includeOther ? '' : `（${plan.available.other} 个）`}`}
+            label={`同时导入「其他书签」${includeOther ? '' : ` · ${plan.available.other} 个`}`}
             checked={includeOther}
             onCheckedChange={(v) => setIncludeOther(Boolean(v))}
           />}
           {(includeMobile || plan.available.mobile > 0) && <Checkbox
-            label={`同时导入「移动设备书签」${includeMobile ? '' : `（${plan.available.mobile} 个）`}`}
+            label={`同时导入「移动设备书签」${includeMobile ? '' : ` · ${plan.available.mobile} 个`}`}
             checked={includeMobile}
             onCheckedChange={(v) => setIncludeMobile(Boolean(v))}
           />}
@@ -141,7 +141,7 @@ export default function ImportPreview({
                 onCheckedChange={(v) => update(w.key, { include: Boolean(v) })}
                 aria-label={`导入 ${w.name}`}
               />
-              <span className="min-w-6 shrink-0 text-center text-lg" title="工作区图标（从名称中的 emoji 解析）">{w.emoji ?? ''}</span>
+              <span className="min-w-6 shrink-0 text-center text-lg" title="工作区图标，从名称中的 emoji 解析">{w.emoji ?? ''}</span>
               <Input
                 className="flex-1"
                 size="sm"

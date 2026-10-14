@@ -59,7 +59,7 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
                 {organize && <Checkbox checked={selection.has(h.item.placement.id)} aria-label="选择" />}
                 <IconWithLinks item={h.item}><BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} /></IconWithLinks>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? '（已归档）' : ''}</div>
+                  <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? ' · 已归档' : ''}</div>
                   <div className="truncate text-xs text-kumo-subtle">{hostOf(h.item.bookmark.url)}</div>
                 </div>
                 <span className="shrink-0 text-xs text-kumo-subtle">{h.workspace.name}{h.drawer ? ` / ${h.drawer.name}` : ''}</span>

@@ -32,9 +32,9 @@ export function IconWithLinks({ item, children, context = 'newtab' }: { item: It
       <button
         ref={dot}
         type="button"
-        aria-label={`关联链接（${links.length}）`}
+        aria-label={`${links.length} 个关联链接`}
         aria-expanded={open}
-        title={`关联链接（${links.length}）`}
+        title={`${links.length} 个关联链接`}
         className="absolute -right-1.5 -top-1.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
         onAuxClick={stop}
