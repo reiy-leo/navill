@@ -1,3 +1,4 @@
+import { Masonry, MasonryItem } from './Masonry';
 import { Button, Empty, Loader } from '@cloudflare/kumo';
 import { FolderPlus, Plus, Tray } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -72,13 +73,13 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
               onDrop={(id, index) => void movePlacement(db, id, workspace.id, null, index)}
             />
           )}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] items-start gap-4">
+          <Masonry>
             {drawers.map((d) => (
-              <div key={d.drawer.id} id={`drawer-${d.drawer.id}`}>
+              <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>
                 <DrawerCard data={d} workspace={workspace} onReveal={reveal} onDropDrawer={(id, after) => dropDrawer(id, d.drawer.id, after)} />
-              </div>
+              </MasonryItem>
             ))}
-          </div>
+          </Masonry>
           {top.length === 0 && (
             <div
               className="rounded-lg border border-dashed border-kumo-line p-3 text-center text-xs text-kumo-subtle"
