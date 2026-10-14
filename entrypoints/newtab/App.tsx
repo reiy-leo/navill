@@ -1,6 +1,6 @@
 import { Loader, TooltipProvider } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { db } from '@/src/db';
 import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { parseNetscapeHtml } from '@/src/lib/io/html';
@@ -9,11 +9,11 @@ import { ContextMenuProvider } from '@/src/ui/ContextMenu';
 import { DialogsProvider } from '@/src/ui/dialogs';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 import { ArchiveView } from './components/ArchiveView';
-import { Header } from './components/Header';
+import { SearchDialog, useSlashToSearch } from './components/AppMenu';
+import type { Tab } from './components/Settings';
 import ImportPreview from './components/ImportPreview';
 import { Nav, useVisibleWorkspaces } from './components/Nav';
 import { OrganizeBar } from './components/OrganizeBar';
-import { SearchResults } from './components/SearchResults';
 import { SettingsDialog } from './components/Settings';
 import Welcome from './components/Welcome';
 import { WorkspaceView } from './components/WorkspaceView';
@@ -74,26 +74,30 @@ function Root() {
 }
 
 function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
-  const { settings, workspaceId, query, view } = useApp();
+  const { settings, workspaceId, view } = useApp();
   const workspaces = useVisibleWorkspaces();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState<Tab | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  useSlashToSearch(openSearch);
+  const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? 'general') };
   const current = workspaces?.find((w) => w.id === workspaceId) ?? workspaces?.[0];
   const top = settings.navLayout === 'top';
 
   return (
     <div className={`flex h-full ${top ? 'flex-col' : ''}`}>
-      {!top && <Nav current={current?.id} />}
+      {!top && <Nav current={current?.id} {...menu} />}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header onSettings={() => setSettingsOpen(true)} />
-        {top && <Nav current={current?.id} />}
+        {top && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
-          {query.trim() ? <SearchResults /> : view === 'archive' ? <ArchiveView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
+          {view === 'archive' ? <ArchiveView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
             <p className="p-8 text-center text-sm text-kumo-subtle">当前场景下没有可见的工作区，可以在设置 → 场景中调整。</p>
           )}
         </main>
       </div>
       <OrganizeBar />
-      {settingsOpen && <SettingsDialog open onClose={() => setSettingsOpen(false)} onReimport={onReimport} />}
+      {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

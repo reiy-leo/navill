@@ -9,6 +9,8 @@ import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
+import { AppMenu } from './AppMenu';
+import type { Tab } from './Settings';
 import { DND_PLACEMENT, DND_WORKSPACE, hasType, insertAfter } from './dnd';
 
 export function useVisibleWorkspaces() {
@@ -16,7 +18,7 @@ export function useVisibleWorkspaces() {
   return useLiveQuery(async () => (await db.workspaces.orderBy('order').toArray()).filter((w) => workspaceVisible(w, visibility)), [visibility]);
 }
 
-export function Nav({ current }: { current?: string }) {
+export function Nav({ current, onSearch, onSettings }: { current?: string; onSearch: () => void; onSettings: (tab?: Tab) => void }) {
   const { settings, updateSettings, selectWorkspace, view, setView } = useApp();
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
@@ -64,7 +66,7 @@ export function Nav({ current }: { current?: string }) {
 
   if (top) {
     return (
-      <nav className="flex items-center gap-1 border-b border-kumo-line px-2 py-1.5">
+      <nav className="flex items-center gap-1 px-2 py-1.5">
         <Button variant="ghost" size="xs" shape="square" icon={<CaretLeft />} aria-label="向左滚动" onClick={() => scroller.current?.scrollBy({ left: -240, behavior: 'smooth' })} />
         <div
           ref={scroller}
@@ -78,14 +80,16 @@ export function Nav({ current }: { current?: string }) {
         <Button variant="ghost" size="xs" shape="square" icon={<CaretRight />} aria-label="向右滚动" onClick={() => scroller.current?.scrollBy({ left: 240, behavior: 'smooth' })} />
         <Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label="新建工作区" onClick={() => void add()} />
         <Button variant={view === 'archive' ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Archive />} aria-label="归档" title="归档" onClick={() => setView('archive')} />
+        <AppMenu onSearch={onSearch} onSettings={onSettings} />
       </nav>
     );
   }
 
   return (
-    <nav className={`flex shrink-0 flex-col gap-1 border-r border-kumo-line p-2 transition-[width] ${collapsed ? 'w-14 items-center' : 'w-56'}`}>
+    <nav className={`flex shrink-0 flex-col gap-1 p-2 transition-[width] ${collapsed ? 'w-14 items-center' : 'w-56'}`}>
       <div className={`flex items-center gap-1 px-1 pb-2 ${collapsed ? 'flex-col' : ''}`}>
         {!collapsed && <span className="flex-1 text-base font-semibold">Navill</span>}
+        <AppMenu onSearch={onSearch} onSettings={onSettings} side={collapsed ? 'right' : 'bottom'} />
         <Button variant="ghost" size="xs" shape="square" icon={collapsed ? <CaretDoubleRight /> : <CaretDoubleLeft />} aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} onClick={() => void updateSettings({ sidebarCollapsed: !collapsed })} />
       </div>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto">{items}</div>

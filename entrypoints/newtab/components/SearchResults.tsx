@@ -12,7 +12,7 @@ import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { search, visibilityOf } from '@/src/lib/view';
 
-export function SearchResults() {
+export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
   const { query, mode, settings, organize, selection, toggleSelect } = useApp();
   const [archived, setArchived] = useState(false);
   const [active, setActive] = useState(0);
@@ -26,17 +26,17 @@ export function SearchResults() {
       if (!hits?.length) return;
       if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, hits.length - 1)); }
       if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-      if (e.key === 'Enter' && hits[active]) { e.preventDefault(); void openItem(hits[active]!.item, settings, e); }
+      if (e.key === 'Enter' && hits[active]) { e.preventDefault(); void openItem(hits[active]!.item, settings, e); onOpen?.(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [hits, active, settings]);
+  }, [hits, active, settings, onOpen]);
 
   if (!hits) return <div className="flex justify-center p-12"><Loader /></div>;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">搜索「{query}」<span className="ml-2 text-sm font-normal text-kumo-subtle">{hits.length} 个结果 · 场景「{mode?.name}」</span></h1>
+        <span className="text-sm text-kumo-subtle">{hits.length} 个结果 · 场景「{mode?.name}」</span>
         <Checkbox label="包含归档" checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
       </div>
       {hits.length === 0 ? (
@@ -52,7 +52,7 @@ export function SearchResults() {
                 onClick={(e) => {
                   e.preventDefault();
                   if (organize) toggleSelect(h.item.placement.id);
-                  else void openItem(h.item, settings, e);
+                  else { void openItem(h.item, settings, e); onOpen?.(); }
                 }}
                 onContextMenu={(e) => menu(e, bookmarkMenu(h.item, dialogs, settings))}
               >

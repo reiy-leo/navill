@@ -16,7 +16,7 @@ import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
 
-type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'data';
+export type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'data';
 
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
