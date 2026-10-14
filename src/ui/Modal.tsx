@@ -12,7 +12,8 @@ export function Modal({
           <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
           <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label="关闭" onClick={onClose} />
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {/* 负外边距 + 内边距：给输入框的 ring（box-shadow）留出空间，避免被 overflow 裁掉 */}
+        <div className="navill-modal-body -m-1 min-h-0 flex-1 overflow-y-auto p-1">{children}</div>
         {footer && <div className="mt-6 flex justify-end gap-2">{footer}</div>}
       </Dialog>
     </Dialog.Root>

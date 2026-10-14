@@ -4,3 +4,8 @@
 
 html, body, #root { height: 100%; }
 body { margin: 0; }
+
+/* 弹窗里的文本输入默认占满宽度（放在 base 层，className 里的宽度工具类可以覆盖） */
+@layer base {
+  :where(.navill-modal-body) :where(input:not([type]), input[type='text'], input[type='url'], input[type='search'], textarea) { width: 100%; }
+}
