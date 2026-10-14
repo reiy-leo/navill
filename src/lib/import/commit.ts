@@ -1,3 +1,4 @@
+import { splitEmoji } from '../emoji';
 import { PALETTE, type Bookmark, type Drawer, type NavillDB, type OutboxItem, type Placement, type SyncEntity, type Workspace } from '@/src/db';
 import { ensureInbox, ensureSeed } from '../store/seed';
 import { uid } from '../store/core';
@@ -63,7 +64,7 @@ export async function commitImport(db: NavillDB, plan: ImportPlan, opts: CommitO
       if (top.length === 0 && ds.length === 0) continue;
       const id = uid();
       workspaces.push({
-        id, name: w.name.trim() || '未命名工作区', color: PALETTE[colorIndex++ % PALETTE.length], order: wsOrder++,
+        id, ...wsName(w), color: PALETTE[colorIndex++ % PALETTE.length], order: wsOrder++,
         viewMode: 'tile', source: w.source, sourceNodeId: w.sourceNodeId, createdAt: now, updatedAt: now,
       });
       addBookmarks(top, id, null);
@@ -108,4 +109,10 @@ export async function commitImport(db: NavillDB, plan: ImportPlan, opts: CommitO
 export async function skipImport(db: NavillDB): Promise<void> {
   await ensureSeed(db);
   await db.meta.put({ key: 'onboardedAt', value: Date.now() });
+}
+
+/** 名称不带 emoji；名称里残留的 emoji（用户在预览里改名时输入）优先作为图标的后备 */
+function wsName(w: { name: string; emoji?: string }) {
+  const parsed = splitEmoji(w.name);
+  return { name: parsed.name || '未命名工作区', emoji: w.emoji || parsed.emoji };
 }

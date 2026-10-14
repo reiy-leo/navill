@@ -1,3 +1,4 @@
+import { splitEmoji } from '../emoji';
 import { classifyRoot, edgeWorkspaceName, type BookmarkNode } from '../edge-workspace';
 
 /**
@@ -27,7 +28,10 @@ export interface PlannedDrawer {
 
 export interface PlannedWorkspace {
   key: string;
+  /** 已去掉 emoji 的名称 */
   name: string;
+  /** 从原名称解析出的图标 */
+  emoji?: string;
   source: PlanSource;
   sourceNodeId: string;
   topLevel: PlannedBookmark[];
@@ -87,7 +91,8 @@ function workspaceFrom(node: BookmarkNode, name: string, source: PlanSource): Pl
   const topLevel = (node.children ?? []).filter((c) => !isFolder(c)).map(toBookmark);
   const drawers = flattenDrawers(node);
   if (topLevel.length === 0 && drawers.length === 0) return null;
-  return { key: `ws:${node.id}`, name, source, sourceNodeId: node.id, topLevel, drawers, include: true };
+  const parsed = splitEmoji(name);
+  return { key: `ws:${node.id}`, name: parsed.name, emoji: parsed.emoji, source, sourceNodeId: node.id, topLevel, drawers, include: true };
 }
 
 export function buildImportPlan(root: BookmarkNode, opts: PlanOptions = {}): ImportPlan {

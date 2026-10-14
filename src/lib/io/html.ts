@@ -16,7 +16,7 @@ export async function exportNetscapeHtml(db: NavillDB): Promise<string> {
 
   let out = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n';
   for (const w of workspaces) {
-    out += `    <DT><H3>${esc(w.name)}</H3>\n    <DL><p>\n`;
+    out += `    <DT><H3>${esc(w.emoji ? `${w.emoji} ${w.name}` : w.name)}</H3>\n    <DL><p>\n`;
     out += items(placements.filter((p) => p.workspaceId === w.id && p.drawerId === null), '        ');
     for (const d of drawers.filter((x) => x.workspaceId === w.id).sort((a, b) => a.order - b.order)) {
       out += `        <DT><H3>${esc(d.name)}</H3>\n        <DL><p>\n`;

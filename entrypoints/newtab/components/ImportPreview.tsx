@@ -1,3 +1,4 @@
+import { splitEmoji } from '@/src/lib/emoji';
 import { Badge, Banner, Button, Checkbox, Input, Loader, Surface, Text } from '@cloudflare/kumo';
 import { ArrowLeft, Check } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -35,7 +36,7 @@ export default function ImportPreview({
       // 保留用户已改的名称和勾选
       for (const w of next.workspaces) {
         const old = prev?.workspaces.find((p) => p.key === w.key);
-        if (old) Object.assign(w, { name: old.name, include: old.include });
+        if (old) Object.assign(w, { name: old.name, emoji: old.emoji, include: old.include });
       }
       return next;
     });
@@ -44,7 +45,13 @@ export default function ImportPreview({
   const stats = useMemo(() => (plan ? planStats(plan) : null), [plan]);
 
   const update = (key: string, patch: { name?: string; include?: boolean }) =>
-    setPlan((p) => p && { ...p, workspaces: p.workspaces.map((w) => (w.key === key ? { ...w, ...patch } : w)) });
+    setPlan((p) => p && { ...p, workspaces: p.workspaces.map((w) => {
+      if (w.key !== key) return w;
+      if (patch.name === undefined) return { ...w, ...patch };
+      // 名称里输入的 emoji 移到图标位，名称不保留 emoji
+      const parsed = splitEmoji(patch.name);
+      return { ...w, ...patch, name: parsed.emoji ? parsed.name : patch.name, emoji: parsed.emoji ?? w.emoji };
+    }) });
 
   const confirm = async () => {
     if (!plan) return;
@@ -115,6 +122,7 @@ export default function ImportPreview({
                 onCheckedChange={(v) => update(w.key, { include: Boolean(v) })}
                 aria-label={`导入 ${w.name}`}
               />
+              <span className="w-6 shrink-0 text-center text-lg" title="工作区图标（从名称中的 emoji 解析）">{w.emoji ?? ''}</span>
               <Input
                 className="flex-1"
                 size="sm"

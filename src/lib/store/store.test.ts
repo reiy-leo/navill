@@ -5,7 +5,7 @@ import { loadWorkspace, search, visibilityOf } from '../view';
 import {
   createAlias, createBookmark, createDrawer, createMode, createTag, createWorkspace, deleteDrawer, deleteTag,
   deleteWorkspace, dissolveDrawer, ensureSeed, mountDrawer, movePlacement, recordOpen, removePlacement,
-  setShowAdult, setTags, setVisible, shuffleDrawer, updateDrawer, updateWorkspace, wouldCycle, AliasCycleError,
+  setShowAdult, setTags, setVisible, shuffleDrawer, updateDrawer, updateWorkspace, wouldCycle, AliasCycleError, parseWorkspaceIcons,
 } from './index';
 
 let db: NavillDB;
@@ -186,5 +186,21 @@ describe('搜索', () => {
     await setVisible(db, 'mode-work', 'drawer', a.id, false);
     expect(await search(db, 'x', visibilityOf(await db.modes.get('mode-work')))).toEqual([]);
     expect(ws).toBeTruthy();
+  });
+});
+
+describe('工作区名称 emoji', () => {
+  it('新建与改名时 emoji 移到图标，名称不保留', async () => {
+    const ws = await createWorkspace(db, { name: '🎮 游戏' });
+    expect(ws).toMatchObject({ name: '游戏', emoji: '🎮' });
+    await updateWorkspace(db, ws.id, { name: '🕹️ 街机' });
+    expect(await db.workspaces.get(ws.id)).toMatchObject({ name: '街机', emoji: '🎮' });
+  });
+  it('从名称解析图标：已有图标的只去掉名称里的 emoji', async () => {
+    const a = await db.workspaces.add({ ...(await createWorkspace(db, { name: 'tmp' })), id: 'raw1', name: '📚 学习' });
+    const b = await db.workspaces.add({ ...(await createWorkspace(db, { name: 'tmp2' })), id: 'raw2', name: '💼工作', emoji: '⭐' });
+    expect(await parseWorkspaceIcons(db)).toBe(2);
+    expect(await db.workspaces.get(a)).toMatchObject({ name: '学习', emoji: '📚' });
+    expect(await db.workspaces.get(b)).toMatchObject({ name: '工作', emoji: '⭐' });
   });
 });

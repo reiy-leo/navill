@@ -66,3 +66,14 @@ describe('重新导入去重', () => {
     expect(await db.bookmarks.count()).toBe(4);
   });
 });
+
+describe('导入时名称 emoji 作为图标', () => {
+  it('文件夹名里的 emoji 成为工作区图标', async () => {
+    const t = root([folder('1', '书签栏', [folder('f9', '🎮 游戏', [bm('g1', 'Steam')])])]);
+    const plan = buildImportPlan(t);
+    expect(plan.workspaces[0]).toMatchObject({ name: '游戏', emoji: '🎮' });
+    await commitImport(db, plan);
+    const ws = (await db.workspaces.toArray()).find((w) => w.source !== 'inbox');
+    expect(ws).toMatchObject({ name: '游戏', emoji: '🎮' });
+  });
+});

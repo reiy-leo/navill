@@ -1,12 +1,12 @@
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
-import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak } from '@phosphor-icons/react';
+import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S } from '@/src/lib/settings';
-import { clearOpenEvents, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setShowAdult, setVisible, unmount } from '@/src/lib/store';
+import { clearOpenEvents, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setShowAdult, setVisible, unmount } from '@/src/lib/store';
 import { isConfigured, redirectUri, signIn, signOut } from '@/src/lib/sync/auth';
 import { deleteRemoteData, syncNow } from '@/src/lib/sync/engine';
 import { useDialogs } from '@/src/ui/dialogs';
@@ -319,6 +319,12 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
       <Row label="重新导入浏览器书签" hint="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
       <Row label="导入书签 HTML 文件" hint="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
+      <Row label="从名称解析工作区图标" hint="把工作区名称里的 emoji 去掉；还没有图标的工作区用第一个 emoji 作为图标">
+        <Button size="sm" icon={<Smiley />} onClick={async () => {
+          const n = await parseWorkspaceIcons(db);
+          setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
+        }}>解析</Button>
+      </Row>
       <Row label="导出 Navill 备份（JSON）" hint="包含工作区、抽屉、书签、分身、场景、标签和使用统计">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>导出</Button>
       </Row>
