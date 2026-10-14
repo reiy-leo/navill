@@ -112,7 +112,7 @@ AliasGroup { id, sourceDrawerId, targetDrawerId, order, createdAt } // 目标抽
 ## 7. 技术方案
 - Manifest V3，一套代码同时发布 Chrome 与 Edge。
 - 框架：WXT + TypeScript + Vite；UI 用 React + Kumo【建议】。
-- 权限：`bookmarks`、`storage`、`unlimitedStorage`、`favicon`、`identity`；host 权限 `https://www.googleapis.com/*`。
+- 权限：`bookmarks`、`storage`、`unlimitedStorage`、`favicon`、`identity`、`alarms`（定时同步）；host 权限 `https://www.googleapis.com/*`。
 - favicon：浏览器 `_favicon` API，本地缓存。
 - 测试：Vitest 单测（拍平、命名回退、去重、分身、循环挂载检测、同步合并）；Playwright 加载扩展做 E2E。
 - 隐私：数据仅在本地与用户自己的 Drive，不收集任何统计。
