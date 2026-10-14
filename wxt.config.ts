@@ -3,7 +3,11 @@ import tailwindcss from '@tailwindcss/vite';
 
 // 一套代码同时构建 Chrome 与 Edge（wxt build -b edge）
 // 可选：固定扩展 ID（OAuth 回调需要稳定 ID），在 .env 中设置 WXT_EXTENSION_KEY=<manifest key>
-const key = process.env.WXT_EXTENSION_KEY;
+// 默认公钥固定开发版扩展 ID = omliccmdddkdjnnkeajhfeljnfgkeagn（公钥不是机密；私钥只在项目 .keys/，不入库）。
+// 上架商店时设 WXT_EXTENSION_KEY=none 去掉 key，商店会分配自己的 ID。
+const DEV_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo0g/Tf3qzkt4fNnUUIBq3DyJJntHA83h3a2uhX0aW5HUUwt8x83xNDK35dPwh4qHCtij89wA9nNYsxnpDf1yqcHIyIxo5mjis3rqhttZCcQl6nj9vnuCoYNg2QHCTRprdIasCHtZchzFsM9/O/qgY/NRK6Itob6o+NzNyb6ITDUutWnaZhkYKu32ZjYxNdfUQEMXUZSh/xrI5Wgdf17WfW2kzDKTl3DBJb4vjRTTYNVqbWbxTfJC9uPDXt/Sw6zCMkmOsDHtlv9XlyH6YVD3M1LYRguL3xeZ/nZxZJyGsF7yKD1fKQyxqdM5IPCbFNPNYIUSGWp2u4K66T3Vj/E4OwIDAQAB';
+const envKey = process.env.WXT_EXTENSION_KEY;
+const key = envKey === 'none' ? undefined : envKey || DEV_KEY;
 
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
