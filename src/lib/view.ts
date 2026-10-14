@@ -20,7 +20,8 @@ export function visibilityOf(mode: Mode | undefined, includeArchived = false): V
 }
 
 export const workspaceVisible = (w: Workspace, v: Visibility) => !v.hiddenWorkspaces.has(w.id) && (v.showAdult || !w.adult);
-export const drawerVisible = (d: Drawer, v: Visibility) => !v.hiddenDrawers.has(d.id) && (v.showAdult || !d.adult);
+export const drawerVisible = (d: Drawer, v: Visibility) =>
+  !v.hiddenDrawers.has(d.id) && (v.showAdult || !d.adult) && (v.includeArchived || !d.archivedAt);
 export const bookmarkVisible = (b: Bookmark, v: Visibility) =>
   (v.includeArchived || !b.archivedAt) && (v.showAdult || !b.tagIds.includes(TAG_ADULT));
 

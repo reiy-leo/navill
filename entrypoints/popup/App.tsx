@@ -34,7 +34,7 @@ function Popup() {
   }, []);
 
   const targets = useLiveQuery(async () => {
-    const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.toArray()]);
+    const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.filter((d) => !d.archivedAt).toArray()]);
     const inbox = ws.find((w) => w.source === 'inbox');
     const items: Record<string, string> = {};
     if (inbox) items[`${inbox.id}|`] = '待整理';

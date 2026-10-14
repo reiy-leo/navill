@@ -7,6 +7,8 @@ import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db
 import { createTag, setTags, toggleTagOn, updateBookmark, updateWorkspace } from '@/src/lib/store';
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
+import { LucidePicker } from './LucidePicker';
+import { useIconStyle } from './iconStyle';
 import { HistoryAutocomplete, useHistoryPermission } from './HistoryAutocomplete';
 
 export interface Target { workspaceId: string; drawerId: string | null }
@@ -145,7 +147,7 @@ function PromptDialog({ title, initial, placeholder, onDone }: { title: string; 
 function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => void }) {
   const [q, setQ] = useState('');
   const data = useLiveQuery(async () => {
-    const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.toArray()]);
+    const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.filter((d) => !d.archivedAt).toArray()]);
     return { ws, ds };
   }, []);
   const exclude = new Set(o.excludeDrawerIds ?? []);
@@ -253,12 +255,14 @@ const EMOJIS: string[] = Array.from('📁💼🏠🎯📚🧠💡🛠️🧪🎨
 
 function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const w = useLiveQuery(() => db.workspaces.get(id), [id]);
-  const [form, setForm] = useState<{ name: string; emoji: string; color: string; description: string } | null>(null);
-  if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
+  const globalStyle = useIconStyle();
+  const [tab, setTab] = useState<'emoji' | 'lucide'>(globalStyle);
+  const [form, setForm] = useState<{ name: string; emoji: string; lucide?: string; color: string; description: string } | null>(null);
+  if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
   const isInbox = w?.source === 'inbox';
   const save = async () => {
     if (!form) return;
-    await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, color: form.color, description: form.description || undefined });
+    await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, lucide: form.lucide, color: form.color, description: form.description || undefined });
     onClose();
   };
   return (
@@ -266,20 +270,28 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
       {form && (
         <div className="grid gap-4">
           <div className="flex items-end gap-3">
-            <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, color: form.color }} size={40} />
+            <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, color: form.color }} size={40} style={tab} />
             <div className="flex-1">
               <Input label="名称" value={form.name} disabled={isInbox} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
           </div>
           <div>
-            <div className="mb-1 text-sm font-medium">图标</div>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-sm font-medium">图标</span>
+              <span className="flex gap-1">
+                <Button size="xs" variant={tab === 'emoji' ? 'secondary' : 'ghost'} onClick={() => setTab('emoji')}>Emoji</Button>
+                <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>线性图标</Button>
+              </span>
+              <span className="text-xs text-kumo-subtle">两种都会保存，显示哪种在「设置 → 通用」切换</span>
+            </div>
+            {tab === 'lucide' ? <LucidePicker value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
             <div className="flex flex-wrap gap-1">
               <Button size="sm" variant={!form.emoji ? 'outline' : 'ghost'} className={!form.emoji ? '!ring-kumo-brand' : ''} onClick={() => setForm({ ...form, emoji: '' })}>首字</Button>
               {EMOJIS.map((e) => (
                 <Button key={e} size="sm" shape="square" variant={form.emoji === e ? 'outline' : 'ghost'} className={`text-lg ${form.emoji === e ? '!ring-kumo-brand' : ''}`} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
               ))}
               <Input size="sm" className="w-24" placeholder="自定义（≤2）" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
-            </div>
+            </div>)}
           </div>
           <div>
             <div className="mb-1 text-sm font-medium">颜色</div>

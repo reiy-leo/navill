@@ -1,13 +1,11 @@
 import { Button, DropdownMenu, Input } from '@cloudflare/kumo';
 import {
-  ArrowSquareOut, ArrowsOutCardinal, CaretDown, CaretRight, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak,
-} from '@phosphor-icons/react';
+  ArrowSquareOut, ArrowsOutCardinal, CaretDown, CaretRight, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { db, type Workspace } from '@/src/db';
 import {
   AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, movePlacement, renameDrawer,
-  shuffleDrawer, unmount, updateDrawer,
-} from '@/src/lib/store';
+  shuffleDrawer, unmount, updateDrawer, archiveDrawer } from '@/src/lib/store';
 import { effectiveView, type DrawerData, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
 import { openAll } from '@/src/ui/open';
@@ -121,6 +119,7 @@ export function DrawerCard({
             }}>移动到工作区…</DropdownMenu.Item>
             <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? '取消 18+' : '标记为 18+'}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>打乱</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Archive} onClick={() => void archiveDrawer(db, drawer.id)}>归档</DropdownMenu.Item>
             <DropdownMenu.Item icon={Package} onClick={async () => {
               if (await dialogs.confirm({ title: `解散「${drawer.name}」？`, description: '抽屉会删除，其中的书签移到工作区顶层。', okText: '解散' })) await dissolveDrawer(db, drawer.id);
             }}>解散</DropdownMenu.Item>

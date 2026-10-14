@@ -8,6 +8,8 @@ export interface Settings {
   drawerName: 'full' | 'last';
   navLayout: 'sidebar' | 'top';
   navLabel: 'both' | 'icon' | 'name';
+  /** 工作区图标风格：emoji 或 Lucide 线性图标 */
+  workspaceIconStyle: 'emoji' | 'lucide';
   sidebarCollapsed: boolean;
   startWorkspace: 'last' | string;
   lastWorkspaceId?: string;
@@ -24,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   drawerName: 'full',
   navLayout: 'sidebar',
   navLabel: 'both',
+  workspaceIconStyle: 'emoji',
   sidebarCollapsed: false,
   startWorkspace: 'last',
   currentModeId: MODE_DEFAULT,

@@ -2,7 +2,8 @@ import { splitEmoji } from '@/src/lib/emoji';
 import { Badge, Banner, Button, Checkbox, Input, Loader, Surface, Text } from '@cloudflare/kumo';
 import { ArrowLeft, Check } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState } from 'react';
-import { db } from '@/src/db';
+import { MAX_WORKSPACES, db } from '@/src/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { commitImport } from '@/src/lib/import/commit';
 import { buildImportPlan, planStats, type ImportPlan, type PlanSource } from '@/src/lib/import/plan';
@@ -43,6 +44,20 @@ export default function ImportPreview({
   }, [tree, includeOther, includeMobile]);
 
   const stats = useMemo(() => (plan ? planStats(plan) : null), [plan]);
+  // 工作区上限：还能新建多少个（「待整理」尚不存在时也要给它留一个位置）
+  const existing = useLiveQuery(async () => ({ n: await db.workspaces.count(), inbox: (await db.workspaces.where('source').equals('inbox').count()) > 0 }), []);
+  const room = existing ? Math.max(0, MAX_WORKSPACES - existing.n - (existing.inbox ? 0 : 1)) : MAX_WORKSPACES;
+  const over = plan ? plan.workspaces.length > room : false;
+  // 超出上限时，默认只勾选前 room 个
+  useEffect(() => {
+    if (!existing) return;
+    setPlan((p) => {
+      if (!p) return p;
+      let n = 0;
+      const ws = p.workspaces.map((w) => (w.include && n < room ? (n++, w) : w.include ? { ...w, include: false } : w));
+      return ws.some((w, i) => w !== p.workspaces[i]) ? { ...p, workspaces: ws } : p;
+    });
+  }, [room, existing, plan?.workspaces.length]);
 
   const update = (key: string, patch: { name?: string; include?: boolean }) =>
     setPlan((p) => p && { ...p, workspaces: p.workspaces.map((w) => {
@@ -96,6 +111,9 @@ export default function ImportPreview({
         将导入 {stats.workspaces} 个工作区、{stats.drawers} 个抽屉、{stats.bookmarks} 个书签。子文件夹已全部拍平为抽屉；
         书签栏根目录的散放书签放进「待整理」。可以在这里改工作区名称或取消勾选。{dedupe ? '已存在的 URL 会自动跳过。' : ''}
       </Text>
+      {over && (
+        <Banner variant="alert" description={`最多 ${MAX_WORKSPACES} 个工作区，这次最多还能导入 ${room} 个，超出的已取消勾选。取消勾选别的，就能换成想要的。`} />
+      )}
 
       {(plan.available.other > 0 || plan.available.mobile > 0 || includeOther || includeMobile) && (
         <Surface className="flex flex-col gap-2 rounded-lg p-4">
@@ -119,6 +137,7 @@ export default function ImportPreview({
             <Surface key={w.key} className={`flex items-center gap-3 rounded-lg p-3 ${w.include ? '' : 'opacity-50'}`}>
               <Checkbox
                 checked={w.include}
+                disabled={!w.include && stats.workspaces >= room}
                 onCheckedChange={(v) => update(w.key, { include: Boolean(v) })}
                 aria-label={`导入 ${w.name}`}
               />

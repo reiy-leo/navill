@@ -31,6 +31,11 @@ export async function updateDrawer(
   await patch<Drawer>(db, 'drawers', id, c);
 }
 
+/** 归档 / 取消归档抽屉 */
+export async function archiveDrawer(db: NavillDB, id: string, archived = true) {
+  await patch<Drawer>(db, 'drawers', id, { archivedAt: archived ? Date.now() : undefined });
+}
+
 export async function reorderDrawers(db: NavillDB, ids: string[]) {
   await tx(db, async () => {
     for (const [i, id] of ids.entries()) await patch<Drawer>(db, 'drawers', id, { order: i });

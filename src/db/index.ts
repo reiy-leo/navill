@@ -5,13 +5,20 @@ export type ViewMode = 'icon' | 'row' | 'tile' | 'bento';
 export type SortMode = 'manual' | 'name-asc' | 'name-desc' | 'clicks-asc' | 'clicks-desc';
 export type WorkspaceSource = 'bookmark_bar' | 'other' | 'mobile' | 'edge_workspace' | 'manual' | 'inbox';
 
+/** 工作区上限（含「待整理」） */
+export const MAX_WORKSPACES = 30;
+
 export interface Workspace {
-  id: string; name: string; emoji?: string; color?: string; description?: string; order: number; viewMode: ViewMode;
+  id: string; name: string;
+  /** Emoji 图标（最多 2 个） */ emoji?: string;
+  /** Lucide 图标名（kebab-case，如 "briefcase"） */ lucide?: string;
+  color?: string; description?: string; order: number; viewMode: ViewMode;
   source: WorkspaceSource; sourceNodeId?: string; adult?: boolean; createdAt: number; updatedAt: number;
 }
 export interface Drawer {
   id: string; workspaceId: string; name: string; path: string[]; order: number; collapsed: boolean;
-  viewMode?: ViewMode; sortMode?: SortMode; adult?: boolean; sourceNodeId?: string; updatedAt: number;
+  viewMode?: ViewMode; sortMode?: SortMode; adult?: boolean; sourceNodeId?: string;
+  /** 归档时间：归档的抽屉在工作区隐藏，集中到「归档」 */ archivedAt?: number; updatedAt: number;
 }
 /** 关联链接：同一个书签的其他方面（GitHub、文档、社交账号…） */
 export interface BookmarkLink { url: string; title?: string }

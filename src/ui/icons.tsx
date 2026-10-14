@@ -1,3 +1,5 @@
+import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
+import { useIconStyle } from './iconStyle';
 import { iconCount } from '@/src/lib/emoji';
 import type { Workspace } from '@/src/db';
 import { faviconUrl } from '@/src/lib/favicon';
@@ -34,17 +36,27 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
   );
 }
 
-export function WorkspaceIcon({ ws, size = 24 }: { ws: Pick<Workspace, 'name' | 'emoji' | 'color'>; size?: number }) {
+export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'>; size?: number; style?: 'emoji' | 'lucide' }) {
+  const global = useIconStyle();
+  const mode = style ?? global;
+  if (mode === 'lucide' && ws.lucide) {
+    return (
+      <span className="inline-flex shrink-0 items-center justify-center rounded-md text-white" style={{ width: size, height: size, background: ws.color ?? '#8d8d86' }}>
+        <DynamicIcon name={ws.lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
+      </span>
+    );
+  }
+  const emoji = mode === 'emoji' ? ws.emoji : undefined;
   return (
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold text-white"
       style={{
-        width: size, height: size, fontSize: ws.emoji ? size * (iconCount(ws.emoji) > 1 ? 0.42 : 0.7) : size * 0.5,
-        letterSpacing: ws.emoji ? '-0.05em' : undefined,
-        background: ws.emoji ? 'transparent' : ws.color ?? '#8d8d86',
+        width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * 0.5,
+        letterSpacing: emoji ? '-0.05em' : undefined,
+        background: emoji ? 'transparent' : ws.color ?? '#8d8d86',
       }}
     >
-      {ws.emoji || ws.name.trim().charAt(0) || '?'}
+      {emoji || ws.name.trim().charAt(0) || '?'}
     </span>
   );
 }

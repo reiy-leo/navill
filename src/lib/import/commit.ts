@@ -1,5 +1,5 @@
 import { splitEmoji } from '../emoji';
-import { PALETTE, type Bookmark, type Drawer, type NavillDB, type OutboxItem, type Placement, type SyncEntity, type Workspace } from '@/src/db';
+import { MAX_WORKSPACES, PALETTE, type Bookmark, type Drawer, type NavillDB, type OutboxItem, type Placement, type SyncEntity, type Workspace } from '@/src/db';
 import { ensureInbox, ensureSeed } from '../store/seed';
 import { uid } from '../store/core';
 import type { ImportPlan, PlannedBookmark, PlannedDrawer } from './plan';
@@ -20,6 +20,8 @@ export async function commitImport(db: NavillDB, plan: ImportPlan, opts: CommitO
 
   await db.transaction('rw', db.tables, async () => {
     const inbox = await ensureInbox(db);
+    // 工作区上限：超出的部分不导入（预览里已提示并限制勾选）
+    const room = Math.max(0, MAX_WORKSPACES - (await db.workspaces.count()));
     const all = await db.workspaces.toArray();
     const regular = all.filter((w) => w.source !== 'inbox');
     let wsOrder = regular.reduce((m, w) => Math.max(m, w.order), -1) + 1;
@@ -62,6 +64,7 @@ export async function commitImport(db: NavillDB, plan: ImportPlan, opts: CommitO
       const top = keep(w.topLevel);
       const ds = w.drawers.map((d) => ({ d, list: keep(d.bookmarks) })).filter((x) => x.list.length > 0);
       if (top.length === 0 && ds.length === 0) continue;
+      if (workspaces.length >= room) break;
       const id = uid();
       workspaces.push({
         id, ...wsName(w), color: PALETTE[colorIndex++ % PALETTE.length], order: wsOrder++,

@@ -6,6 +6,7 @@ import {
   createAlias, createBookmark, createDrawer, createMode, createTag, createWorkspace, deleteDrawer, deleteTag,
   deleteWorkspace, dissolveDrawer, ensureSeed, mountDrawer, movePlacement, recordOpen, removePlacement,
   setShowAdult, setTags, updateBookmark, setVisible, shuffleDrawer, updateDrawer, updateWorkspace, wouldCycle, AliasCycleError, parseWorkspaceIcons,
+  archiveDrawer, WorkspaceLimitError,
 } from './index';
 
 let db: NavillDB;
@@ -217,5 +218,25 @@ describe('工作区名称 emoji', () => {
     expect(await db.workspaces.get(a)).toMatchObject({ name: '学习', emoji: '📚' });
     expect(await db.workspaces.get(b)).toMatchObject({ name: '工作', emoji: '💼📎' });
     expect(await parseWorkspaceIcons(db)).toBe(0);
+  });
+});
+
+describe('工作区上限与抽屉归档', () => {
+  it('最多 30 个工作区（含待整理），lucide 图标和 emoji 一起保存', async () => {
+    const first = await createWorkspace(db, { name: '🎮 游戏', lucide: 'gamepad-2' });
+    expect(first).toMatchObject({ name: '游戏', emoji: '🎮', lucide: 'gamepad-2' });
+    while ((await db.workspaces.count()) < 30) await createWorkspace(db, { name: 'w' });
+    await expect(createWorkspace(db, { name: '多一个' })).rejects.toBeInstanceOf(WorkspaceLimitError);
+  });
+
+  it('归档的抽屉在工作区和搜索中隐藏，恢复后回来', async () => {
+    const { ws, a } = await setup();
+    await archiveDrawer(db, a.id);
+    const v = visibilityOf(undefined);
+    expect((await loadWorkspace(db, ws.id, v))!.drawers.map((d) => d.drawer.name)).toEqual(['B']);
+    expect(await search(db, 'x.com', v)).toHaveLength(0);
+    expect(await search(db, 'x.com', visibilityOf(undefined, true))).toHaveLength(1);
+    await archiveDrawer(db, a.id, false);
+    expect((await loadWorkspace(db, ws.id, v))!.drawers.map((d) => d.drawer.name)).toEqual(['A', 'B']);
   });
 });

@@ -96,6 +96,7 @@ function General() {
       <Row label="书签打开方式" hint="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
       <Row label="工作区导航"><Pick label="工作区导航" value={settings.navLayout} items={{ sidebar: '侧边栏', top: '顶部横铺' }} onChange={(navLayout) => set({ navLayout })} /></Row>
       <Row label="工作区显示" hint="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
+      <Row label="工作区图标" hint="两种图标都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标（Lucide）' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
       <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
       <IconRows />

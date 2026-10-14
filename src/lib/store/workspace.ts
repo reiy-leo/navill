@@ -1,19 +1,25 @@
-import { MODE_DEFAULT, PALETTE, type Drawer, type NavillDB, type ViewMode, type Workspace } from '@/src/db';
+import { MAX_WORKSPACES, MODE_DEFAULT, PALETTE, type Drawer, type NavillDB, type ViewMode, type Workspace } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
 import { deleteDrawer } from './drawer';
 import { removePlacement } from './placement';
 import { hideEverywhereExcept } from './mode';
 import { splitEmoji } from '../emoji';
 
+export class WorkspaceLimitError extends Error {
+  constructor() { super(`最多只能有 ${MAX_WORKSPACES} 个工作区`); }
+}
+
 export async function createWorkspace(
-  db: NavillDB, input: Partial<Pick<Workspace, 'name' | 'emoji' | 'color' | 'description'>> = {}, onlyInMode?: string,
+  db: NavillDB, input: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description'>> = {}, onlyInMode?: string,
 ) {
   return tx(db, async () => {
     const all = await db.workspaces.toArray();
+    if (all.length >= MAX_WORKSPACES) throw new WorkspaceLimitError();
     const regular = all.filter((w) => w.source !== 'inbox');
     const ws = await put<Workspace>(db, 'workspaces', {
       id: uid(),
       ...normalizeName(input.name, input.emoji, '新工作区'),
+      lucide: input.lucide,
       color: input.color ?? PALETTE[regular.length % PALETTE.length],
       description: input.description,
       order: regular.reduce((m, w) => Math.max(m, w.order), -1) + 1,
@@ -28,7 +34,7 @@ export async function createWorkspace(
 }
 
 export async function updateWorkspace(
-  db: NavillDB, id: string, changes: Partial<Pick<Workspace, 'name' | 'emoji' | 'color' | 'description' | 'viewMode' | 'adult'>>,
+  db: NavillDB, id: string, changes: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description' | 'viewMode' | 'adult'>>,
 ) {
   const ws = await db.workspaces.get(id);
   if (!ws) return;
