@@ -1,5 +1,9 @@
 import { db } from '@/src/db';
 import { ensureSeed } from '@/src/lib/store/seed';
+import { parseWorkspaceIcons } from '@/src/lib/store/workspace';
+
+/** 每次启动/更新：把工作区名称里的 emoji 提取为图标 */
+const fixIcons = () => parseWorkspaceIcons(db).catch((e) => console.warn('[Navill] 解析工作区图标失败', e));
 import { getSettings, settingsItem } from '@/src/lib/settings';
 import { backoffMinutes, syncNow } from '@/src/lib/sync/engine';
 
@@ -28,10 +32,12 @@ async function trySync(reason: string) {
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     await ensureSeed(db);
+    await fixIcons();
     await schedule();
     if (reason === 'install') void browser.tabs.create({ url: browser.runtime.getURL('/newtab.html') });
   });
   browser.runtime.onStartup.addListener(async () => {
+    await fixIcons();
     await schedule();
     void trySync('启动');
   });

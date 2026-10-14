@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { db } from '@/src/db';
 import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { parseNetscapeHtml } from '@/src/lib/io/html';
-import { ensureSeed } from '@/src/lib/store';
+import { ensureSeed, parseWorkspaceIcons } from '@/src/lib/store';
 import { ContextMenuProvider } from '@/src/ui/ContextMenu';
 import { DialogsProvider } from '@/src/ui/dialogs';
 import { AppStateProvider, useApp } from '@/src/ui/state';
@@ -39,7 +39,8 @@ function Root() {
   const [seeded, setSeeded] = useState(false);
   const htmlInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    void ensureSeed(db).then(() => setSeeded(true));
+    // 每次打开新标签页也检查一次（同步进来的名称可能带 emoji）
+    void ensureSeed(db).then(() => parseWorkspaceIcons(db)).catch(() => 0).then(() => setSeeded(true));
   }, []);
   const onboarded = useLiveQuery(async () => {
     const [imported, skipped] = await Promise.all([db.meta.get('importedAt'), db.meta.get('onboardedAt')]);

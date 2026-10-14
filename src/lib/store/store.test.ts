@@ -194,13 +194,16 @@ describe('工作区名称 emoji', () => {
     const ws = await createWorkspace(db, { name: '🎮 游戏' });
     expect(ws).toMatchObject({ name: '游戏', emoji: '🎮' });
     await updateWorkspace(db, ws.id, { name: '🕹️ 街机' });
-    expect(await db.workspaces.get(ws.id)).toMatchObject({ name: '街机', emoji: '🎮' });
+    expect(await db.workspaces.get(ws.id)).toMatchObject({ name: '街机', emoji: '🕹️' });
+    await updateWorkspace(db, ws.id, { name: '街机厅' });
+    expect(await db.workspaces.get(ws.id)).toMatchObject({ name: '街机厅', emoji: '🕹️' });
   });
-  it('从名称解析图标：已有图标的只去掉名称里的 emoji', async () => {
+  it('从名称解析图标：名称里的 emoji（最多两个）覆盖原图标', async () => {
     const a = await db.workspaces.add({ ...(await createWorkspace(db, { name: 'tmp' })), id: 'raw1', name: '📚 学习' });
-    const b = await db.workspaces.add({ ...(await createWorkspace(db, { name: 'tmp2' })), id: 'raw2', name: '💼工作', emoji: '⭐' });
+    const b = await db.workspaces.add({ ...(await createWorkspace(db, { name: 'tmp2' })), id: 'raw2', name: '💼工作📎📌', emoji: '⭐' });
     expect(await parseWorkspaceIcons(db)).toBe(2);
     expect(await db.workspaces.get(a)).toMatchObject({ name: '学习', emoji: '📚' });
-    expect(await db.workspaces.get(b)).toMatchObject({ name: '工作', emoji: '⭐' });
+    expect(await db.workspaces.get(b)).toMatchObject({ name: '工作', emoji: '💼📎' });
+    expect(await parseWorkspaceIcons(db)).toBe(0);
   });
 });

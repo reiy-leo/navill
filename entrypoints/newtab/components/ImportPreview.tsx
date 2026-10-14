@@ -122,7 +122,7 @@ export default function ImportPreview({
                 onCheckedChange={(v) => update(w.key, { include: Boolean(v) })}
                 aria-label={`导入 ${w.name}`}
               />
-              <span className="w-6 shrink-0 text-center text-lg" title="工作区图标（从名称中的 emoji 解析）">{w.emoji ?? ''}</span>
+              <span className="min-w-6 shrink-0 text-center text-lg" title="工作区图标（从名称中的 emoji 解析）">{w.emoji ?? ''}</span>
               <Input
                 className="flex-1"
                 size="sm"

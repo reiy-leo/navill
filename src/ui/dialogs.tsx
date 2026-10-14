@@ -1,3 +1,4 @@
+import { limitIcon } from '@/src/lib/emoji';
 import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -236,7 +237,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
               {EMOJIS.map((e) => (
                 <button key={e} className={`h-8 w-8 rounded-md border text-lg ${form.emoji === e ? 'border-kumo-brand' : 'border-transparent hover:bg-kumo-tint'}`} onClick={() => setForm({ ...form, emoji: e })}>{e}</button>
               ))}
-              <Input size="sm" className="w-24" placeholder="自定义" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: [...e.target.value].slice(0, 2).join('') })} aria-label="自定义 emoji" />
+              <Input size="sm" className="w-24" placeholder="自定义（≤2）" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
             </div>
           </div>
           <div>

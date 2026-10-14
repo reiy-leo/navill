@@ -1,3 +1,4 @@
+import { iconCount } from '@/src/lib/emoji';
 import type { Workspace } from '@/src/db';
 import { faviconUrl } from '@/src/lib/favicon';
 import { useState } from 'react';
@@ -36,7 +37,8 @@ export function WorkspaceIcon({ ws, size = 24 }: { ws: Pick<Workspace, 'name' | 
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold text-white"
       style={{
-        width: size, height: size, fontSize: ws.emoji ? size * 0.7 : size * 0.5,
+        width: size, height: size, fontSize: ws.emoji ? size * (iconCount(ws.emoji) > 1 ? 0.42 : 0.7) : size * 0.5,
+        letterSpacing: ws.emoji ? '-0.05em' : undefined,
         background: ws.emoji ? 'transparent' : ws.color ?? '#8d8d86',
       }}
     >

@@ -34,9 +34,10 @@ export async function updateWorkspace(
   if (!ws) return;
   if (ws.source === 'inbox') delete changes.name; // 「待整理」不可改名
   if (changes.name !== undefined) {
-    const n = normalizeName(changes.name, changes.emoji ?? ws.emoji, ws.name);
-    changes.name = n.name;
-    if (!(changes.emoji ?? ws.emoji) && n.emoji) changes.emoji = n.emoji;
+    const parsed = splitEmoji(changes.name);
+    changes.name = parsed.name || ws.name;
+    // 名称里写了 emoji 就以它为准作为图标（最多两个）
+    if (parsed.emoji) changes.emoji = parsed.emoji;
   }
   if (changes.description) changes.description = changes.description.slice(0, 50);
   await patch<Workspace>(db, 'workspaces', id, changes);
@@ -70,13 +71,13 @@ export async function deleteWorkspace(db: NavillDB, id: string) {
   });
 }
 
-/** 工作区名称不能含 emoji：拆出的第一个 emoji 在没有图标时作为图标 */
+/** 工作区名称不能含 emoji：名称里的 emoji（最多两个）作为图标，优先于传入的图标 */
 function normalizeName(raw: string | undefined, emoji: string | undefined, fallback: string) {
   const parsed = splitEmoji(raw ?? '');
-  return { name: parsed.name || fallback, emoji: emoji || parsed.emoji };
+  return { name: parsed.name || fallback, emoji: parsed.emoji || emoji };
 }
 
-/** 从现有工作区名称中解析图标：名称里的 emoji 全部去掉，没有图标的用第一个 emoji 当图标。返回处理的工作区数 */
+/** 从工作区名称中解析图标：名称里的 emoji 全部去掉，前两个 emoji 作为图标（覆盖原图标）。每次启动时自动运行。返回处理的工作区数 */
 export async function parseWorkspaceIcons(db: NavillDB): Promise<number> {
   return tx(db, async () => {
     let n = 0;
@@ -84,7 +85,7 @@ export async function parseWorkspaceIcons(db: NavillDB): Promise<number> {
       const parsed = splitEmoji(ws.name);
       if (parsed.name === ws.name) continue;
       const changes: Partial<Workspace> = { name: parsed.name || ws.name };
-      if (!ws.emoji && parsed.emoji) changes.emoji = parsed.emoji;
+      if (parsed.emoji) changes.emoji = parsed.emoji;
       await patch<Workspace>(db, 'workspaces', ws.id, changes);
       n++;
     }
