@@ -16,7 +16,9 @@ export default defineConfig({
     name: 'Navill',
     description: '把浏览器书签重组为「工作区 → 抽屉 → 书签」的新标签页导航',
     permissions: ['bookmarks', 'storage', 'unlimitedStorage', 'favicon', 'identity', 'alarms'],
-    host_permissions: ['https://www.googleapis.com/*'],
+    host_permissions: ['https://www.googleapis.com/*', 'https://icon.horse/*', 'https://www.google.com/s2/*', 'https://*.gstatic.com/*'],
+    // 可选：读取网页自身的高清图标（apple-touch-icon / manifest），在 设置 → 通用 里授权
+    optional_host_permissions: ['<all_urls>'],
     action: { default_title: 'Navill' },
     ...(key ? { key } : {}),
   },

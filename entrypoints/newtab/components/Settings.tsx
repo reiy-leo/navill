@@ -14,6 +14,7 @@ import { WorkspaceIcon } from '@/src/ui/icons';
 import { Modal } from '@/src/ui/Modal';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
+import { clearIconCache } from '@/src/lib/icons/fetcher';
 
 type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'data';
 
@@ -62,6 +63,28 @@ function Pick<K extends string>({ value, items, onChange, label }: { value: K; i
   return <Select aria-label={label} className="w-44" value={value} items={items} onValueChange={(v) => v && onChange(v as K)} />;
 }
 
+function IconRows() {
+  const pageGranted = useLiveQuery(() => browser.permissions.contains({ origins: ['<all_urls>'] }).catch(() => false), []);
+  const [granted, setGranted] = useState<boolean | undefined>(undefined);
+  const has = granted ?? pageGranted;
+  const cached = useLiveQuery(() => db.icons.filter((i) => !!i.blob).count(), []) ?? 0;
+  const [msg, setMsg] = useState('');
+  return (
+    <>
+      <Row label="读取网页自带的高清图标" hint="授权后优先用网站自己的 apple-touch-icon / manifest 图标，最清晰；不授权则用 icon.horse 与 Google 图标服务">
+        {has ? (
+          <Button size="sm" onClick={async () => { await browser.permissions.remove({ origins: ['<all_urls>'] }); setGranted(false); }}>撤销授权</Button>
+        ) : (
+          <Button size="sm" variant="primary" onClick={async () => { const ok = await browser.permissions.request({ origins: ['<all_urls>'] }); setGranted(ok); if (ok) { await clearIconCache(db); setMsg('已授权，图标将重新获取'); } }}>授权</Button>
+        )}
+      </Row>
+      <Row label="高清图标缓存" hint={msg || `已缓存 ${cached} 个网站，只存本机、不同步`}>
+        <Button size="sm" icon={<ArrowsClockwise />} onClick={async () => { const n = await clearIconCache(db); setMsg(`已清除 ${n} 条，打开页面时会重新获取`); }}>重新获取</Button>
+      </Row>
+    </>
+  );
+}
+
 function General() {
   const { settings, updateSettings } = useApp();
   const workspaces = useLiveQuery(() => db.workspaces.orderBy('order').toArray(), []) ?? [];
@@ -75,6 +98,7 @@ function General() {
       <Row label="工作区显示" hint="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
       <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
+      <IconRows />
       <Row label="新标签页" hint="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
     </div>
   );

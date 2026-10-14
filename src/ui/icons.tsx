@@ -2,9 +2,11 @@ import { iconCount } from '@/src/lib/emoji';
 import type { Workspace } from '@/src/db';
 import { faviconUrl } from '@/src/lib/favicon';
 import { useState } from 'react';
+import { useHostIcon } from './useHostIcon';
 
 export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: number; src?: string }) {
   const [failed, setFailed] = useState(false);
+  const hd = useHostIcon(url, !src);
   let letter = '•';
   try {
     letter = new URL(url).hostname.replace(/^www\./, '').charAt(0).toUpperCase() || '•';
@@ -21,7 +23,7 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
   }
   return (
     <img
-      src={src || faviconUrl(url, size > 24 ? 64 : 32)}
+      src={src || hd || faviconUrl(url, size > 24 ? 64 : 32)}
       alt=""
       width={size}
       height={size}

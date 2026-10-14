@@ -39,6 +39,8 @@ export interface Tag {
 export interface Tombstone { id: string; entity: SyncEntity; entityId: string; deletedAt: number }
 export interface OutboxItem { id: string; entity: SyncEntity; entityId: string; op: 'put' | 'delete'; updatedAt: number }
 export interface Meta { key: string; value: unknown }
+/** 高清网站图标缓存（按域名，只存本地，不同步） */
+export interface IconCache { host: string; blob?: Blob; source?: 'page' | 'icon.horse' | 'google'; fetchedAt: number; failed?: boolean }
 
 export type SyncEntity = 'workspaces' | 'drawers' | 'bookmarks' | 'placements' | 'aliasGroups' | 'modes' | 'tags';
 export const SYNC_ENTITIES: SyncEntity[] = ['workspaces', 'drawers', 'bookmarks', 'placements', 'aliasGroups', 'modes', 'tags'];
@@ -55,6 +57,7 @@ export type NavillDB = Dexie & {
   tombstones: EntityTable<Tombstone, 'id'>;
   outbox: EntityTable<OutboxItem, 'id'>;
   meta: EntityTable<Meta, 'key'>;
+  icons: EntityTable<IconCache, 'host'>;
 };
 
 export const PALETTE = ['#f6821f', '#e5484d', '#d6409f', '#8e4ec6', '#3e63dd', '#0090ff', '#12a594', '#30a46c', '#ffb224', '#8d8d86'];
@@ -95,6 +98,7 @@ export function createDB(name = 'navill'): NavillDB {
         b.tagIds ??= [];
       });
     });
+  d.version(3).stores({ icons: 'host, fetchedAt' });
   return d;
 }
 

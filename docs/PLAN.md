@@ -149,6 +149,11 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 - 不做类型识别、不做合并。子条目可在编辑书签对话框里添加、修改、删除；弹层里悬停可直接删除，底部「添加」「编辑」打开编辑对话框。
 - 打开关联链接计入该书签打开次数；搜索匹配关联链接；HTML 导出把关联链接作为「主书签名 · 名称」的普通书签跟在后面。
 
+### 6.7 高清网站图标【已定 2026-10-14】
+- 按域名抓取一次，缩到 64px WebP 存 IndexedDB `icons` 表（每个约 1–3KB），只存本机、不同步；成功 30 天、失败 7 天后重试。
+- 来源顺序：网页自带 apple-touch-icon / manifest / svg（需在 设置 → 通用 授权可选权限「访问所有网站」）→ icon.horse（识别并跳过它的字母占位图）→ Google s2 sz=128；小于 48px 视为不清晰。都失败时用浏览器自带 favicon。
+- 用户在编辑书签里填的图标地址优先。设置里可「重新获取」清空缓存。
+
 ## 7. 技术方案
 - Manifest V3，一套代码同时发布 Chrome 与 Edge。
 - 框架：WXT + TypeScript + Vite；UI 用 React + Kumo【已定】。
