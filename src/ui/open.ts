@@ -31,7 +31,11 @@ export async function openItem(
   else await browser.tabs.create({ url: bookmark.url, active: mode === 'new' });
 }
 
+/** 「全部打开」只在抽屉书签数 1..OPEN_ALL_MAX 时提供 */
+export const OPEN_ALL_MAX = 10;
+
 export async function openAll(items: Item[]) {
+  if (items.length > OPEN_ALL_MAX) return;
   for (const it of items) {
     await recordOpen(db, it.bookmark.id, it.placement.id);
     await browser.tabs.create({ url: it.bookmark.url, active: false });

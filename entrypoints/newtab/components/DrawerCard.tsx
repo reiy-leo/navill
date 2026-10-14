@@ -8,7 +8,7 @@ import {
   shuffleDrawer, unmount, updateDrawer, archiveDrawer } from '@/src/lib/store';
 import { effectiveView, type DrawerData, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
-import { openAll } from '@/src/ui/open';
+import { OPEN_ALL_MAX, openAll } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { DND_DRAWER, hasType, insertAfter } from './dnd';
 import { Items } from './Items';
@@ -107,7 +107,9 @@ export function DrawerCard({
         <DropdownMenu>
           <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
           <DropdownMenu.Content>
-            <DropdownMenu.Item icon={ArrowSquareOut} disabled={all.length === 0} onClick={() => void openAll(all)}>全部打开（{all.length}）</DropdownMenu.Item>
+            {all.length > 0 && all.length <= OPEN_ALL_MAX && (
+              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开（{all.length}）</DropdownMenu.Item>
+            )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>新建书签</DropdownMenu.Item>
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身（挂载到其他抽屉）</DropdownMenu.Item>
             {groups.map((g) => (
