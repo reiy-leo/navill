@@ -1,26 +1,30 @@
-import { Button, Empty, Surface } from '@cloudflare/kumo';
-import { BookmarksSimple, DownloadSimple, Plus } from '@phosphor-icons/react';
+import { Loader } from '@cloudflare/kumo';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
+import { db } from '@/src/db';
+import Browse from './components/Browse';
+import ImportPreview from './components/ImportPreview';
+import Welcome from './components/Welcome';
 
-// M0 空壳：M1 接入首次导入，M2 渲染工作区 → 抽屉 → 书签
+type Screen = 'auto' | 'preview';
+
 export default function App() {
-  return (
-    <main className="flex min-h-full items-center justify-center p-8">
-      <Surface className="w-full max-w-xl rounded-xl p-8">
-        <Empty
-          size="lg"
-          icon={<BookmarksSimple size={48} />}
-          title="欢迎使用 Navill"
-          description="导入浏览器书签，按「工作区 → 抽屉 → 书签」重新整理。"
-        />
-        <div className="mt-6 flex justify-center gap-3">
-          <Button variant="primary" icon={<DownloadSimple />} disabled>
-            导入浏览器书签
-          </Button>
-          <Button icon={<Plus />} disabled>
-            新建工作区
-          </Button>
-        </div>
-      </Surface>
-    </main>
-  );
+  const [screen, setScreen] = useState<Screen>('auto');
+  const onboarded = useLiveQuery(async () => {
+    const [imported, skipped] = await Promise.all([db.meta.get('importedAt'), db.meta.get('onboardedAt')]);
+    return Boolean(imported || skipped);
+  });
+
+  if (onboarded === undefined) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+  if (screen === 'preview') {
+    return <ImportPreview onCancel={() => setScreen('auto')} onDone={() => setScreen('auto')} />;
+  }
+  if (!onboarded) return <Welcome onImport={() => setScreen('preview')} />;
+  return <Browse onReimport={() => setScreen('preview')} />;
 }
