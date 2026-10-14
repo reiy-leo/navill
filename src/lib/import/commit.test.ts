@@ -21,7 +21,7 @@ const tree = root([
 describe('commitImport', () => {
   it('写入工作区、抽屉、书签与位置，「待整理」排在末尾', async () => {
     const res = await commitImport(db, buildImportPlan(tree));
-    expect(res).toEqual({ workspaces: 1, drawers: 2, bookmarks: 4 });
+    expect(res).toEqual({ workspaces: 1, drawers: 2, bookmarks: 4, skipped: 0 });
 
     const ws = await db.workspaces.orderBy('order').toArray();
     expect(ws.map((w) => w.name)).toEqual(['工作', '待整理']);
@@ -55,5 +55,14 @@ describe('commitImport', () => {
     const res = await commitImport(db, plan);
     expect(res.workspaces).toBe(0);
     expect(res.bookmarks).toBe(1);
+  });
+});
+
+describe('重新导入去重', () => {
+  it('按 URL 跳过已有书签，空抽屉和空工作区不再新建', async () => {
+    await commitImport(db, buildImportPlan(tree));
+    const res = await commitImport(db, buildImportPlan(tree), { dedupe: true });
+    expect(res).toEqual({ workspaces: 0, drawers: 0, bookmarks: 0, skipped: 4 });
+    expect(await db.bookmarks.count()).toBe(4);
   });
 });
