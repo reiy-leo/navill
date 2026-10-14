@@ -13,7 +13,9 @@ const SOURCE_LABEL: Record<PlanSource, string> = {
   edge_workspace: 'Edge 工作区',
 };
 
-export default function ImportPreview({ onCancel, onDone }: { onCancel: () => void; onDone: () => void }) {
+export default function ImportPreview({
+  onCancel, onDone, sourceTree, dedupe = false,
+}: { onCancel: () => void; onDone: () => void; sourceTree?: BookmarkNode; dedupe?: boolean }) {
   const [tree, setTree] = useState<BookmarkNode[] | null>(null);
   const [includeOther, setIncludeOther] = useState(false);
   const [includeMobile, setIncludeMobile] = useState(false);
@@ -22,8 +24,9 @@ export default function ImportPreview({ onCancel, onDone }: { onCancel: () => vo
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    browser.bookmarks.getTree().then(setTree, (e: unknown) => setError(`读取浏览器书签失败：${String(e)}`));
-  }, []);
+    if (sourceTree) setTree([sourceTree]);
+    else browser.bookmarks.getTree().then(setTree, (e: unknown) => setError(`读取浏览器书签失败：${String(e)}`));
+  }, [sourceTree]);
 
   useEffect(() => {
     if (!tree?.[0]) return;
@@ -47,7 +50,8 @@ export default function ImportPreview({ onCancel, onDone }: { onCancel: () => vo
     if (!plan) return;
     setBusy(true);
     try {
-      await commitImport(db, plan);
+      const res = await commitImport(db, plan, { dedupe });
+      if (dedupe) window.alert(`导入完成：新增 ${res.bookmarks} 个书签，跳过 ${res.skipped} 个重复`);
       onDone();
     } catch (e) {
       setError(`写入本地数据失败：${String(e)}`);
@@ -78,12 +82,12 @@ export default function ImportPreview({ onCancel, onDone }: { onCancel: () => vo
       <div className="flex items-center gap-2">
         <Button variant="ghost" shape="square" icon={<ArrowLeft />} onClick={onCancel} aria-label="返回" />
         <Text variant="heading" size="lg" as="h1">
-          导入预览
+          {dedupe ? '重新导入预览' : '导入预览'}
         </Text>
       </div>
       <Text variant="secondary" as="p">
         将导入 {stats.workspaces} 个工作区、{stats.drawers} 个抽屉、{stats.bookmarks} 个书签。子文件夹已全部拍平为抽屉；
-        书签栏根目录的散放书签放进「待整理」。可以在这里改工作区名称或取消勾选。
+        书签栏根目录的散放书签放进「待整理」。可以在这里改工作区名称或取消勾选。{dedupe ? '已存在的 URL 会自动跳过。' : ''}
       </Text>
 
       {(plan.available.other > 0 || plan.available.mobile > 0 || includeOther || includeMobile) && (

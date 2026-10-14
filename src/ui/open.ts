@@ -1,0 +1,36 @@
+import { db } from '@/src/db';
+import { recordOpen } from '@/src/lib/store';
+import type { Settings } from '@/src/lib/settings';
+import type { Item } from '@/src/lib/view';
+
+/** 打开书签并计数。Ctrl/⌘/中键 = 后台新标签，Shift = 新标签前台 */
+export async function openItem(
+  item: Item, settings: Settings, e?: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean; button?: number },
+  context: 'newtab' | 'popup' = 'newtab',
+) {
+  const { bookmark, placement } = item;
+  await recordOpen(db, bookmark.id, placement.id);
+  let mode = settings.openMode;
+  if (e?.ctrlKey || e?.metaKey || e?.button === 1) mode = 'background';
+  else if (e?.shiftKey) mode = 'new';
+  if (context === 'popup') {
+    if (mode === 'current') {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) await browser.tabs.update(tab.id, { url: bookmark.url });
+      else await browser.tabs.create({ url: bookmark.url });
+    } else {
+      await browser.tabs.create({ url: bookmark.url, active: mode === 'new' });
+    }
+    if (mode !== 'background') window.close();
+    return;
+  }
+  if (mode === 'current') window.location.href = bookmark.url;
+  else await browser.tabs.create({ url: bookmark.url, active: mode === 'new' });
+}
+
+export async function openAll(items: Item[]) {
+  for (const it of items) {
+    await recordOpen(db, it.bookmark.id, it.placement.id);
+    await browser.tabs.create({ url: it.bookmark.url, active: false });
+  }
+}

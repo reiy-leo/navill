@@ -1,14 +1,135 @@
-import { Button, Text } from '@cloudflare/kumo';
-import { BookmarkSimple } from '@phosphor-icons/react';
+import { Button, Input, Select, Text } from '@cloudflare/kumo';
+import { ArrowSquareOut, BookmarkSimple, Check, MagnifyingGlass } from '@phosphor-icons/react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useEffect, useState } from 'react';
+import { db, type Bookmark } from '@/src/db';
+import { createBookmark, ensureSeed } from '@/src/lib/store';
+import { bookmarkVisible, search, type Item } from '@/src/lib/view';
+import { BookmarkIcon, hostOf } from '@/src/ui/icons';
+import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
+import { openItem } from '@/src/ui/open';
+import { AppStateProvider, useApp } from '@/src/ui/state';
 
-// M0 空壳：M2 实现「收藏当前页到待整理」与快速搜索
 export default function App() {
   return (
-    <main className="flex w-80 flex-col gap-3 p-4">
-      <Text variant="heading" size="lg" as="h1">Navill</Text>
-      <Button variant="primary" icon={<BookmarkSimple />} disabled>
-        收藏当前页到「待整理」
-      </Button>
+    <AppStateProvider>
+      <Popup />
+    </AppStateProvider>
+  );
+}
+
+function Popup() {
+  const { visibility, settings, mode } = useApp();
+  const [q, setQ] = useState('');
+  const [active, setActive] = useState(0);
+  const [tab, setTab] = useState<{ title: string; url: string } | null>(null);
+  const [target, setTarget] = useState<string>('');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    void ensureSeed(db);
+    void browser.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
+      if (t?.url && /^https?:/.test(t.url)) setTab({ title: t.title ?? t.url, url: t.url });
+    });
+  }, []);
+
+  const targets = useLiveQuery(async () => {
+    const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.toArray()]);
+    const inbox = ws.find((w) => w.source === 'inbox');
+    const items: Record<string, string> = {};
+    if (inbox) items[`${inbox.id}|`] = '待整理';
+    for (const w of ws) {
+      if (w.source !== 'inbox') items[`${w.id}|`] = `${w.name}（顶层）`;
+      for (const d of ds.filter((x) => x.workspaceId === w.id).sort((a, b) => a.order - b.order)) items[`${w.id}|${d.id}`] = `${w.name} / ${d.name}`;
+    }
+    return items;
+  }, []);
+  useEffect(() => {
+    if (!target && targets) setTarget(Object.keys(targets)[0] ?? '');
+  }, [targets, target]);
+
+  const already = useLiveQuery(async () => (tab ? (await db.bookmarks.where('url').equals(tab.url).count()) > 0 : false), [tab?.url]);
+
+  const results = useLiveQuery(async (): Promise<Item[]> => {
+    if (q.trim()) return (await search(db, q, visibility, 20)).map((h) => h.item);
+    // 没有输入时显示最常用的书签
+    const top: Bookmark[] = (await db.bookmarks.orderBy('id').toArray()).filter((b) => b.openCount > 0 && bookmarkVisible(b, visibility)).sort((a, b) => b.openCount - a.openCount).slice(0, 8);
+    const out: Item[] = [];
+    for (const b of top) {
+      const p = await db.placements.where('bookmarkId').equals(b.id).first();
+      if (p) out.push({ bookmark: b, placement: p });
+    }
+    return out;
+  }, [q, visibility]);
+
+  const save = async () => {
+    if (!tab || !target) return;
+    const [wid, did] = target.split('|');
+    await createBookmark(db, { url: tab.url, title: tab.title }, wid!, did || null);
+    setSaved(true);
+    setTimeout(() => window.close(), 700);
+  };
+
+  return (
+    <main className="flex w-[360px] flex-col gap-3 p-3">
+      <div className="flex items-center gap-2">
+        <Text variant="heading" as="h1">Navill</Text>
+        <div className="flex-1" />
+        <ModeSwitcher size="xs" />
+        <Button size="xs" variant="ghost" shape="square" icon={<ArrowSquareOut />} aria-label="打开 Navill" title="打开 Navill" onClick={() => { void browser.tabs.create({ url: browser.runtime.getURL('/newtab.html') }); window.close(); }} />
+      </div>
+
+      {tab && (
+        <section className="flex flex-col gap-2 rounded-lg border border-kumo-line p-2">
+          <div className="flex items-center gap-2">
+            <BookmarkIcon url={tab.url} size={16} />
+            <span className="min-w-0 flex-1 truncate text-sm">{tab.title}</span>
+          </div>
+          {targets && (
+            <Select aria-label="收藏到" size="sm" className="w-full" value={target} items={targets} onValueChange={(v) => v && setTarget(v as string)} />
+          )}
+          <Button size="sm" variant="primary" icon={saved ? <Check /> : <BookmarkSimple />} disabled={saved} onClick={() => void save()}>
+            {saved ? '已收藏' : already ? '再收藏一份' : '收藏当前页'}
+          </Button>
+        </section>
+      )}
+
+      <div className="relative">
+        <MagnifyingGlass className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-kumo-subtle" size={14} />
+        <Input
+          autoFocus
+          size="sm"
+          className="w-full pl-7"
+          placeholder={`搜索（场景：${mode?.name ?? '默认'}，#标签）`}
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setActive(0); }}
+          onKeyDown={(e) => {
+            if (!results?.length) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+            if (e.key === 'Enter') void openItem(results[active]!, settings, e, 'popup');
+          }}
+          aria-label="搜索"
+        />
+      </div>
+      <ul className="flex max-h-72 flex-col overflow-y-auto">
+        {!q && results && results.length > 0 && <li className="px-2 pb-1 text-xs text-kumo-subtle">常用</li>}
+        {results?.map((it, i) => (
+          <li key={it.placement.id}>
+            <button
+              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
+              onMouseEnter={() => setActive(i)}
+              onClick={(e) => void openItem(it, settings, e, 'popup')}
+              onAuxClick={(e) => e.button === 1 && void openItem(it, settings, e, 'popup')}
+            >
+              <BookmarkIcon url={it.bookmark.url} src={it.bookmark.faviconUrl} size={16} />
+              <span className="min-w-0 flex-1 truncate text-sm">{it.bookmark.title}</span>
+              <span className="max-w-24 truncate text-xs text-kumo-subtle">{hostOf(it.bookmark.url)}</span>
+            </button>
+          </li>
+        ))}
+        {q && results?.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">没有找到</li>}
+      </ul>
     </main>
   );
 }
