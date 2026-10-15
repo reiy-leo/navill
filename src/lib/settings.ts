@@ -1,7 +1,7 @@
 import { storage } from 'wxt/utils/storage';
 import { MODE_DEFAULT } from '@/src/db';
 
-/** 设置存 chrome.storage.local（按设备），不进 IndexedDB、不同步 */
+/** 设置存 chrome.storage.local；除按设备的项（SYNC_EXCLUDED）外随 Google Drive 同步，整体以修改时间新者胜 */
 /** 抽屉排列：横条（一行一个）、瀑布、便当（120px 网格）、看板（一列一个，横向滚动） */
 export type Arrange = 'strip' | 'masonry' | 'bento' | 'board';
 
@@ -79,10 +79,33 @@ export async function getSettings(): Promise<Settings> {
   };
 }
 
+/** 只属于本机、不同步的设置 */
+export const SYNC_EXCLUDED = ['sidebarCollapsed', 'lastWorkspaceId', 'currentModeId', 'sync'] as const;
+export type SyncedSettings = Omit<Settings, (typeof SYNC_EXCLUDED)[number]>;
+/** 同步设置的本地修改时间（只在同步项变化时更新） */
+export const settingsModifiedItem = storage.defineItem<number>('local:settingsModifiedAt', { fallback: 0 });
+
+export function syncedPart(s: Settings): SyncedSettings {
+  const out = { ...s } as Record<string, unknown>;
+  for (const k of SYNC_EXCLUDED) delete out[k];
+  return out as unknown as SyncedSettings;
+}
+
 export async function updateSettings(patch: Partial<Settings>): Promise<Settings> {
-  const next = { ...(await getSettings()), ...patch };
+  const prev = await getSettings();
+  const next = { ...prev, ...patch };
   await settingsItem.setValue(next);
+  if (JSON.stringify(syncedPart(prev)) !== JSON.stringify(syncedPart(next))) await settingsModifiedItem.setValue(Date.now());
   return next;
+}
+
+/** 应用云端设置：保留本机项，不更新本地修改时间 */
+export async function applyRemoteSettings(remote: Partial<SyncedSettings>, modifiedAt: number): Promise<void> {
+  const cur = await getSettings();
+  const clean = { ...remote } as Record<string, unknown>;
+  for (const k of SYNC_EXCLUDED) delete clean[k];
+  await settingsItem.setValue({ ...cur, ...clean });
+  await settingsModifiedItem.setValue(modifiedAt);
 }
 
 export interface SyncStatus {

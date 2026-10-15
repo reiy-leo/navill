@@ -2,13 +2,14 @@ import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent, type SyncE
 import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
 import { ensureSeed } from '../store/seed';
-import { getSettings, syncStatusItem } from '../settings';
+import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem } from '../settings';
 import { isConfigured, isSignedIn, signIn } from './auth';
 import { download, gunzip, gzip, listFiles, remove, upload, type DriveFile } from './drive';
 import { countsFromEvents, mergeStates, monthKey, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
 const STATE_FILE = 'state.json.gz';
+const SETTINGS_FILE = 'settings.json.gz';
 const eventsFile = (dev: string, month: string) => `events/${dev}-${month}.jsonl.gz`;
 const logsFile = (dev: string, month: string) => `logs/${dev}-${month}.jsonl.gz`;
 
@@ -62,6 +63,9 @@ async function run(db: NavillDB) {
       await db.outbox.clear();
     }
 
+    // 1b. 设置：整体比较修改时间，新的一方覆盖另一方（本机项不同步）
+    await syncSettings(db, byName.get(SETTINGS_FILE));
+
     // 2. 使用统计：每台设备只写自己的月度事件文件，读取其他设备变化过的文件
     const mine = await db.openEvents.where('deviceId').equals(dev).toArray();
     const months = new Map<string, OpenEvent[]>();
@@ -98,6 +102,28 @@ async function run(db: NavillDB) {
     await syncStatusItem.setValue({ ...prev, state: 'error', message: e instanceof Error ? e.message : String(e) });
     throw e;
   }
+}
+
+async function syncSettings(db: NavillDB, file: DriveFile | undefined) {
+  const localAt = await settingsModifiedItem.getValue();
+  const lastSeen = (await db.meta.get('settingsRemoteModified'))?.value as string | undefined;
+  let remoteAt = ((await db.meta.get('settingsRemoteSavedAt'))?.value as number | undefined) ?? 0;
+  if (file && file.modifiedTime !== lastSeen) {
+    const remote = JSON.parse(await gunzip(await download(file.id))) as { savedAt: number; settings: Record<string, unknown> };
+    remoteAt = remote.savedAt;
+    await db.meta.put({ key: 'settingsRemoteModified', value: file.modifiedTime });
+    await db.meta.put({ key: 'settingsRemoteSavedAt', value: remoteAt });
+    if (remoteAt > localAt) {
+      await applyRemoteSettings(remote.settings, remoteAt);
+      return;
+    }
+  }
+  if (file && localAt <= remoteAt) return;
+  const savedAt = localAt || Date.now();
+  const body = { format: 'navill-settings', version: 1, savedAt, settings: syncedPart(await getSettings()) };
+  const saved = await upload(SETTINGS_FILE, await gzip(JSON.stringify(body)), file?.id);
+  await db.meta.put({ key: 'settingsRemoteModified', value: saved.modifiedTime });
+  await db.meta.put({ key: 'settingsRemoteSavedAt', value: savedAt });
 }
 
 async function syncLogs(db: NavillDB, dev: string, files: DriveFile[], byName: Map<string, DriveFile>) {
@@ -151,7 +177,7 @@ async function recount(db: NavillDB) {
 export async function deleteRemoteData(db: NavillDB) {
   const files: DriveFile[] = await listFiles();
   for (const f of files) await remove(f.id);
-  for (const k of ['remoteStateModified', 'eventsUploaded', 'eventsSeen', 'logsUploaded', 'logsSeen']) await db.meta.delete(k);
+  for (const k of ['remoteStateModified', 'eventsUploaded', 'eventsSeen', 'logsUploaded', 'logsSeen', 'settingsRemoteModified', 'settingsRemoteSavedAt']) await db.meta.delete(k);
 }
 
 export type { SyncEntity };

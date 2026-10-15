@@ -1,4 +1,5 @@
 import { storage } from 'wxt/utils/storage';
+import { syncStatusItem } from '../settings';
 
 /**
  * Google OAuth：chrome.identity.launchWebAuthFlow（Chrome / Edge 通用），仅 drive.appdata scope。
@@ -87,6 +88,7 @@ export async function getShareUser(): Promise<GoogleUser | null> {
 export async function signIn(): Promise<void> {
   await launch(true);
   await signedInItem.setValue(true);
+  if ((await syncStatusItem.getValue()).state === 'signed-out') await syncStatusItem.setValue({ state: 'idle' });
 }
 
 export async function signOut(): Promise<void> {
@@ -95,6 +97,7 @@ export async function signOut(): Promise<void> {
   await tokenItem.setValue(null);
   await shareTokenItem.setValue(null);
   await signedInItem.setValue(false);
+  await syncStatusItem.setValue({ state: 'signed-out' });
 }
 
 export async function invalidateToken() {
