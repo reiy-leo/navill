@@ -5,7 +5,7 @@ import type { Settings } from '@/src/lib/settings';
 import { visibilityOf, type Visibility } from '@/src/lib/view';
 import { useSettings } from './useSettings';
 
-export type MainView = 'workspace' | 'archive' | 'shares';
+export type MainView = 'workspace' | 'archive' | 'shares' | 'market';
 
 interface AppState {
   settings: Settings;

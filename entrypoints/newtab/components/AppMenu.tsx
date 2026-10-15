@@ -1,5 +1,5 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, ShareNetwork, GearSix, MagnifyingGlass } from '@phosphor-icons/react';
+import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, ShareNetwork, Storefront, GearSix, MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useRef } from 'react';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -20,6 +20,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? '退出整理' : '开始整理'}</DropdownMenu.Item>
         <DropdownMenu.Item icon={view === 'archive' ? Check : Archive} onClick={() => setView('archive')}>管理归档</DropdownMenu.Item>
         <DropdownMenu.Item icon={view === 'shares' ? Check : ShareNetwork} onClick={() => setView('shares')}>管理分享</DropdownMenu.Item>
+        <DropdownMenu.Item icon={view === 'market' ? Check : Storefront} onClick={() => setView('market')}>查看市场</DropdownMenu.Item>
         <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>搜索<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>

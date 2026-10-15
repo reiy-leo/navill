@@ -88,3 +88,21 @@ export async function buildPayload(
   return { payload, count };
 }
 
+
+/** 市场：审核通过的公开分享，不需要登录 */
+export interface PublicShare {
+  id: string; kind: ShareKind; title: string; author: string; description?: string; emoji?: string; color?: string;
+  bookmarkCount: number; drawerCount: number; publishedAt: number;
+}
+export interface PublicShareDetail extends PublicShare { payload: SharePayload }
+
+async function pub<T>(path: string): Promise<T> {
+  const res = await fetch(SHARE_ORIGIN + path);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || HTTP_GLOSS[res.status] || `${res.status} 请求失败`);
+  return data as T;
+}
+export const listPublicShares = (cursor?: string | null) =>
+  pub<{ items: PublicShare[]; nextCursor: string | null }>(`/api/shares${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`);
+export const getPublicShare = (id: string) => pub<PublicShareDetail>(`/api/shares/${encodeURIComponent(id)}`);
+export const shareUrl = (id: string) => `${SHARE_ORIGIN}/s/${id}`;
