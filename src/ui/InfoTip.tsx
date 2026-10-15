@@ -10,9 +10,9 @@ export function InfoTip({ children, label = '说明', text }: { children: ReactN
         openOnHover
         delay={150}
         aria-label={label}
-        className={`inline-flex h-6 shrink-0 cursor-help items-center justify-center gap-1 rounded-full text-sm text-kumo-subtle hover:bg-kumo-tint hover:text-kumo-default ${text ? 'px-1.5' : 'w-6'}`}
+        className={`inline-flex h-5 shrink-0 cursor-help items-center justify-center gap-1 rounded-full text-sm text-kumo-subtle opacity-50 transition-opacity hover:text-kumo-default hover:opacity-100 data-[popup-open]:text-kumo-default data-[popup-open]:opacity-100 ${text ? 'px-1' : 'w-5'}`}
       >
-        <Info size={18} />{text}
+        <Info size={14} />{text}
       </Popover.Trigger>
       <Popover.Content side="top" sideOffset={6} className="max-w-72 px-3 py-2 text-sm leading-relaxed">
         {children}
