@@ -70,6 +70,16 @@ function Row({ label, children, hint, info }: { label: string; children: ReactNo
   );
 }
 
+/** 设置分组：小标题 + 一张卡片包住若干行 */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mb-5 last:mb-0">
+      <h3 className="mb-1.5 px-1 text-xs font-medium text-kumo-subtle">{title}</h3>
+      <div className="rounded-lg border border-kumo-line bg-kumo-base px-4">{children}</div>
+    </section>
+  );
+}
+
 function Pick<K extends string>({ value, items, onChange, label }: { value: K; items: Record<K, string>; onChange: (v: K) => void; label: string }) {
   return <Select aria-label={label} className="w-44" value={value} items={items} onValueChange={(v) => v && onChange(v as K)} />;
 }
@@ -103,16 +113,26 @@ function General() {
   const wsItems = Object.fromEntries([['last', '上次打开的'], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
   return (
     <div>
+      <Section title="外观">
       <Row label="主题"><Pick label="主题" value={settings.theme} items={{ system: '跟随系统', light: '浅色', dark: '深色' }} onChange={(theme) => set({ theme })} /></Row>
-      <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
+      <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
+      </Section>
+      <Section title="工作区">
       <Row label="工作区导航"><Pick label="工作区导航" value={settings.navLayout} items={{ sidebar: '侧边栏', top: '顶部横铺' }} onChange={(navLayout) => set({ navLayout })} /></Row>
       <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
       <Row label="工作区图标" info="Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标', char: '字符' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
-      <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
-      <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
+      </Section>
+      <Section title="书签与抽屉">
+      <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
+      <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
+      </Section>
+      <Section title="网站图标">
       <IconRows />
+      </Section>
+      <Section title="新标签页">
       <Row label="新标签页" info="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
+      </Section>
     </div>
   );
 }
@@ -260,6 +280,7 @@ function Sync() {
       <div><InfoTip text="数据存在哪">数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。</InfoTip></div>
       {err && <Banner variant="error" description={err} />}
       {status.state === 'error' && status.message && <Banner variant="error" title="上次同步失败" description={status.message} />}
+      <Section title="账号">
       <Row label="Google 账号" hint={signedIn ? '已授权' : '未登录'}>
         {signedIn ? (
           <Button size="sm" icon={<SignOut />} onClick={() => void run(async () => { await signOut(); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>退出登录</Button>
@@ -267,25 +288,27 @@ function Sync() {
           <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signInAndLog(db); const next = await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncFromPage(db, next); })}>登录 Google</Button>
         )}
       </Row>
+      </Section>
+      <Section title="同步">
       <Row label="自动同步"><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
       <Row label="同步频率" info="只在有改动时上传"><Select aria-label="同步频率" className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': '每 5 分钟', '15': '每 15 分钟', '60': '每 60 分钟', '0': '仅手动' }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
       <Row label="立即同步" hint={status.lastSyncAt ? `上次同步：${new Date(status.lastSyncAt).toLocaleString('zh-CN')}` : '尚未同步'}>
         <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>立即同步</Button>
       </Row>
       <Row label="核心数据" info="工作区、抽屉、书签、分身、场景、标签和删除记录始终同步"><Badge variant="neutral">始终同步</Badge></Row>
-      <Row label="日志" info="新建、改名、编辑、删除、移动、归档、分身等操作的记录。本机始终记录；开启后上传到 Drive，并合并其他设备的日志">
-        <div className="flex items-center gap-2">
-          <Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button>
-          <Switch checked={settings.sync.logs} aria-label="同步日志" onClick={() => void updateSettings({ sync: { ...settings.sync, logs: !settings.sync.logs } })} />
-        </div>
-      </Row>
-      {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
       <Row label="冲突策略" info="按条目合并，修改时间新的一方胜出"><Badge variant="neutral">按条目合并</Badge></Row>
+      </Section>
+      <Section title="日志">
+      <Row label="日志"><Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button></Row>
+      </Section>
+      {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
+      <Section title="云端数据">
       <Row label="删除云端数据" info="只删除 Drive 中的 Navill 数据，本地不受影响">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} disabled={!signedIn} onClick={async () => {
           if (await dialogs.confirm({ title: '删除云端的 Navill 数据？', okText: '删除', danger: true })) await run(() => deleteRemoteData(db));
         }}>删除</Button>
       </Row>
+      </Section>
     </div>
   );
 }
@@ -329,6 +352,7 @@ function Toasts() {
   return (
     <div className="flex flex-col gap-1">
       <div><InfoTip text="说明">提醒设置只对本机生效。按 {modKey()}S 时「已跳过」这类直接反馈总是显示。</InfoTip></div>
+      <Section title="外观">
       <Row label="位置"><Pick label="位置" value={t.position} items={POSITIONS} onChange={(position) => set({ position })} /></Row>
       <Row label="样式">
         <div className="flex items-center gap-2">
@@ -336,12 +360,14 @@ function Toasts() {
           <Button size="sm" icon={<Play />} onClick={() => toast('新建书签「Navill 示例」')}>预览</Button>
         </div>
       </Row>
-      <h3 className="mt-4 text-sm font-semibold">提醒内容</h3>
+      </Section>
+      <Section title="提醒内容">
       {EVENTS.map(([k, label]) => (
         <Row key={k} label={label}>
           <Switch checked={t.show[k]} aria-label={label} onClick={() => set({ show: { ...t.show, [k]: !t.show[k] } })} />
         </Row>
       ))}
+      </Section>
     </div>
   );
 }
@@ -355,9 +381,13 @@ function Shortcuts() {
   const combo = (k: string) => (isMac() ? `${mod}${k}` : `${mod}+${k}`);
   return (
     <div className="flex flex-col gap-1">
+      <Section title="同步">
       <Row label="立即同步" info="3 分钟内同步过，或没有需要上传的改动时跳过并提醒；同步未开启或未登录时也会提醒"><Kbd>{combo('S')}</Kbd></Row>
+      </Section>
+      <Section title="搜索">
       <Row label="搜索" info={`焦点在地址栏时，浏览器会先处理 ${combo('L')}；在 Navill 页面里按才会打开搜索`}><Kbd>{combo('L')}</Kbd></Row>
       <Row label="搜索"><Kbd>/</Kbd></Row>
+      </Section>
     </div>
   );
 }
@@ -441,14 +471,11 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
   return (
     <div className="flex flex-col gap-1">
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
+      <Section title="导入">
       <Row label="重新导入浏览器书签" info="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
       <Row label="导入书签 HTML 文件" info="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
-      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行">
-        <Button size="sm" icon={<Smiley />} onClick={async () => {
-          const n = await parseWorkspaceIcons(db);
-          setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
-        }}>解析</Button>
-      </Row>
+      </Section>
+      <Section title="备份与导出">
       <Row label="导出 Navill 备份" info="JSON 文件，包含工作区、抽屉、书签、分身、场景、标签和使用统计">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>导出</Button>
       </Row>
@@ -459,11 +486,20 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
       <Row label="导出为浏览器书签 HTML" info="工作区 → 文件夹，抽屉 → 子文件夹">
         <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>导出</Button>
       </Row>
+      </Section>
+      <Section title="维护">
+      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行">
+        <Button size="sm" icon={<Smiley />} onClick={async () => {
+          const n = await parseWorkspaceIcons(db);
+          setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
+        }}>解析</Button>
+      </Row>
       <Row label="清空使用统计" info="清除全部打开记录与次数">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
           if (await dialogs.confirm({ title: '清空使用统计？', okText: '清空', danger: true })) await clearOpenEvents(db);
         }}>清空</Button>
       </Row>
+      </Section>
     </div>
   );
 }
