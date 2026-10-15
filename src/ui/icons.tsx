@@ -1,3 +1,4 @@
+import { useTone } from './colors';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { useIconStyle } from './iconStyle';
 import { iconCount } from '@/src/lib/emoji';
@@ -39,9 +40,10 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
 export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'>; size?: number; style?: 'emoji' | 'lucide' }) {
   const global = useIconStyle();
   const mode = style ?? global;
+  const bg = useTone(ws.color) ?? '#8d8d86';
   if (mode === 'lucide' && ws.lucide) {
     return (
-      <span className="inline-flex shrink-0 items-center justify-center rounded-md text-white" style={{ width: size, height: size, background: ws.color ?? '#8d8d86' }}>
+      <span className="inline-flex shrink-0 items-center justify-center rounded-md text-white" style={{ width: size, height: size, background: bg }}>
         <DynamicIcon name={ws.lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
       </span>
     );
@@ -53,7 +55,7 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
       style={{
         width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * 0.5,
         letterSpacing: emoji ? '-0.05em' : undefined,
-        background: emoji ? 'transparent' : ws.color ?? '#8d8d86',
+        background: emoji ? 'transparent' : bg,
       }}
     >
       {emoji || ws.name.trim().charAt(0) || '?'}

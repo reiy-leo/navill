@@ -1,6 +1,7 @@
 import { Tooltip } from '@cloudflare/kumo';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { MODE_DEFAULT, PALETTE, type Mode } from '@/src/db';
+import { tone, useDarkMode, useTone } from './colors';
 import { useApp } from './state';
 
 const PRESET: Record<string, { icon: IconName; color: string }> = {
@@ -18,18 +19,21 @@ export function modeLook(m: Mode): { icon: IconName; color: string } {
 }
 
 export function ModeIcon({ mode, size = 16 }: { mode: Mode; size?: number }) {
-  const { icon, color } = modeLook(mode);
+  const { icon, color: c } = modeLook(mode);
+  const color = useTone(c);
   return <DynamicIcon name={icon} size={size} color={color} />;
 }
 
 /** 场景切换：分段单选，只显示图标，悬停显示名称。⋯ 菜单与弹窗共用 */
 export function ModeSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }) {
   const { modes, mode, updateSettings } = useApp();
+  const dark = useDarkMode();
   return (
     <div role="radiogroup" aria-label="场景" className="nv-seg inline-flex gap-0.5 rounded-lg bg-kumo-tint/70 p-0.5">
       {modes.map((m) => {
         const on = m.id === mode?.id;
-        const { icon, color } = modeLook(m);
+        const { icon, color: c } = modeLook(m);
+        const color = tone(c, dark);
         return (
           <Tooltip key={m.id} content={m.showAdult ? `${m.name} · 18+` : m.name} side={side}>
             <button

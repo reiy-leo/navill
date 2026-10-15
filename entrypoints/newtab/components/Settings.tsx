@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
+import { ColorPicker } from '@/src/ui/ColorPicker';
 import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
@@ -157,11 +158,7 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
           }}>删除</Button>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="场景颜色">
-        {PALETTE.map((c) => (
-          <button key={c} type="button" role="radio" aria-checked={look.color === c} aria-label={c} className={`size-6 rounded-full ring-offset-2 ring-offset-kumo-base ${look.color === c ? 'ring-2' : ''}`} style={{ background: c, ['--tw-ring-color' as string]: c }} onClick={() => void setModeLook(db, mode.id, { color: c })} />
-        ))}
-      </div>
+      <ColorPicker label="场景颜色" value={look.color} onChange={(color) => void setModeLook(db, mode.id, { color })} />
       <LucidePicker allowNone={false} value={look.icon} onChange={(icon) => icon && void setModeLook(db, mode.id, { icon })} />
       <Switch label="显示 18+ 内容" checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
       {isDefault ? (

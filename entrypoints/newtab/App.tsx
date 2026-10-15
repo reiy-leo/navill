@@ -8,6 +8,7 @@ import { parseNetscapeHtml } from '@/src/lib/io/html';
 import { ensureSeed, parseWorkspaceIcons } from '@/src/lib/store';
 import { ContextMenuProvider } from '@/src/ui/ContextMenu';
 import { DialogsProvider } from '@/src/ui/dialogs';
+import { useTone } from '@/src/ui/colors';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 import { ArchiveView } from './components/ArchiveView';
 import { SearchDialog } from './components/AppMenu';
@@ -95,12 +96,13 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   useShortcuts({ onSearch: openSearch, onSync: sync });
   const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? 'general') };
   const current = workspaces?.find((w) => w.id === workspaceId) ?? workspaces?.[0];
+  const wsColor = useTone(current?.color);
   const top = settings.navLayout === 'top';
   useEffect(() => { document.documentElement.dataset.surface = settings.surface; }, [settings.surface]);
 
   return (
-    <div className={`relative isolate flex h-full ${top ? 'flex-col' : ''}`} style={{ '--ws-color': current?.color } as React.CSSProperties}>
-      {view !== 'archive' && <WorkspaceBackdrop color={current?.color} />}
+    <div className={`relative isolate flex h-full ${top ? 'flex-col' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
+      {view !== 'archive' && <WorkspaceBackdrop color={wsColor} />}
       {!top && <Nav current={current?.id} {...menu} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {top && <Nav current={current?.id} {...menu} />}

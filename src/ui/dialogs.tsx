@@ -8,6 +8,7 @@ import { createTag, setTags, toggleTagOn, updateBookmark, updateWorkspace } from
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
 import { InfoTip } from './InfoTip';
+import { ColorPicker } from './ColorPicker';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
 import { HistoryAutocomplete, useHistoryPermission } from './HistoryAutocomplete';
@@ -294,11 +295,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
           </div>
           <div>
             <div className="mb-1 text-sm font-medium">颜色</div>
-            <div className="flex gap-2">
-              {PALETTE.map((c) => (
-                <button key={c} aria-label={c} className={`h-7 w-7 rounded-full ring-offset-2 ${form.color === c ? 'ring-2 ring-kumo-brand' : ''}`} style={{ background: c }} onClick={() => setForm({ ...form, color: c })} />
-              ))}
-            </div>
+            <ColorPicker value={form.color} onChange={(color) => setForm({ ...form, color })} />
           </div>
           <Input label="说明" placeholder="悬停时显示，最多 50 字" value={form.description} maxLength={50} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>

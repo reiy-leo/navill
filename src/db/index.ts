@@ -79,7 +79,8 @@ export type NavillDB = Dexie & {
   logs: EntityTable<LogEntry, 'id'>;
 };
 
-export const PALETTE = ['#f6821f', '#e5484d', '#d6409f', '#8e4ec6', '#3e63dd', '#0090ff', '#12a594', '#30a46c', '#ffb224', '#8d8d86'];
+/** 自动分配用的 10 种颜色，取自预置色（src/ui/colors.ts）：丹柿 榴火 荷花 葡萄 琉璃 碧空 春水 柳色 芒种 烟灰 */
+export const PALETTE = ['#dc631e', '#da4339', '#ca5e96', '#8b5fb9', '#5d76d0', '#248fcc', '#1d9999', '#58994a', '#bb8d0c', '#747b83'];
 
 export function createDB(name = 'navill'): NavillDB {
   const d = new Dexie(name) as NavillDB;

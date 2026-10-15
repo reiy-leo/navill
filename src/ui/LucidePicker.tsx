@@ -13,7 +13,7 @@ const COMMON: IconName[] = [
 
 const LIMIT = 80;
 
-/** Lucide 图标选择：关键词按图标英文名匹配 */
+/** Lucide 图标选择：关键词按图标英文名匹配；allowNone 时再点一次已选图标即取消（回到名称首字） */
 export function LucidePicker({ value, onChange, allowNone = true }: { value?: string; onChange: (name: string | undefined) => void; allowNone?: boolean }) {
   const [q, setQ] = useState('');
   const list = useMemo(() => {
@@ -25,9 +25,8 @@ export function LucidePicker({ value, onChange, allowNone = true }: { value?: st
     <div className="grid gap-2">
       <Input size="sm" placeholder="搜索图标，如 book、code、home" aria-label="搜索图标" value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
-        {allowNone && <Button size="sm" variant={!value ? 'outline' : 'ghost'} className={!value ? '!ring-kumo-brand' : ''} onClick={() => onChange(undefined)}>首字</Button>}
         {list.map((n) => (
-          <Button key={n} size="sm" shape="square" title={n} aria-label={n} variant={value === n ? 'outline' : 'ghost'} className={value === n ? '!ring-kumo-brand' : ''} onClick={() => onChange(n)}>
+          <Button key={n} size="sm" shape="square" title={n} aria-label={n} variant={value === n ? 'outline' : 'ghost'} className={value === n ? '!ring-kumo-brand' : ''} onClick={() => onChange(allowNone && value === n ? undefined : n)}>
             <DynamicIcon name={n} size={18} />
           </Button>
         ))}
