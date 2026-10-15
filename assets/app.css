@@ -46,15 +46,18 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
  */
 .nv-drawer, .nv-tile, .nv-plate { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
 
+/* 色调卡片：以白色（深色主题为底色）为基础混入工作区色，色彩明显、不发灰；边框只比底色深一点 */
+[data-surface='tint'] { --nv-tint-base: #fff; }
+[data-mode='dark'][data-surface='tint'] { --nv-tint-base: var(--color-kumo-base); }
 [data-surface='tint'] .nv-drawer {
-  background: color-mix(in srgb, var(--ws-color, #94a3b8) 5%, var(--color-kumo-elevated));
-  border-color: color-mix(in srgb, var(--ws-color, #94a3b8) 18%, var(--color-kumo-line));
+  background: color-mix(in oklab, var(--ws-color, #94a3b8) 13%, var(--nv-tint-base));
+  border-color: color-mix(in oklab, var(--ws-color, #94a3b8) 20%, var(--nv-tint-base));
 }
 [data-surface='tint'] .nv-tile {
-  background: color-mix(in srgb, var(--ws-color, #94a3b8) 3%, var(--color-kumo-base));
-  border-color: color-mix(in srgb, var(--ws-color, #94a3b8) 14%, var(--color-kumo-line));
+  background: color-mix(in oklab, var(--ws-color, #94a3b8) 6%, var(--nv-tint-base));
+  border-color: color-mix(in oklab, var(--ws-color, #94a3b8) 16%, var(--nv-tint-base));
 }
-[data-surface='tint'] .nv-plate { background: color-mix(in srgb, var(--ws-color, #94a3b8) 8%, var(--color-kumo-base)); }
+[data-surface='tint'] .nv-plate { background: color-mix(in oklab, var(--ws-color, #94a3b8) 18%, var(--nv-tint-base)); }
 
 [data-surface='glass'] .nv-drawer {
   background: rgb(255 255 255 / 0.55);
