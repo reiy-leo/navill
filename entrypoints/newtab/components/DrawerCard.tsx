@@ -70,7 +70,7 @@ export function DrawerCard({
       }}
     >
       <header
-        className="flex items-center gap-1"
+        className="nv-drawer-head flex items-center gap-0.5 text-kumo-subtle"
         draggable={!editing}
         onDragStart={(e) => {
           e.dataTransfer.setData(DND_DRAWER, drawer.id);
@@ -96,10 +96,10 @@ export function DrawerCard({
             aria-label="抽屉名称"
           />
         ) : (
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-semibold" title={`${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={`${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
             {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
             {display}
-            <span className="ml-1.5 text-xs font-normal text-kumo-subtle">{all.length}</span>
+            <span className="ml-1.5 opacity-70">{all.length}</span>
           </h2>
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />

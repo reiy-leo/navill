@@ -64,3 +64,10 @@ body { margin: 0; }
 [data-surface='bare'] a:hover .nv-plate { background: rgb(255 255 255 / 0.6); border-color: rgb(255 255 255 / 0.7); backdrop-filter: blur(8px); }
 [data-mode='dark'][data-surface='bare'] a:hover .nv-tile,
 [data-mode='dark'][data-surface='bare'] a:hover .nv-plate { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.1); }
+
+/* 抽屉标题行：图标比下拉菜单图标小一号（14px），按钮 28px，整行偏灰 */
+.nv-drawer-head [data-kumo-component='Button'] { color: inherit; }
+.nv-drawer-head [data-kumo-component='Button'] svg { width: 14px; height: 14px; }
+.nv-drawer-head [data-kumo-component='Button'].size-6\.5,
+.nv-drawer-head [data-kumo-component='Button'].size-3\.5 { width: 1.75rem; height: 1.75rem; }
+.nv-drawer-head [data-kumo-component='Button']:hover { color: var(--color-kumo-default); }
