@@ -21,3 +21,8 @@ body { margin: 0; }
 [data-kumo-component='Button'].size-6\.5,
 [data-kumo-component='Button'].size-3\.5 { width: 2rem; height: 2rem; padding: 0; }
 [data-kumo-component='Button'].size-9 { width: 2.25rem; height: 2.25rem; }
+
+/* 弹窗空间小：按钮与图标收一档 */
+.navill-popup [data-kumo-component='Button'] svg { width: 16px; height: 16px; }
+.navill-popup [data-kumo-component='Button'].h-6\.5,
+.navill-popup [data-kumo-component='Button'].h-5 { height: 1.75rem; padding-inline: 0.5rem; font-size: 0.8125rem; gap: 0.25rem; }

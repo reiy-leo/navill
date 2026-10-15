@@ -1,5 +1,5 @@
-import { Button, Input, Select, Text } from '@cloudflare/kumo';
-import { ArrowSquareOut, BookmarkSimple, Check, MagnifyingGlass } from '@phosphor-icons/react';
+import { Button, Input, Select } from '@cloudflare/kumo';
+import { BookmarkSimple, Check, MagnifyingGlass } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db, type Bookmark } from '@/src/db';
@@ -19,7 +19,7 @@ export default function App() {
 }
 
 function Popup() {
-  const { visibility, settings, mode } = useApp();
+  const { visibility, settings } = useApp();
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
   const [tab, setTab] = useState<{ title: string; url: string } | null>(null);
@@ -71,16 +71,9 @@ function Popup() {
   };
 
   return (
-    <main className="flex w-[360px] flex-col gap-3 p-3">
-      <div className="flex items-center gap-2">
-        <Text variant="heading" as="h1">Navill</Text>
-        <div className="flex-1" />
-        <ModeSwitcher size="xs" />
-        <Button size="xs" variant="ghost" shape="square" icon={<ArrowSquareOut />} aria-label="打开 Navill" title="打开 Navill" onClick={() => { void browser.tabs.create({ url: browser.runtime.getURL('/newtab.html') }); window.close(); }} />
-      </div>
-
+    <main className="navill-popup flex w-[360px] flex-col gap-3 p-3">
       {tab && (
-        <section className="flex flex-col gap-2 rounded-lg border border-kumo-line p-2">
+        <section className="flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated p-2.5">
           <div className="flex items-center gap-2">
             <BookmarkIcon url={tab.url} size={16} />
             <span className="min-w-0 flex-1 truncate text-sm">{tab.title}</span>
@@ -99,7 +92,7 @@ function Popup() {
         <Input
           autoFocus
           size="sm"
-          className="w-full pl-7"
+          className="w-full rounded-lg pl-7"
           placeholder="搜索书签，#标签 筛选"
           value={q}
           onChange={(e) => { setQ(e.target.value); setActive(0); }}
@@ -117,7 +110,7 @@ function Popup() {
         {results?.map((it, i) => (
           <li key={it.placement.id}>
             <button
-              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
+              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
               onMouseEnter={() => setActive(i)}
               onClick={(e) => void openItem(it, settings, e, 'popup')}
               onAuxClick={(e) => e.button === 1 && void openItem(it, settings, e, 'popup')}
@@ -130,6 +123,9 @@ function Popup() {
         ))}
         {q && results?.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">没有找到</li>}
       </ul>
+      <footer className="-mb-1 flex justify-end">
+        <ModeSwitcher size="xs" />
+      </footer>
     </main>
   );
 }
