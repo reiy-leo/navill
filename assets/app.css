@@ -132,3 +132,11 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 @media (prefers-reduced-motion: reduce) { .nv-drawer[data-head='peek'] > .nv-drawer-head { transition: none; } }
 /* 第一行抽屉标题栏向上伸出时不压到工作区标题 */
 .nv-masonry:has(.nv-drawer[data-head='peek']) { margin-top: 1rem; }
+
+/* 分享审核状态：审核中黄、已公开绿、未通过/已下架红 */
+.nv-status[data-status='pending'] { background: #fef3c7; color: #92400e; }
+.nv-status[data-status='live'] { background: #dcfce7; color: #166534; }
+.nv-status[data-status='rejected'], .nv-status[data-status='taken_down'] { background: #fee2e2; color: #b91c1c; }
+[data-mode='dark'] .nv-status[data-status='pending'] { background: rgb(245 158 11 / 0.2); color: #fcd34d; }
+[data-mode='dark'] .nv-status[data-status='live'] { background: rgb(34 197 94 / 0.2); color: #86efac; }
+[data-mode='dark'] .nv-status[data-status='rejected'], [data-mode='dark'] .nv-status[data-status='taken_down'] { background: rgb(239 68 68 / 0.2); color: #fca5a5; }

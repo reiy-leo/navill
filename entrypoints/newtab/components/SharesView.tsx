@@ -3,7 +3,7 @@ import { ArrowSquareOut, Copy, GoogleLogo, ShareNetwork, SquaresFour, Trash, Tra
 import { useEffect, useState } from 'react';
 import { STATUS_LABEL, deleteShare, listShares, type MyShare } from '@/src/lib/share';
 import { useDialogs } from '@/src/ui/dialogs';
-import { copyLink, statusVariant } from '@/src/ui/ShareDialog';
+import { StatusBadge, copyLink } from '@/src/ui/ShareDialog';
 import { toast } from '@/src/ui/toast';
 
 /** 管理分享：列出已分享的抽屉和工作区，可复制链接、打开、取消分享 */
@@ -40,7 +40,7 @@ export function SharesView() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="truncate">{s.title}</span>
-                  <Badge variant={statusVariant(s.status)}>{STATUS_LABEL[s.status]}</Badge>
+                  <StatusBadge status={s.status} />
                   {s.pendingVersion !== null && s.status === 'live' && <Badge variant="neutral">更新审核中</Badge>}
                 </div>
                 <div className="truncate text-xs text-kumo-subtle">

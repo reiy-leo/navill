@@ -12,7 +12,10 @@ import { toast } from './toast';
 const SITE_ICON = 'https://navill.rei8t.dev/icon-192.png';
 const authorItem = storage.defineItem<string>('local:shareAuthor', { fallback: '' });
 
-export const statusVariant = (s: MyShare['status']) => (s === 'live' ? 'primary' : s === 'pending' ? 'neutral' : 'destructive') as 'primary' | 'neutral' | 'destructive';
+/** 审核状态：审核中黄、已公开绿、未通过/已下架红 */
+export function StatusBadge({ status, className = '' }: { status: MyShare['status']; className?: string }) {
+  return <span data-status={status} className={`nv-status inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>{STATUS_LABEL[status]}</span>;
+}
 
 export async function copyLink(url: string) {
   await navigator.clipboard.writeText(url);
@@ -93,14 +96,14 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
         {share && (
           <div className="flex flex-col items-center gap-2 py-2">
             {celebrate && <Confetti />}
-            <Badge variant={statusVariant(share.status)}>{STATUS_LABEL[share.status]}</Badge>
             {share.rejectedNote && <p className="text-xs text-kumo-danger">未通过：{share.rejectedNote}</p>}
-            <div className="flex aspect-square w-56 flex-col items-center justify-center gap-3 rounded-2xl border border-kumo-line bg-kumo-base p-4">
+            <div className="relative flex aspect-square w-56 flex-col items-center justify-center gap-3 rounded-2xl border border-kumo-line bg-kumo-base p-4">
+              <StatusBadge status={share.status} className="absolute right-2.5 top-2.5" />
               <img src={SITE_ICON} alt="" className="size-16 rounded-2xl" />
               <span className="w-full truncate text-center text-xs text-kumo-subtle" title={share.url}>{share.url.replace(/^https:\/\//, "")}</span>
               <div className="flex gap-1">
-                <Button size="sm" icon={<Copy />} onClick={() => void copyLink(share.url)}>复制</Button>
-                <Button size="sm" icon={<ArrowSquareOut />} onClick={() => void browser.tabs.create({ url: share.url })}>打开</Button>
+                <Button size="sm" shape="square" icon={<Copy />} aria-label="复制链接" title="复制链接" onClick={() => void copyLink(share.url)} />
+                <Button size="sm" shape="square" icon={<ArrowSquareOut />} aria-label="打开分享页" title="打开分享页" onClick={() => void browser.tabs.create({ url: share.url })} />
               </div>
             </div>
           </div>
