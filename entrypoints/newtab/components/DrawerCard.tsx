@@ -1,4 +1,4 @@
-import { Button, DropdownMenu, Input, Tooltip } from '@cloudflare/kumo';
+import { Button, DropdownMenu, Input, LayerCard, Tooltip } from '@cloudflare/kumo';
 import {
   ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, PencilSimple } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -58,9 +58,10 @@ export function DrawerCard({
   const groups = [...new Map(mounted.map((m) => [m.mountedFrom!.group.id, m.mountedFrom!])).values()];
 
   return (
-    <section
+    <LayerCard
+      render={<section />}
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
-      className={`nv-drawer flex flex-col rounded-xl border border-kumo-line bg-kumo-elevated/75 p-1 backdrop-blur-sm ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
+      className={`nv-drawer rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${dropSide === 'before' ? 'outline-2 outline-offset-2 outline-kumo-brand' : ''} ${dropSide === 'after' ? 'outline-2 outline-kumo-brand' : ''}`}
       onDragOver={(e) => {
         if (!hasType(e, DND_DRAWER)) return;
         e.preventDefault();
@@ -76,8 +77,8 @@ export function DrawerCard({
         onDropDrawer(id, side === 'after');
       }}
     >
-      <header
-        className="nv-drawer-head flex h-8 items-center gap-0.5 pl-2.5 pr-0.5 text-kumo-subtle"
+      <LayerCard.Secondary
+        className="nv-drawer-head my-0 h-8 gap-0.5 bg-transparent py-0 pl-3 pr-1 text-sm font-normal"
         draggable={!editing}
         onDragStart={(e) => {
           e.dataTransfer.setData(DND_DRAWER, drawer.id);
@@ -149,8 +150,8 @@ export function DrawerCard({
             }}>删除</DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu>
-      </header>
-      <div className="nv-drawer-primary rounded-lg bg-kumo-base p-2 ring ring-kumo-line">
+      </LayerCard.Secondary>
+      <LayerCard.Primary className="nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line shadow-[0_-2px_8px_-2px_var(--nv-primary-glow)]">
       <div
         ref={bodyRef}
         className={height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}
@@ -169,9 +170,9 @@ export function DrawerCard({
           }}
         />
       </div>
-      </div>
       <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />
-    </section>
+      </LayerCard.Primary>
+    </LayerCard>
   );
 }
 
@@ -210,7 +211,7 @@ function ResizeHandle({ bodyRef, onLive, onCommit }: { bodyRef: React.RefObject<
   return (
     <div
       role="separator" aria-orientation="horizontal" aria-label="拖动调整抽屉高度，双击恢复"
-      className="group/handle -my-1.5 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
+      className="group/handle -mb-2 -mt-1 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
       onPointerDown={(e) => {
         const el = bodyRef.current;
         if (!el || e.button !== 0) return;

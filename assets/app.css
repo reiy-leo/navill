@@ -51,8 +51,11 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-mode='dark'][data-surface='tint'] { --nv-tint-base: var(--color-kumo-base); }
 [data-surface='tint'] .nv-drawer {
   background: color-mix(in oklab, var(--ws-color, #94a3b8) 13%, var(--nv-tint-base));
-  border-color: color-mix(in oklab, var(--ws-color, #94a3b8) 20%, var(--nv-tint-base));
+  --tw-ring-color: color-mix(in oklab, var(--ws-color, #94a3b8) 20%, var(--nv-tint-base));
 }
+/* primary 上沿一点工作区主色的阴影 */
+.nv-drawer-primary { --nv-primary-glow: color-mix(in oklab, var(--ws-color, #94a3b8) 40%, transparent); }
+[data-surface='bare'] .nv-drawer-primary { --nv-primary-glow: transparent; }
 /* Layer Card：外层（标题栏）是有色的 secondary，内层 primary 更亮，承载书签 */
 [data-surface='tint'] .nv-drawer-primary {
   background: color-mix(in oklab, var(--ws-color, #94a3b8) 3%, var(--nv-tint-base));
@@ -66,7 +69,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 
 [data-surface='glass'] .nv-drawer {
   background: rgb(255 255 255 / 0.55);
-  border-color: rgb(255 255 255 / 0.6);
+  --tw-ring-color: rgb(255 255 255 / 0.6);
   backdrop-filter: blur(16px) saturate(1.4);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 4px 16px rgb(0 0 0 / 0.04);
 }
@@ -75,11 +78,11 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-surface='glass'] .nv-tile,
 [data-surface='glass'] .nv-plate { background: rgb(255 255 255 / 0.6); border-color: rgb(255 255 255 / 0.7); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
 [data-surface='glass'] .nv-plate { outline: 1px solid rgb(255 255 255 / 0.7); }
-[data-mode='dark'][data-surface='glass'] .nv-drawer { background: rgb(0 0 0 / 0.4); border-color: rgb(255 255 255 / 0.08); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06); }
+[data-mode='dark'][data-surface='glass'] .nv-drawer { background: rgb(0 0 0 / 0.4); --tw-ring-color: rgb(255 255 255 / 0.08); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06); }
 [data-mode='dark'][data-surface='glass'] .nv-tile,
 [data-mode='dark'][data-surface='glass'] .nv-plate { background: rgb(255 255 255 / 0.06); border-color: rgb(255 255 255 / 0.08); outline-color: rgb(255 255 255 / 0.08); }
 
-[data-surface='bare'] .nv-drawer { background: transparent; border-color: transparent; box-shadow: none; }
+[data-surface='bare'] .nv-drawer { background: transparent; --tw-ring-color: transparent; box-shadow: none; }
 [data-surface='bare'] .nv-drawer-primary { background: transparent; --tw-ring-color: transparent; }
 [data-surface='bare'] .nv-tile,
 [data-surface='bare'] .nv-plate { background: transparent; border-color: transparent; }
