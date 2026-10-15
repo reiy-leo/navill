@@ -384,7 +384,7 @@ function Aliases() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身书签组（{data?.groups.length ?? 0}）<InfoTip>在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。</InfoTip></h3>
+        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身书签组<span className="font-normal text-kumo-subtle">{data?.groups.length ?? 0}</span><InfoTip>在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。</InfoTip></h3>
         {data?.groups.map(({ g, from, to }) => (
           <div key={g.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="flex-1">{from} <span className="text-kumo-subtle">→ 挂载到 →</span> {to}</span>
@@ -393,7 +393,7 @@ function Aliases() {
         ))}
       </section>
       <section>
-        <h3 className="mb-2 text-sm font-semibold">分身（{data?.aliases.length ?? 0}）</h3>
+        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身<span className="font-normal text-kumo-subtle">{data?.aliases.length ?? 0}</span></h3>
         {data?.aliases.map(({ a, b, where }) => (
           <div key={a.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="min-w-0 flex-1 truncate">{b?.title}</span>

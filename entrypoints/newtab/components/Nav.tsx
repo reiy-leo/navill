@@ -268,7 +268,7 @@ function NavItem({
         </span>
       )}
       {label !== 'icon' && <span className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
-      {label !== 'icon' && w.adult && <span className="text-[10px] text-kumo-danger">18+</span>}
+      {label !== 'icon' && w.adult && <span className="text-xs text-kumo-danger">18+</span>}
     </button>
   );
   const tip = [label === 'icon' ? w.name : '', w.description].filter(Boolean).join(' · ');
