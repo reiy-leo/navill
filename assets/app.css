@@ -129,6 +129,10 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
   box-shadow: 0 0 0 1px var(--tw-ring-color), 0 -4px 12px -6px rgb(0 0 0 / 0.12);
 }
 [data-surface='bare'] .nv-drawer[data-head='peek']:hover > .nv-drawer-head { box-shadow: none; }
+/* 磨砂/无框时书签区是半透明的，收起的标题栏会透出来：收起时隐藏标题栏内容，伸出时淡入 */
+.nv-drawer[data-head='peek'] > .nv-drawer-head > * { transition: opacity 150ms ease-out; }
+[data-surface='glass'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > *,
+[data-surface='bare'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > * { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .nv-drawer[data-head='peek'] > .nv-drawer-head { transition: none; } }
 /* 第一行抽屉标题栏向上伸出时不压到工作区标题 */
 .nv-masonry:has(.nv-drawer[data-head='peek']) { margin-top: 1rem; }
