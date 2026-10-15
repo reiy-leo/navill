@@ -6,6 +6,8 @@ export interface Settings {
   theme: 'system' | 'light' | 'dark';
   openMode: 'current' | 'new' | 'background';
   drawerName: 'full' | 'last';
+  /** 抽屉标题栏：始终显示，或默认被书签区盖住 80%、悬停时露出 */
+  drawerHead: 'show' | 'peek';
   navLayout: 'sidebar' | 'top';
   navLabel: 'both' | 'icon' | 'name';
   /** 工作区图标风格：emoji 或 Lucide 线性图标 */
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   openMode: 'current',
   drawerName: 'full',
+  drawerHead: 'peek',
   navLayout: 'sidebar',
   navLabel: 'both',
   workspaceIconStyle: 'emoji',

@@ -22,6 +22,7 @@ export function DrawerCard({
   const { settings } = useApp();
   const dialogs = useDialogs();
   const [editing, setEditing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [name, setName] = useState(drawer.name);
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -60,6 +61,8 @@ export function DrawerCard({
   return (
     <LayerCard
       render={<section />}
+      data-head={settings.drawerHead}
+      data-open={menuOpen || editing || dropSide !== null || undefined}
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
       className={`nv-drawer rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${dropSide === 'before' ? 'outline-2 outline-offset-2 outline-kumo-brand' : ''} ${dropSide === 'after' ? 'outline-2 outline-kumo-brand' : ''}`}
       onDragOver={(e) => {
@@ -119,7 +122,7 @@ export function DrawerCard({
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={setMenuOpen}>
           <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (

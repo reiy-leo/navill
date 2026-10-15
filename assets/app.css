@@ -111,3 +111,24 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-pick:hover { background: color-mix(in oklab, var(--pick) 14%, transparent) !important; }
 .nv-pick-on { background: var(--pick) !important; color: #fff !important; }
 .nv-pick-on.nv-pick-soft { background: color-mix(in oklab, var(--pick) 30%, var(--color-kumo-base)) !important; }
+
+/* 标题栏「悬停显示」：书签区（primary）默认盖住标题栏（secondary，32px）的 80%，
+ * 悬停 / 菜单打开 / 重命名时标题栏向上伸出露全。用 transform，不改变抽屉高度，瀑布流不会重排。 */
+.nv-drawer[data-head='peek'] { position: relative; overflow: visible; }
+.nv-drawer[data-head='peek'] > .nv-drawer-head {
+  position: relative; z-index: 0;
+  background: inherit; border-radius: 0.75rem 0.75rem 0 0;
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+.nv-drawer[data-head='peek'] > .nv-drawer-primary { position: relative; z-index: 1; margin-top: -26px; }
+.nv-drawer[data-head='peek']:hover,
+.nv-drawer[data-head='peek'][data-open] { z-index: 5; }
+.nv-drawer[data-head='peek']:hover > .nv-drawer-head,
+.nv-drawer[data-head='peek'][data-open] > .nv-drawer-head {
+  transform: translateY(-26px);
+  box-shadow: 0 0 0 1px var(--tw-ring-color), 0 -4px 12px -6px rgb(0 0 0 / 0.12);
+}
+[data-surface='bare'] .nv-drawer[data-head='peek']:hover > .nv-drawer-head { box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .nv-drawer[data-head='peek'] > .nv-drawer-head { transition: none; } }
+/* 第一行抽屉标题栏向上伸出时不压到工作区标题 */
+.nv-masonry:has(.nv-drawer[data-head='peek']) { margin-top: 1rem; }

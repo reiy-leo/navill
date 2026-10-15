@@ -126,6 +126,7 @@ function General() {
       <Section title="书签与抽屉">
       <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
       <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
+      <Row label="抽屉标题栏"><Pick label="抽屉标题栏" value={settings.drawerHead} items={{ peek: '悬停显示', show: '始终显示' }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
       </Section>
       <Section title="网站图标">
       <IconRows />

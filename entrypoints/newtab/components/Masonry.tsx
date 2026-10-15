@@ -73,7 +73,7 @@ export function Masonry({ children }: { children: ReactNode }) {
   const ready = width > 0;
 
   return (
-    <div ref={box} className="relative" style={{ height }}>
+    <div ref={box} className="nv-masonry relative" style={{ height }}>
       {items.map((c, i) => {
         const k = String(c.key);
         return (
