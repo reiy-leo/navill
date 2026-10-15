@@ -65,7 +65,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   };
 
   const sideRef = useRef<HTMLDivElement>(null);
-  useDock(sideRef, 'y', !top && label !== 'name');
+  useDock(sideRef, 'y', !top && label === 'icon');
   const items = workspaces.map((w) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
@@ -74,7 +74,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   if (top) {
     return (
       <nav className="relative flex items-center px-11 py-1">
-        <ScrollStrip activeKey={view === 'workspace' ? current : undefined} dock={label !== 'name'}>{items}</ScrollStrip>
+        <ScrollStrip activeKey={view === 'workspace' ? current : undefined} dock={label === 'icon'}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
         </div>
@@ -92,7 +92,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   );
 }
 
-/** Dock 放大：鼠标处图标放大到 DOCK_MAX，两侧按距离递减（余弦衰减） */
+/** Dock 放大（仅「仅图标」模式）：鼠标处图标放大到 DOCK_MAX，两侧按距离递减（余弦衰减） */
 const DOCK_BASE = 22;
 const DOCK_MAX = 34;
 const DOCK_RANGE = 110;
@@ -257,7 +257,8 @@ function NavItem({
       aria-label={w.name}
       data-active={active || undefined}
     >
-      {label !== 'name' && (
+      {label === 'both' && <WorkspaceIcon ws={w} size={DOCK_BASE} />}
+      {label === 'icon' && (
         <span data-dock className="relative shrink-0 transition-[width,height] duration-100 ease-out motion-reduce:transition-none"
           style={horizontal ? { height: DOCK_MAX, width: `calc(${DOCK_BASE}px * var(--dock-s, 1))` } : { width: DOCK_MAX, height: `calc(${DOCK_BASE}px * var(--dock-s, 1))` }}>
           <span className="absolute left-1/2 top-1/2 block transition-transform duration-100 ease-out motion-reduce:transition-none"
