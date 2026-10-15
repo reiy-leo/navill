@@ -7,6 +7,7 @@ import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, upd
 import { workspaceVisible } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
+import { useTone } from '@/src/ui/colors';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { AppMenu } from './AppMenu';
@@ -64,8 +65,6 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     void reorderWorkspaces(db, ids);
   };
 
-  const sideRef = useRef<HTMLDivElement>(null);
-  useDock(sideRef, 'y', !top && label === 'icon');
   const items = workspaces.map((w) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
@@ -74,7 +73,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   if (top) {
     return (
       <nav className="relative flex items-center px-11 py-1">
-        <ScrollStrip activeKey={view === 'workspace' ? current : undefined} dock={label === 'icon'}>{items}</ScrollStrip>
+        <ScrollStrip activeKey={view === 'workspace' ? current : undefined}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
         </div>
@@ -84,7 +83,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   return (
     <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
-      <div ref={sideRef} className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? 'right' : 'top'} />
       </div>
@@ -92,42 +91,9 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   );
 }
 
-/** Dock 放大（仅「仅图标」模式）：鼠标处图标放大到 DOCK_MAX，两侧按距离递减（余弦衰减） */
-const DOCK_BASE = 22;
-const DOCK_MAX = 34;
-const DOCK_RANGE = 110;
-
-function useDock(ref: React.RefObject<HTMLElement | null>, axis: 'x' | 'y', enabled: boolean) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !enabled || reducedMotion()) return;
-    // 鼠标进入时按未放大的布局记下每个图标的中心（内容坐标），之后只随滚动换算，避免放大后的位移反过来影响计算
-    let centers: { node: HTMLElement; c: number }[] = [];
-    const scroll = () => (axis === 'x' ? el.scrollLeft : el.scrollTop);
-    const measure = () => {
-      const box = el.getBoundingClientRect();
-      centers = [...el.querySelectorAll<HTMLElement>('[data-dock]')].map((node) => {
-        const r = node.getBoundingClientRect();
-        return { node, c: (axis === 'x' ? r.left + r.width / 2 - box.left : r.top + r.height / 2 - box.top) + scroll() };
-      });
-    };
-    const reset = () => { for (const { node } of centers) node.style.removeProperty('--dock-s'); };
-    const onMove = (e: MouseEvent) => {
-      if (!centers.length) measure();
-      const box = el.getBoundingClientRect();
-      const p = (axis === 'x' ? e.clientX - box.left : e.clientY - box.top) + scroll();
-      for (const { node, c } of centers) {
-        const d = Math.abs(p - c);
-        const k = d >= DOCK_RANGE ? 0 : (1 + Math.cos((Math.PI * d) / DOCK_RANGE)) / 2;
-        node.style.setProperty('--dock-s', String(1 + (DOCK_MAX / DOCK_BASE - 1) * k));
-      }
-    };
-    const onLeave = () => { reset(); centers = []; };
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseleave', onLeave);
-    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); reset(); };
-  }, [ref, axis, enabled]);
-}
+/** 「仅图标」模式：选中的工作区图标放大到 1.5 倍，切换时带一下落入的动画（assets/app.css .nv-drop） */
+const ICON = 22;
+const ICON_BIG = 33;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FADE = 40;
@@ -135,9 +101,8 @@ const FADE = 40;
 /**
  * 顶部工作区条：两端有溢出时渐隐遮罩 + 悬停浮现的小箭头；滚轮纵向转横向；平滑滚动，选中项自动滚入视野。
  */
-function ScrollStrip({ children, activeKey, dock }: { children: ReactNode; activeKey?: string; dock?: boolean }) {
+function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  useDock(ref, 'x', !!dock);
   const count = Children.count(children);
   const [edge, setEdge] = useState({ left: false, right: false });
   const measure = useCallback(() => {
@@ -221,6 +186,7 @@ function NavItem({
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void; onReorder: (dragId: string, targetId: string, after: boolean) => void;
 }) {
   const [over, setOver] = useState<'bookmark' | 'before' | 'after' | null>(null);
+  const tone = useTone(w.color);
   const btn = (
     <button
       draggable={w.source !== 'inbox'}
@@ -249,25 +215,24 @@ function NavItem({
         else if (wid && wid !== w.id) onReorder(wid, w.id, side === 'after');
       }}
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
-        active ? 'bg-[color-mix(in_srgb,var(--nv-c)_20%,transparent)] font-medium' : 'hover:bg-[color-mix(in_srgb,var(--nv-c)_10%,transparent)]'
+        active ? (label === 'icon' ? '' : 'bg-[color-mix(in_srgb,var(--nv-c)_20%,transparent)] font-medium') : 'hover:bg-[color-mix(in_srgb,var(--nv-c)_10%,transparent)]'
       } transition-colors ${over === 'bookmark' ? 'ring-2 ring-kumo-brand' : ''} ${
         over === 'before' ? (horizontal ? 'shadow-[inset_3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_3px_0_var(--color-kumo-brand)]') : ''
       } ${over === 'after' ? (horizontal ? 'shadow-[inset_-3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_-3px_0_var(--color-kumo-brand)]') : ''}`}
-      style={{ '--nv-c': w.color ?? 'var(--color-kumo-brand)' } as React.CSSProperties}
+      style={{ '--nv-c': tone ?? 'var(--color-kumo-brand)' } as React.CSSProperties}
       aria-label={w.name}
       data-active={active || undefined}
     >
-      {label === 'both' && <WorkspaceIcon ws={w} size={DOCK_BASE} />}
+      {label === 'both' && <WorkspaceIcon ws={w} size={ICON} />}
       {label === 'icon' && (
-        <span data-dock className="relative shrink-0 transition-[width,height] duration-100 ease-out motion-reduce:transition-none"
-          style={horizontal ? { height: DOCK_BASE, width: `calc(${DOCK_BASE}px * var(--dock-s, 1))` } : { width: DOCK_BASE, height: `calc(${DOCK_BASE}px * var(--dock-s, 1))` }}>
+        <span className="relative shrink-0 transition-[width,height] duration-200 ease-out motion-reduce:transition-none"
+          style={horizontal ? { height: ICON, width: active ? ICON_BIG : ICON } : { width: ICON, height: active ? ICON_BIG : ICON }}>
           {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，侧栏贴左沿向右长 */}
-          <span className={`absolute block transition-transform duration-100 ease-out motion-reduce:transition-none ${horizontal ? 'left-1/2 top-0' : 'left-0 top-1/2'}`}
-            style={{
-              transformOrigin: horizontal ? 'top center' : 'left center',
-              transform: `${horizontal ? 'translateX(-50%)' : 'translateY(-50%)'} scale(calc(var(--dock-s, 1) * ${DOCK_BASE / DOCK_MAX}))`,
-            }}>
-            <WorkspaceIcon ws={w} size={DOCK_MAX} />
+          <span className={`absolute block ${horizontal ? 'left-1/2 top-0 -translate-x-1/2' : 'left-0 top-1/2 -translate-y-1/2'}`}>
+            <span key={active ? 'on' : 'off'} className={`block transition-transform duration-200 ease-out motion-reduce:transition-none ${active ? 'nv-drop' : ''}`}
+              style={{ transformOrigin: horizontal ? 'top center' : 'left center', transform: `scale(${active ? 1 : ICON / ICON_BIG})` }}>
+              <WorkspaceIcon ws={w} size={ICON_BIG} />
+            </span>
           </span>
         </span>
       )}
