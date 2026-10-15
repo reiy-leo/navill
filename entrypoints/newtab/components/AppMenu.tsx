@@ -7,7 +7,7 @@ import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
 /** ⋯ 菜单：搜索 · 场景 | 新建工作区 · 整理 · 归档 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
-export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' }) {
+export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' }) {
   const { organize, setOrganize, settings, modes, mode, updateSettings, view, setView } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
@@ -15,7 +15,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' 
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" title="更多" />} />
-      <DropdownMenu.Content side={side} align="end">
+      <DropdownMenu.Content side={side} align={side === 'bottom' ? 'end' : 'start'}>
         <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>搜索<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
         <DropdownMenu.Sub>
           <DropdownMenu.SubTrigger icon={Stack}>场景 · {mode?.name ?? '默认'}</DropdownMenu.SubTrigger>

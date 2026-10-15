@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
-import { CaretDoubleLeft, CaretDoubleRight, CaretLeft, CaretRight, PencilSimple, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, PencilSimple, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, db, type Workspace } from '@/src/db';
@@ -19,13 +19,12 @@ export function useVisibleWorkspaces() {
 }
 
 export function Nav({ current, onSearch, onSettings }: { current?: string; onSearch: () => void; onSettings: (tab?: Tab) => void }) {
-  const { settings, updateSettings, selectWorkspace, view } = useApp();
+  const { settings, selectWorkspace, view } = useApp();
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
   const menu = useContextMenu();
   const top = settings.navLayout === 'top';
-  const collapsed = !top && settings.sidebarCollapsed;
-  const label = collapsed ? 'icon' : settings.navLabel;
+  const label = settings.navLabel;
 
   const total = useLiveQuery(() => db.workspaces.count(), []) ?? 0;
   const full = total >= MAX_WORKSPACES;
@@ -80,13 +79,11 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   }
 
   return (
-    <nav className={`flex shrink-0 flex-col gap-1 p-2 transition-[width] ${collapsed ? 'w-14 items-center' : 'w-56'}`}>
-      <div className={`flex items-center gap-1 px-1 pb-2 ${collapsed ? 'flex-col' : ''}`}>
-        {!collapsed && <span className="flex-1 text-base font-semibold">Navill</span>}
-        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={collapsed ? 'right' : 'bottom'} />
-        <Button variant="ghost" size="xs" shape="square" icon={collapsed ? <CaretDoubleRight /> : <CaretDoubleLeft />} aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} onClick={() => void updateSettings({ sidebarCollapsed: !collapsed })} />
-      </div>
+    <nav className={`flex shrink-0 flex-col gap-1 p-2 ${label === 'icon' ? 'w-14 items-center' : 'w-max min-w-36 max-w-60'}`}>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto">{items}</div>
+      <div className={`flex items-center px-1 pt-2 ${label === 'icon' ? 'justify-center' : ''}`}>
+        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? 'right' : 'top'} />
+      </div>
     </nav>
   );
 }
