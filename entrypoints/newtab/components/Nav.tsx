@@ -64,6 +64,8 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     void reorderWorkspaces(db, ids);
   };
 
+  const sideRef = useRef<HTMLDivElement>(null);
+  useDock(sideRef, 'y', !top && label !== 'name');
   const items = workspaces.map((w) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
@@ -71,21 +73,60 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   if (top) {
     return (
-      <nav className="flex items-center gap-1 px-2 py-1.5">
-        <ScrollStrip activeKey={view === 'workspace' ? current : undefined}>{items}</ScrollStrip>
-        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
+      <nav className="relative flex items-center px-11 py-1">
+        <ScrollStrip activeKey={view === 'workspace' ? current : undefined} dock={label !== 'name'}>{items}</ScrollStrip>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
+        </div>
       </nav>
     );
   }
 
   return (
-    <nav className={`flex shrink-0 flex-col gap-1 p-2 ${label === 'icon' ? 'w-14 items-center' : 'w-max min-w-36 max-w-60'}`}>
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto">{items}</div>
-      <div className={`flex items-center px-1 pt-2 ${label === 'icon' ? 'justify-center' : ''}`}>
+    <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-14 items-center' : 'w-max min-w-36 max-w-60'}`}>
+      <div ref={sideRef} className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
+      <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? 'right' : 'top'} />
       </div>
     </nav>
   );
+}
+
+/** Dock 放大：鼠标处图标放大到 DOCK_MAX，两侧按距离递减（余弦衰减） */
+const DOCK_BASE = 22;
+const DOCK_MAX = 34;
+const DOCK_RANGE = 110;
+
+function useDock(ref: React.RefObject<HTMLElement | null>, axis: 'x' | 'y', enabled: boolean) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled || reducedMotion()) return;
+    // 鼠标进入时按未放大的布局记下每个图标的中心（内容坐标），之后只随滚动换算，避免放大后的位移反过来影响计算
+    let centers: { node: HTMLElement; c: number }[] = [];
+    const scroll = () => (axis === 'x' ? el.scrollLeft : el.scrollTop);
+    const measure = () => {
+      const box = el.getBoundingClientRect();
+      centers = [...el.querySelectorAll<HTMLElement>('[data-dock]')].map((node) => {
+        const r = node.getBoundingClientRect();
+        return { node, c: (axis === 'x' ? r.left + r.width / 2 - box.left : r.top + r.height / 2 - box.top) + scroll() };
+      });
+    };
+    const reset = () => { for (const { node } of centers) node.style.removeProperty('--dock-s'); };
+    const onMove = (e: MouseEvent) => {
+      if (!centers.length) measure();
+      const box = el.getBoundingClientRect();
+      const p = (axis === 'x' ? e.clientX - box.left : e.clientY - box.top) + scroll();
+      for (const { node, c } of centers) {
+        const d = Math.abs(p - c);
+        const k = d >= DOCK_RANGE ? 0 : (1 + Math.cos((Math.PI * d) / DOCK_RANGE)) / 2;
+        node.style.setProperty('--dock-s', String(1 + (DOCK_MAX / DOCK_BASE - 1) * k));
+      }
+    };
+    const onLeave = () => { reset(); centers = []; };
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); reset(); };
+  }, [ref, axis, enabled]);
 }
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -94,8 +135,9 @@ const FADE = 40;
 /**
  * 顶部工作区条：两端有溢出时渐隐遮罩 + 悬停浮现的小箭头；滚轮纵向转横向；平滑滚动，选中项自动滚入视野。
  */
-function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?: string }) {
+function ScrollStrip({ children, activeKey, dock }: { children: ReactNode; activeKey?: string; dock?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  useDock(ref, 'x', !!dock);
   const count = Children.count(children);
   const [edge, setEdge] = useState({ left: false, right: false });
   const measure = useCallback(() => {
@@ -153,7 +195,7 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
       <div
         ref={ref}
         onScroll={measure}
-        className="relative flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative flex h-12 items-center gap-1 overflow-x-auto [justify-content:safe_center] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ maskImage: mask, WebkitMaskImage: mask }}
       >
         {children}
@@ -215,7 +257,15 @@ function NavItem({
       aria-label={w.name}
       data-active={active || undefined}
     >
-      {label !== 'name' && <WorkspaceIcon ws={w} size={22} />}
+      {label !== 'name' && (
+        <span data-dock className="relative shrink-0 transition-[width,height] duration-100 ease-out motion-reduce:transition-none"
+          style={horizontal ? { height: DOCK_MAX, width: `calc(${DOCK_BASE}px * var(--dock-s, 1))` } : { width: DOCK_MAX, height: `calc(${DOCK_BASE}px * var(--dock-s, 1))` }}>
+          <span className="absolute left-1/2 top-1/2 block transition-transform duration-100 ease-out motion-reduce:transition-none"
+            style={{ transform: `translate(-50%, -50%) scale(calc(var(--dock-s, 1) * ${DOCK_BASE / DOCK_MAX}))` }}>
+            <WorkspaceIcon ws={w} size={DOCK_MAX} />
+          </span>
+        </span>
+      )}
       {label !== 'icon' && <span className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
       {label !== 'icon' && w.adult && <span className="text-[10px] text-kumo-danger">18+</span>}
     </button>
