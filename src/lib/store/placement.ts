@@ -1,5 +1,12 @@
 import type { NavillDB, Placement } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
+import { logged, q } from '../log';
+
+async function where(db: NavillDB, workspaceId: string, drawerId: string | null) {
+  const ws = await db.workspaces.get(workspaceId);
+  const d = drawerId ? await db.drawers.get(drawerId) : undefined;
+  return q(d ? `${ws?.name ?? ''} / ${d.name}` : ws?.name);
+}
 
 /** 某个位置（工作区顶层或抽屉）下按 order 排好的放置记录 */
 export async function placementsAt(db: NavillDB, workspaceId: string, drawerId: string | null): Promise<Placement[]> {
@@ -25,9 +32,11 @@ export async function reorderPlacements(db: NavillDB, ids: string[]) {
  * 若这是书签的最后一个位置，书签本身一并删除。
  */
 export async function removePlacement(db: NavillDB, placementId: string) {
-  await tx(db, async () => {
+  await logged(db, async (log) => {
     const p = await db.placements.get(placementId);
     if (!p) return;
+    const b = await db.bookmarks.get(p.bookmarkId);
+    log({ kind: 'delete', targetType: 'bookmark', targetId: p.bookmarkId, summary: `删除${p.isAlias ? '分身' : '书签'}${q(b?.title)}` });
     await del(db, 'placements', p.id);
     const rest = await db.placements.where('bookmarkId').equals(p.bookmarkId).toArray();
     if (rest.length === 0) {
@@ -45,9 +54,13 @@ export async function removePlacement(db: NavillDB, placementId: string) {
 export async function movePlacement(
   db: NavillDB, placementId: string, workspaceId: string, drawerId: string | null, index?: number,
 ) {
-  await tx(db, async () => {
+  await logged(db, async (log) => {
     const p = await db.placements.get(placementId);
     if (!p) return;
+    if (p.workspaceId !== workspaceId || p.drawerId !== drawerId) {
+      const b = await db.bookmarks.get(p.bookmarkId);
+      log({ kind: 'move', targetType: 'bookmark', targetId: p.bookmarkId, summary: `书签${q(b?.title)}移动到${await where(db, workspaceId, drawerId)}` });
+    }
     const target = (await placementsAt(db, workspaceId, drawerId)).filter((x) => x.id !== p.id);
     // 同一位置已有该书签的另一个放置（分身）时，不重复
     if (target.some((x) => x.bookmarkId === p.bookmarkId)) return;
@@ -62,9 +75,11 @@ export async function movePlacement(
 
 /** 在目标位置创建分身；目标处已有该书签时跳过，返回新位置 id 或 null */
 export async function createAlias(db: NavillDB, bookmarkId: string, workspaceId: string, drawerId: string | null) {
-  return tx(db, async () => {
+  return logged(db, async (log) => {
     const existing = await placementsAt(db, workspaceId, drawerId);
     if (existing.some((x) => x.bookmarkId === bookmarkId)) return null;
+    const b = await db.bookmarks.get(bookmarkId);
+    log({ kind: 'alias', targetType: 'bookmark', targetId: bookmarkId, summary: `为书签${q(b?.title)}创建分身到${await where(db, workspaceId, drawerId)}` });
     const row = await put<Placement>(db, 'placements', {
       id: uid(), bookmarkId, workspaceId, drawerId, order: await nextOrder(db, workspaceId, drawerId),
       isAlias: true, updatedAt: 0,

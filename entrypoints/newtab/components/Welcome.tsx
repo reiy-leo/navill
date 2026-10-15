@@ -6,9 +6,9 @@ import { parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { parseNetscapeHtml } from '@/src/lib/io/html';
 import { skipImport } from '@/src/lib/import/commit';
 import { createWorkspace } from '@/src/lib/store';
-import { updateSettings } from '@/src/lib/settings';
-import { isConfigured, signIn } from '@/src/lib/sync/auth';
-import { syncNow } from '@/src/lib/sync/engine';
+import { getSettings, updateSettings } from '@/src/lib/settings';
+import { isConfigured } from '@/src/lib/sync/auth';
+import { signInAndLog, syncNow } from '@/src/lib/sync/engine';
 import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { useDialogs } from '@/src/ui/dialogs';
 
@@ -32,8 +32,8 @@ export default function Welcome({ onImport }: { onImport: (tree?: BookmarkNode) 
 
   const fromDrive = () =>
     run('drive', async () => {
-      await signIn();
-      await updateSettings({ sync: { enabled: true, intervalMinutes: 15 } });
+      await signInAndLog(db);
+      await updateSettings({ sync: { ...(await getSettings()).sync, enabled: true, intervalMinutes: 15 } });
       await syncNow(db);
       const n = await db.workspaces.where('source').notEqual('inbox').count();
       if (n === 0 && (await db.bookmarks.count()) === 0) throw new Error('云端还没有 Navill 数据');

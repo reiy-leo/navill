@@ -1,14 +1,16 @@
-import { SYNC_ENTITIES, type NavillDB, type OpenEvent, type SyncEntity } from '@/src/db';
+import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent, type SyncEntity } from '@/src/db';
 import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
 import { ensureSeed } from '../store/seed';
-import { syncStatusItem } from '../settings';
-import { isConfigured, isSignedIn } from './auth';
+import { getSettings, syncStatusItem } from '../settings';
+import { isConfigured, isSignedIn, signIn } from './auth';
 import { download, gunzip, gzip, listFiles, remove, upload, type DriveFile } from './drive';
 import { countsFromEvents, mergeStates, monthKey, type RemoteState } from './merge';
+import { addLog, groupByMonth } from '../log';
 
 const STATE_FILE = 'state.json.gz';
 const eventsFile = (dev: string, month: string) => `events/${dev}-${month}.jsonl.gz`;
+const logsFile = (dev: string, month: string) => `logs/${dev}-${month}.jsonl.gz`;
 
 let running: Promise<void> | null = null;
 
@@ -85,6 +87,8 @@ async function run(db: NavillDB) {
     }
     await db.meta.put({ key: 'eventsSeen', value: seen });
     if (pulled) await recount(db);
+    // 3. 日志（可选）：与使用统计相同，每台设备只追加自己的月度文件，下载时按 id 合并
+    if ((await getSettings()).sync.logs) await syncLogs(db, dev, files, byName);
 
     await syncStatusItem.setValue({ state: 'ok', lastSyncAt: Date.now() });
     await db.meta.put({ key: 'syncFailures', value: 0 });
@@ -94,6 +98,40 @@ async function run(db: NavillDB) {
     await syncStatusItem.setValue({ ...prev, state: 'error', message: e instanceof Error ? e.message : String(e) });
     throw e;
   }
+}
+
+async function syncLogs(db: NavillDB, dev: string, files: DriveFile[], byName: Map<string, DriveFile>) {
+  const mine = await db.logs.where('deviceId').equals(dev).toArray();
+  const months = groupByMonth(mine);
+  const uploaded = ((await db.meta.get('logsUploaded'))?.value ?? {}) as Record<string, number>;
+  for (const [month, logs] of months) {
+    if (uploaded[month] === logs.length) continue;
+    const name = logsFile(dev, month);
+    await upload(name, await gzip(logs.map((e) => JSON.stringify(e)).join('\n')), byName.get(name)?.id);
+    uploaded[month] = logs.length;
+  }
+  await db.meta.put({ key: 'logsUploaded', value: uploaded });
+  const seen = ((await db.meta.get('logsSeen'))?.value ?? {}) as Record<string, string>;
+  for (const f of files) {
+    if (!f.name.startsWith('logs/') || f.name.startsWith(`logs/${dev}-`)) continue;
+    if (seen[f.name] === f.modifiedTime) continue;
+    const lines = (await gunzip(await download(f.id))).split('\n').filter(Boolean);
+    await db.logs.bulkPut(lines.map((l) => JSON.parse(l) as LogEntry));
+    seen[f.name] = f.modifiedTime;
+  }
+  await db.meta.put({ key: 'logsSeen', value: seen });
+}
+
+/** 待上传的改动数：结构改动（outbox）+ 开启日志同步时未上传的本机日志 */
+export async function pendingChanges(db: NavillDB): Promise<number> {
+  let n = await db.outbox.count();
+  if ((await getSettings()).sync.logs) {
+    const dev = await deviceId(db);
+    const uploaded = ((await db.meta.get('logsUploaded'))?.value ?? {}) as Record<string, number>;
+    const total = await db.logs.where('deviceId').equals(dev).count();
+    n += Math.max(0, total - Object.values(uploaded).reduce((a, b) => a + b, 0));
+  }
+  return n;
 }
 
 /** 失败退避：1 → 5 → 15 分钟 */
@@ -113,7 +151,13 @@ async function recount(db: NavillDB) {
 export async function deleteRemoteData(db: NavillDB) {
   const files: DriveFile[] = await listFiles();
   for (const f of files) await remove(f.id);
-  for (const k of ['remoteStateModified', 'eventsUploaded', 'eventsSeen']) await db.meta.delete(k);
+  for (const k of ['remoteStateModified', 'eventsUploaded', 'eventsSeen', 'logsUploaded', 'logsSeen']) await db.meta.delete(k);
 }
 
 export type { SyncEntity };
+
+/** 登录 Google 并记一条日志 */
+export async function signInAndLog(db: NavillDB) {
+  await signIn();
+  await addLog(db, { kind: 'signin', targetType: 'sync', summary: '登录 Google Drive 同步' });
+}

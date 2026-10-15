@@ -17,8 +17,26 @@ export interface Settings {
   sync: {
     enabled: boolean;
     intervalMinutes: 0 | 5 | 15 | 60; // 0 = 仅手动
+    /** 可选同步：日志（工作区、抽屉、书签等核心数据始终同步） */
+    logs: boolean;
   };
+  toast: ToastSettings;
 }
+
+export type ToastPosition = 'top-center' | 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left' | 'bottom-center';
+export type ToastStyle = 'plain' | 'tinted' | 'dark' | 'pill';
+/** 可开关的提醒内容；⌘S 跳过等直接反馈总是显示 */
+export type ToastEvent = 'sync' | 'create' | 'edit' | 'delete' | 'move';
+export interface ToastSettings {
+  position: ToastPosition;
+  style: ToastStyle;
+  show: Record<ToastEvent, boolean>;
+}
+export const DEFAULT_TOAST: ToastSettings = {
+  position: 'bottom-right',
+  style: 'plain',
+  show: { sync: true, create: true, edit: true, delete: true, move: true },
+};
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
@@ -30,14 +48,19 @@ export const DEFAULT_SETTINGS: Settings = {
   sidebarCollapsed: false,
   startWorkspace: 'last',
   currentModeId: MODE_DEFAULT,
-  sync: { enabled: false, intervalMinutes: 15 },
+  sync: { enabled: false, intervalMinutes: 15, logs: false },
+  toast: DEFAULT_TOAST,
 };
 
 export const settingsItem = storage.defineItem<Settings>('local:settings', { fallback: DEFAULT_SETTINGS });
 
 export async function getSettings(): Promise<Settings> {
   const s = await settingsItem.getValue();
-  return { ...DEFAULT_SETTINGS, ...s, sync: { ...DEFAULT_SETTINGS.sync, ...s.sync } };
+  return {
+    ...DEFAULT_SETTINGS, ...s,
+    sync: { ...DEFAULT_SETTINGS.sync, ...s.sync },
+    toast: { ...DEFAULT_TOAST, ...s.toast, show: { ...DEFAULT_TOAST.show, ...s.toast?.show } },
+  };
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<Settings> {

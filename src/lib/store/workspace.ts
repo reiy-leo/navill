@@ -4,6 +4,7 @@ import { deleteDrawer } from './drawer';
 import { removePlacement } from './placement';
 import { hideEverywhereExcept } from './mode';
 import { splitEmoji } from '../emoji';
+import { logged, q } from '../log';
 
 export class WorkspaceLimitError extends Error {
   constructor() { super(`最多只能有 ${MAX_WORKSPACES} 个工作区`); }
@@ -12,7 +13,7 @@ export class WorkspaceLimitError extends Error {
 export async function createWorkspace(
   db: NavillDB, input: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description'>> = {}, onlyInMode?: string,
 ) {
-  return tx(db, async () => {
+  return logged(db, async (log) => {
     const all = await db.workspaces.toArray();
     if (all.length >= MAX_WORKSPACES) throw new WorkspaceLimitError();
     const regular = all.filter((w) => w.source !== 'inbox');
@@ -29,6 +30,7 @@ export async function createWorkspace(
       updatedAt: 0,
     });
     if (onlyInMode && onlyInMode !== MODE_DEFAULT) await hideEverywhereExcept(db, 'workspace', ws.id, onlyInMode);
+    log({ kind: 'create', targetType: 'workspace', targetId: ws.id, summary: `新建工作区${q(ws.name)}` });
     return ws;
   });
 }
@@ -36,6 +38,7 @@ export async function createWorkspace(
 export async function updateWorkspace(
   db: NavillDB, id: string, changes: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description' | 'viewMode' | 'adult'>>,
 ) {
+  await logged(db, async (log) => {
   const ws = await db.workspaces.get(id);
   if (!ws) return;
   if (ws.source === 'inbox') delete changes.name; // 「待整理」不可改名
@@ -47,6 +50,11 @@ export async function updateWorkspace(
   }
   if (changes.description) changes.description = changes.description.slice(0, 50);
   await patch<Workspace>(db, 'workspaces', id, changes);
+  const renamed = changes.name !== undefined && changes.name !== ws.name;
+  log(renamed
+    ? { kind: 'rename', targetType: 'workspace', targetId: id, summary: `工作区${q(ws.name)}改名为${q(changes.name)}` }
+    : { kind: 'edit', targetType: 'workspace', targetId: id, summary: `编辑工作区${q(ws.name)}` });
+  });
 }
 
 export async function setWorkspaceView(db: NavillDB, id: string, viewMode: ViewMode) {
@@ -66,9 +74,10 @@ export async function reorderWorkspaces(db: NavillDB, ids: string[]) {
 
 /** 删除工作区及其中全部抽屉与书签位置；「待整理」不可删除 */
 export async function deleteWorkspace(db: NavillDB, id: string) {
-  await tx(db, async () => {
+  await logged(db, async (log) => {
     const ws = await db.workspaces.get(id);
     if (!ws || ws.source === 'inbox') return;
+    log({ kind: 'delete', targetType: 'workspace', targetId: id, summary: `删除工作区${q(ws.name)}` });
     const drawers: Drawer[] = await db.drawers.where('workspaceId').equals(id).toArray();
     for (const d of drawers) await deleteDrawer(db, d.id);
     const rest = await db.placements.where('workspaceId').equals(id).toArray();

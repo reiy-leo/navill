@@ -10,7 +10,9 @@ import { ContextMenuProvider } from '@/src/ui/ContextMenu';
 import { DialogsProvider } from '@/src/ui/dialogs';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 import { ArchiveView } from './components/ArchiveView';
-import { SearchDialog, useSlashToSearch } from './components/AppMenu';
+import { SearchDialog } from './components/AppMenu';
+import { shortcutSync, useLogToasts, useShortcuts } from '@/src/ui/feedback';
+import { Toaster } from '@/src/ui/toast';
 import type { Tab } from './components/Settings';
 import ImportPreview from './components/ImportPreview';
 import { Nav, useVisibleWorkspaces } from './components/Nav';
@@ -26,11 +28,18 @@ export default function App() {
         <DialogsProvider>
           <ContextMenuProvider>
             <Root />
+            <Toasts />
           </ContextMenuProvider>
         </DialogsProvider>
       </AppStateProvider>
     </TooltipProvider>
   );
+}
+
+function Toasts() {
+  const { settings } = useApp();
+  useLogToasts(settings);
+  return <Toaster position={settings.toast.position} style={settings.toast.style} />;
 }
 
 type Screen = { kind: 'auto' } | { kind: 'preview'; tree?: BookmarkNode; dedupe: boolean };
@@ -80,7 +89,10 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   const [settingsOpen, setSettingsOpen] = useState<Tab | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
-  useSlashToSearch(openSearch);
+  const latest = useRef(settings);
+  latest.current = settings;
+  const sync = useCallback(() => void shortcutSync(db, latest.current), []);
+  useShortcuts({ onSearch: openSearch, onSync: sync });
   const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? 'general') };
   const current = workspaces?.find((w) => w.id === workspaceId) ?? workspaces?.[0];
   const top = settings.navLayout === 'top';

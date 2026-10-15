@@ -49,6 +49,14 @@ export interface Meta { key: string; value: unknown }
 /** 高清网站图标缓存（按域名，只存本地，不同步） */
 export interface IconCache { host: string; blob?: Blob; source?: 'page' | 'icon.horse' | 'google'; fetchedAt: number; failed?: boolean }
 
+/** 日志：本机始终记录；设置里开启「日志」后按设备、按月追加上传 */
+export type LogKind = 'create' | 'rename' | 'edit' | 'delete' | 'move' | 'archive' | 'restore' | 'alias' | 'install' | 'signin';
+export type LogTarget = 'workspace' | 'drawer' | 'bookmark' | 'device' | 'sync';
+export interface LogEntry {
+  id: string; at: number; deviceId: string; /** 浏览器 · 系统，如「Edge · Windows」 */ device?: string;
+  kind: LogKind; targetType: LogTarget; targetId?: string; summary: string;
+}
+
 export type SyncEntity = 'workspaces' | 'drawers' | 'bookmarks' | 'placements' | 'aliasGroups' | 'modes' | 'tags';
 export const SYNC_ENTITIES: SyncEntity[] = ['workspaces', 'drawers', 'bookmarks', 'placements', 'aliasGroups', 'modes', 'tags'];
 
@@ -65,6 +73,7 @@ export type NavillDB = Dexie & {
   outbox: EntityTable<OutboxItem, 'id'>;
   meta: EntityTable<Meta, 'key'>;
   icons: EntityTable<IconCache, 'host'>;
+  logs: EntityTable<LogEntry, 'id'>;
 };
 
 export const PALETTE = ['#f6821f', '#e5484d', '#d6409f', '#8e4ec6', '#3e63dd', '#0090ff', '#12a594', '#30a46c', '#ffb224', '#8d8d86'];
@@ -106,6 +115,7 @@ export function createDB(name = 'navill'): NavillDB {
       });
     });
   d.version(3).stores({ icons: 'host, fetchedAt' });
+  d.version(4).stores({ logs: 'id, at, deviceId' });
   return d;
 }
 

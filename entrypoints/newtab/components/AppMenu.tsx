@@ -1,14 +1,14 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Check, CheckSquare, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, GearSix, MagnifyingGlass, Stack } from '@phosphor-icons/react';
+import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, GearSix, MagnifyingGlass, Stack } from '@phosphor-icons/react';
 import { useEffect, useRef } from 'react';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
-/** ⋯ 菜单：搜索 / 场景 / 整理 / 同步 / 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
-export function AppMenu({ onSearch, onSettings, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; side?: 'bottom' | 'right' }) {
-  const { organize, setOrganize, settings, modes, mode, updateSettings } = useApp();
+/** ⋯ 菜单：搜索 · 场景 | 新建工作区 · 整理 · 归档 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
+export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' }) {
+  const { organize, setOrganize, settings, modes, mode, updateSettings, view, setView } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
   const syncLabel = !settings.sync.enabled ? '同步未开启' : sync.state === 'error' ? '同步失败' : sync.state === 'syncing' ? '正在同步…' : sync.lastSyncAt ? `已同步 ${new Date(sync.lastSyncAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}` : '同步';
@@ -27,7 +27,10 @@ export function AppMenu({ onSearch, onSettings, side = 'bottom' }: { onSearch: (
             ))}
           </DropdownMenu.SubContent>
         </DropdownMenu.Sub>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>新建工作区</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? '退出整理' : '整理'}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={view === 'archive' ? Check : Archive} onClick={() => setView('archive')}>归档</DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>设置</DropdownMenu.Item>
@@ -36,7 +39,7 @@ export function AppMenu({ onSearch, onSettings, side = 'bottom' }: { onSearch: (
   );
 }
 
-/** 屏幕中间的搜索框；按 / 打开，Esc 关闭 */
+/** 屏幕中间的搜索框；按 / 或 ⌘L / Ctrl+L 打开，Esc 关闭 */
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { query, setQuery } = useApp();
   const ref = useRef<HTMLInputElement>(null);
@@ -57,18 +60,4 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       </Dialog>
     </Dialog.Root>
   );
-}
-
-export function useSlashToSearch(openSearch: () => void) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !['INPUT', 'TEXTAREA'].includes(t.tagName) && !t.isContentEditable) {
-        e.preventDefault();
-        openSearch();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [openSearch]);
 }

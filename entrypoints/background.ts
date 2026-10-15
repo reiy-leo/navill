@@ -6,6 +6,7 @@ import { parseWorkspaceIcons } from '@/src/lib/store/workspace';
 const fixIcons = () => parseWorkspaceIcons(db).catch((e) => console.warn('[Navill] 解析工作区图标失败', e));
 import { getSettings, settingsItem } from '@/src/lib/settings';
 import { backoffMinutes, syncNow } from '@/src/lib/sync/engine';
+import { logInstallOnce } from '@/src/lib/log';
 
 const ALARM = 'navill-sync';
 
@@ -32,6 +33,8 @@ async function trySync(reason: string) {
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     await ensureSeed(db);
+    // 新设备 / 新浏览器：首次安装时记一条日志（每台设备只记一次）
+    if (reason === 'install') await logInstallOnce(db).catch(() => {});
     await fixIcons();
     await schedule();
     if (reason === 'install') void browser.tabs.create({ url: browser.runtime.getURL('/newtab.html') });

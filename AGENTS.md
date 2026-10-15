@@ -68,3 +68,9 @@ docs/                PLAN.md、PRODUCT.md
 - 说明性文字不要常驻占版面，用 `src/ui/InfoTip.tsx`（ⓘ，悬停或点击显示）。状态类短文字（已授权、上次同步时间）可以常显。
 - 文案不用括号备注：菜单项、按钮、标签名保持简短（「创建分身」而不是「创建分身（挂载到其他抽屉）」），补充说明放 InfoTip、placeholder 或确认对话框。
 - 右键菜单和 ⋯ 菜单按功能分组，组间用分割线（ContextMenu `{ divider: true }`、`DropdownMenu.Separator`），危险操作单独一组放最后。
+
+## 快捷键 / 提醒 / 日志（2026-10-15）
+- 提醒用 `src/ui/toast.tsx` 的 `toast()`，不要另起一套；书签操作的提醒由日志事件（`onLogged`）驱动，新的写操作只要在 store 层记日志就会自动提醒。
+- 用户写操作在 store 层用 `logged(db, async (log) => …)` 包裹并调用 `log()`；嵌套调用自动只记最外层。同步合并、导入、恢复备份直接写表，不记日志。
+- 页面快捷键集中在 `src/ui/feedback.ts` 的 `useShortcuts`（捕获阶段）；⌘S 跳过规则是 `src/lib/sync/shortcut.ts` 纯函数。
+- 「新建工作区」「归档」在 ⋯ 菜单里，不要再放回导航栏。

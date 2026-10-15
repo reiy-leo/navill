@@ -1,7 +1,7 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
-import { Archive, CaretDoubleLeft, CaretDoubleRight, CaretLeft, CaretRight, PencilSimple, Plus, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaretDoubleLeft, CaretDoubleRight, CaretLeft, CaretRight, PencilSimple, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useRef, useState } from 'react';
+import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, db, type Workspace } from '@/src/db';
 import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, updateWorkspace } from '@/src/lib/store';
 import { workspaceVisible } from '@/src/lib/view';
@@ -19,11 +19,10 @@ export function useVisibleWorkspaces() {
 }
 
 export function Nav({ current, onSearch, onSettings }: { current?: string; onSearch: () => void; onSettings: (tab?: Tab) => void }) {
-  const { settings, updateSettings, selectWorkspace, view, setView } = useApp();
+  const { settings, updateSettings, selectWorkspace, view } = useApp();
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
   const menu = useContextMenu();
-  const scroller = useRef<HTMLDivElement>(null);
   const top = settings.navLayout === 'top';
   const collapsed = !top && settings.sidebarCollapsed;
   const label = collapsed ? 'icon' : settings.navLabel;
@@ -74,20 +73,8 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   if (top) {
     return (
       <nav className="flex items-center gap-1 px-2 py-1.5">
-        <Button variant="ghost" size="xs" shape="square" icon={<CaretLeft />} aria-label="向左滚动" onClick={() => scroller.current?.scrollBy({ left: -240, behavior: 'smooth' })} />
-        <div
-          ref={scroller}
-          className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none]"
-          onWheel={(e) => {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) scroller.current?.scrollBy({ left: e.deltaY });
-          }}
-        >
-          {items}
-        </div>
-        <Button variant="ghost" size="xs" shape="square" icon={<CaretRight />} aria-label="向右滚动" onClick={() => scroller.current?.scrollBy({ left: 240, behavior: 'smooth' })} />
-        <Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label="新建工作区" onClick={() => void add()} />
-        <Button variant={view === 'archive' ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Archive />} aria-label="归档" title="归档" onClick={() => setView('archive')} />
-        <AppMenu onSearch={onSearch} onSettings={onSettings} />
+        <ScrollStrip activeKey={view === 'workspace' ? current : undefined}>{items}</ScrollStrip>
+        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
       </nav>
     );
   }
@@ -96,19 +83,88 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     <nav className={`flex shrink-0 flex-col gap-1 p-2 transition-[width] ${collapsed ? 'w-14 items-center' : 'w-56'}`}>
       <div className={`flex items-center gap-1 px-1 pb-2 ${collapsed ? 'flex-col' : ''}`}>
         {!collapsed && <span className="flex-1 text-base font-semibold">Navill</span>}
-        <AppMenu onSearch={onSearch} onSettings={onSettings} side={collapsed ? 'right' : 'bottom'} />
+        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={collapsed ? 'right' : 'bottom'} />
         <Button variant="ghost" size="xs" shape="square" icon={collapsed ? <CaretDoubleRight /> : <CaretDoubleLeft />} aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} onClick={() => void updateSettings({ sidebarCollapsed: !collapsed })} />
       </div>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto">{items}</div>
-      <div className={`flex w-full gap-1 border-t border-kumo-line pt-2 ${collapsed ? 'flex-col items-center' : ''}`}>
-        {collapsed ? (
-          <Button variant="ghost" size="sm" shape="square" icon={<Plus />} onClick={() => void add()} aria-label="新建工作区" />
-        ) : (
-          <Button variant="ghost" size="sm" className="flex-1 justify-start" icon={<Plus />} onClick={() => void add()}>新建工作区</Button>
-        )}
-        <Button variant={view === 'archive' ? 'secondary' : 'ghost'} size="sm" shape="square" icon={<Archive />} aria-label="归档" title="归档" onClick={() => setView('archive')} />
-      </div>
     </nav>
+  );
+}
+
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FADE = 40;
+
+/**
+ * 顶部工作区条：两端有溢出时渐隐遮罩 + 悬停浮现的小箭头；滚轮纵向转横向；平滑滚动，选中项自动滚入视野。
+ */
+function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const count = Children.count(children);
+  const [edge, setEdge] = useState({ left: false, right: false });
+  const measure = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const left = el.scrollLeft > 1;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setEdge((e) => (e.left === left && e.right === right ? e : { left, right }));
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    for (const c of el.children) ro.observe(c);
+    // 纵向滚轮转横向（需要非 passive 监听才能阻止页面滚动）
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
+      e.preventDefault();
+      const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+      el.scrollBy({ left: dy, behavior: Math.abs(dy) >= 50 && !reducedMotion() ? 'smooth' : 'auto' });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => { ro.disconnect(); el.removeEventListener('wheel', onWheel); };
+  }, [measure, count]);
+
+  // 选中的工作区平滑滚入视野（只滚这一条，不带动页面）
+  useEffect(() => {
+    const el = ref.current;
+    const item = el?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!el || !item) return;
+    const l = item.offsetLeft - FADE;
+    const r = item.offsetLeft + item.offsetWidth + FADE - el.clientWidth;
+    const to = l < el.scrollLeft ? l : r > el.scrollLeft ? r : null;
+    if (to !== null) el.scrollTo({ left: Math.max(0, to), behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }, [activeKey]);
+
+  const by = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.7, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  const mask = edge.left && edge.right
+    ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
+    : edge.left ? `linear-gradient(to right, transparent, #000 ${FADE}px)`
+    : edge.right ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)` : undefined;
+  const arrow = 'absolute top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-kumo-elevated/80 text-kumo-subtle opacity-0 shadow-sm ring-1 ring-kumo-line backdrop-blur transition duration-200 ease-out hover:text-kumo-default group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none';
+  return (
+    <div className="group relative min-w-0 flex-1">
+      <div
+        ref={ref}
+        onScroll={measure}
+        className="relative flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ maskImage: mask, WebkitMaskImage: mask }}
+      >
+        {children}
+      </div>
+      {edge.left && (
+        <button type="button" aria-label="向左滚动" className={`${arrow} left-0.5 -translate-x-1 group-hover:translate-x-0`} onClick={() => by(-1)}>
+          <CaretLeft size={14} weight="bold" />
+        </button>
+      )}
+      {edge.right && (
+        <button type="button" aria-label="向右滚动" className={`${arrow} right-0.5 translate-x-1 group-hover:translate-x-0`} onClick={() => by(1)}>
+          <CaretRight size={14} weight="bold" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -153,6 +209,7 @@ function NavItem({
       } ${over === 'after' ? (horizontal ? 'shadow-[inset_-3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_-3px_0_var(--color-kumo-brand)]') : ''}`}
       style={active ? { boxShadow: `inset 3px 0 0 ${w.color}` } : undefined}
       aria-label={w.name}
+      data-active={active || undefined}
     >
       {label !== 'name' && <WorkspaceIcon ws={w} size={22} />}
       {label !== 'icon' && <span className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}

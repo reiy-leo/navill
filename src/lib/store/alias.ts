@@ -1,5 +1,6 @@
 import type { AliasGroup, NavillDB } from '@/src/db';
 import { del, put, tx, uid } from './core';
+import { logged, q } from '../log';
 
 /** 如果把 source 挂到 target，会不会形成循环（target 直接或间接挂载了 source 之后又被 source 挂载） */
 export function wouldCycle(groups: Pick<AliasGroup, 'sourceDrawerId' | 'targetDrawerId'>[], source: string, target: string) {
@@ -28,11 +29,13 @@ export class AliasCycleError extends Error {
 
 /** 创建分身书签组：把 source 抽屉的全部书签挂载到 target 抽屉 */
 export async function mountDrawer(db: NavillDB, sourceDrawerId: string, targetDrawerId: string) {
-  return tx(db, async () => {
+  return logged(db, async (log) => {
     const groups = await db.aliasGroups.toArray();
     if (groups.some((g) => g.sourceDrawerId === sourceDrawerId && g.targetDrawerId === targetDrawerId)) return null;
     if (wouldCycle(groups, sourceDrawerId, targetDrawerId)) throw new AliasCycleError();
     const order = groups.filter((g) => g.targetDrawerId === targetDrawerId).length;
+    const [s, t] = await db.drawers.bulkGet([sourceDrawerId, targetDrawerId]);
+    log({ kind: 'alias', targetType: 'drawer', targetId: sourceDrawerId, summary: `抽屉${q(s?.name)}创建分身到抽屉${q(t?.name)}` });
     return put<AliasGroup>(db, 'aliasGroups', {
       id: uid(), sourceDrawerId, targetDrawerId, order, createdAt: Date.now(), updatedAt: 0,
     });
@@ -40,16 +43,23 @@ export async function mountDrawer(db: NavillDB, sourceDrawerId: string, targetDr
 }
 
 export async function unmount(db: NavillDB, groupId: string) {
-  await del(db, 'aliasGroups', groupId);
+  await logged(db, async (log) => {
+    const g = await db.aliasGroups.get(groupId);
+    if (!g) return;
+    const [s, t] = await db.drawers.bulkGet([g.sourceDrawerId, g.targetDrawerId]);
+    await del(db, 'aliasGroups', groupId);
+    log({ kind: 'alias', targetType: 'drawer', targetId: g.sourceDrawerId, summary: `解除抽屉${q(s?.name)}在${q(t?.name)}的挂载` });
+  });
 }
 
 /** 把分身转为独立书签：复制一份书签，位置改指向副本 */
 export async function detachAlias(db: NavillDB, placementId: string) {
-  await tx(db, async () => {
+  await logged(db, async (log) => {
     const p = await db.placements.get(placementId);
     if (!p || !p.isAlias) return;
     const b = await db.bookmarks.get(p.bookmarkId);
     if (!b) return;
+    log({ kind: 'alias', targetType: 'bookmark', targetId: b.id, summary: `分身${q(b.title)}转为独立书签` });
     const copy = await put(db, 'bookmarks', { ...b, id: uid(), openCount: 0, lastOpenedAt: undefined, createdAt: Date.now() });
     await put(db, 'placements', { ...p, bookmarkId: copy.id, isAlias: false });
   });

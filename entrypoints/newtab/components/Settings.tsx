@@ -1,15 +1,17 @@
 import { InfoTip } from '@/src/ui/InfoTip';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
-import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley } from '@phosphor-icons/react';
+import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
-import type { Settings as S } from '@/src/lib/settings';
+import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
 import { clearOpenEvents, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setShowAdult, setVisible, unmount } from '@/src/lib/store';
-import { isConfigured, redirectUri, signIn, signOut } from '@/src/lib/sync/auth';
-import { deleteRemoteData, syncNow } from '@/src/lib/sync/engine';
+import { isConfigured, redirectUri, signOut } from '@/src/lib/sync/auth';
+import { deleteRemoteData, signInAndLog } from '@/src/lib/sync/engine';
+import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
+import { toast } from '@/src/ui/toast';
 import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { Modal } from '@/src/ui/Modal';
@@ -17,7 +19,7 @@ import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
 
-export type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'data';
+export type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
 
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -33,6 +35,8 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
           { value: 'tags', label: '标签' },
           { value: 'sync', label: '同步' },
           { value: 'alias', label: '分身' },
+          { value: 'toast', label: '提醒' },
+          { value: 'keys', label: '快捷键' },
           { value: 'data', label: '数据' },
         ]}
       />
@@ -42,6 +46,8 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
         {tab === 'tags' && <Tags />}
         {tab === 'sync' && <Sync />}
         {tab === 'alias' && <Aliases />}
+        {tab === 'toast' && <Toasts />}
+        {tab === 'keys' && <Shortcuts />}
         {tab === 'data' && <Data onReimport={(s) => { onClose(); onReimport(s); }} />}
       </div>
     </Modal>
@@ -219,6 +225,7 @@ function Sync() {
   const status = useSyncStatus();
   const dialogs = useDialogs();
   const [busy, setBusy] = useState(false);
+  const [logsOpen, setLogsOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -233,7 +240,11 @@ function Sync() {
   };
   if (!isConfigured()) {
     return (
-      <Banner variant="alert" title="未配置 Google OAuth 客户端 ID" description={`构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：${redirectUri()}`} />
+      <div className="flex flex-col gap-1">
+        <Banner variant="alert" title="未配置 Google OAuth 客户端 ID" description={`构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：${redirectUri()}`} />
+        <Row label="日志"><Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button></Row>
+        {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
+      </div>
     );
   }
   const signedIn = status.state !== 'signed-out';
@@ -246,20 +257,100 @@ function Sync() {
         {signedIn ? (
           <Button size="sm" icon={<SignOut />} onClick={() => void run(async () => { await signOut(); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>退出登录</Button>
         ) : (
-          <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signIn(); await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncNow(db); })}>登录 Google</Button>
+          <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signInAndLog(db); const next = await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncFromPage(db, next); })}>登录 Google</Button>
         )}
       </Row>
       <Row label="自动同步"><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
       <Row label="同步频率" info="只在有改动时上传"><Select aria-label="同步频率" className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': '每 5 分钟', '15': '每 15 分钟', '60': '每 60 分钟', '0': '仅手动' }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
       <Row label="立即同步" hint={status.lastSyncAt ? `上次同步：${new Date(status.lastSyncAt).toLocaleString('zh-CN')}` : '尚未同步'}>
-        <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncNow(db))}>立即同步</Button>
+        <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>立即同步</Button>
       </Row>
+      <Row label="核心数据" info="工作区、抽屉、书签、分身、场景、标签和删除记录始终同步"><Badge variant="neutral">始终同步</Badge></Row>
+      <Row label="日志" info="新建、改名、编辑、删除、移动、归档、分身等操作的记录。本机始终记录；开启后上传到 Drive，并合并其他设备的日志">
+        <div className="flex items-center gap-2">
+          <Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button>
+          <Switch checked={settings.sync.logs} aria-label="同步日志" onClick={() => void updateSettings({ sync: { ...settings.sync, logs: !settings.sync.logs } })} />
+        </div>
+      </Row>
+      {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
       <Row label="冲突策略" info="按条目合并，修改时间新的一方胜出"><Badge variant="neutral">按条目合并</Badge></Row>
       <Row label="删除云端数据" info="只删除 Drive 中的 Navill 数据，本地不受影响">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} disabled={!signedIn} onClick={async () => {
           if (await dialogs.confirm({ title: '删除云端的 Navill 数据？', okText: '删除', danger: true })) await run(() => deleteRemoteData(db));
         }}>删除</Button>
       </Row>
+    </div>
+  );
+}
+
+function LogViewer({ onClose }: { onClose: () => void }) {
+  const data = useLiveQuery(async () => ({
+    logs: await db.logs.orderBy('at').reverse().limit(500).toArray(),
+    total: await db.logs.count(),
+    me: (await db.meta.get('deviceId'))?.value as string | undefined,
+  }), []);
+  return (
+    <Modal open size="lg" title="日志" onClose={onClose}>
+      {!data ? null : data.logs.length === 0 ? <p className="py-8 text-center text-sm text-kumo-subtle">还没有日志</p> : (
+        <div className="flex flex-col">
+          {data.logs.map((l) => (
+            <div key={l.id} className="flex items-baseline gap-3 border-b border-kumo-line py-2 text-sm last:border-0">
+              <span className="w-32 shrink-0 tabular-nums text-kumo-subtle">{new Date(l.at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="w-28 shrink-0 truncate text-kumo-subtle">{l.deviceId === data.me ? '本机' : l.device ?? '其他设备'}</span>
+              <span className="min-w-0 flex-1 break-words">{l.summary}</span>
+            </div>
+          ))}
+          {data.total > data.logs.length && <p className="pt-3 text-center text-xs text-kumo-subtle">只显示最近 {data.logs.length} 条，共 {data.total} 条</p>}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+const POSITIONS: Record<ToastPosition, string> = {
+  'top-center': '中顶', 'top-right': '右上', 'bottom-right': '右下', 'top-left': '左上', 'bottom-left': '左下', 'bottom-center': '中底',
+};
+const STYLES: Record<ToastStyle, string> = { plain: '简洁', tinted: '彩色', dark: '深色', pill: '胶囊' };
+const EVENTS: Array<[ToastEvent, string]> = [
+  ['sync', '同步完成'], ['create', '新建书签'], ['edit', '修改书签'], ['delete', '删除书签'], ['move', '移动书签'],
+];
+
+function Toasts() {
+  const { settings, updateSettings } = useApp();
+  const t = settings.toast;
+  const set = (p: Partial<S['toast']>) => void updateSettings({ toast: { ...t, ...p } });
+  return (
+    <div className="flex flex-col gap-1">
+      <div><InfoTip text="说明">提醒设置只对本机生效。按 {modKey()}S 时「已跳过」这类直接反馈总是显示。</InfoTip></div>
+      <Row label="位置"><Pick label="位置" value={t.position} items={POSITIONS} onChange={(position) => set({ position })} /></Row>
+      <Row label="样式">
+        <div className="flex items-center gap-2">
+          <Pick label="样式" value={t.style} items={STYLES} onChange={(style) => set({ style })} />
+          <Button size="sm" icon={<Play />} onClick={() => toast('新建书签「Navill 示例」')}>预览</Button>
+        </div>
+      </Row>
+      <h3 className="mt-4 text-sm font-semibold">提醒内容</h3>
+      {EVENTS.map(([k, label]) => (
+        <Row key={k} label={label}>
+          <Switch checked={t.show[k]} aria-label={label} onClick={() => set({ show: { ...t.show, [k]: !t.show[k] } })} />
+        </Row>
+      ))}
+    </div>
+  );
+}
+
+function Kbd({ children }: { children: ReactNode }) {
+  return <kbd className="rounded-md border border-kumo-line bg-kumo-recessed px-2 py-0.5 font-mono text-sm">{children}</kbd>;
+}
+
+function Shortcuts() {
+  const mod = isMac() ? '⌘' : 'Ctrl';
+  const combo = (k: string) => (isMac() ? `${mod}${k}` : `${mod}+${k}`);
+  return (
+    <div className="flex flex-col gap-1">
+      <Row label="立即同步" info="3 分钟内同步过，或没有需要上传的改动时跳过并提醒；同步未开启或未登录时也会提醒"><Kbd>{combo('S')}</Kbd></Row>
+      <Row label="搜索" info={`焦点在地址栏时，浏览器会先处理 ${combo('L')}；在 Navill 页面里按才会打开搜索`}><Kbd>{combo('L')}</Kbd></Row>
+      <Row label="搜索"><Kbd>/</Kbd></Row>
     </div>
   );
 }
