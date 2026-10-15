@@ -22,7 +22,7 @@ import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
 
-export type Tab = 'general' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
+export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
 
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -34,6 +34,7 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
         onValueChange={(v) => setTab(v as Tab)}
         tabs={[
           { value: 'general', label: '通用' },
+          { value: 'look', label: '外观' },
           { value: 'modes', label: '场景' },
           { value: 'tags', label: '标签' },
           { value: 'sync', label: '同步' },
@@ -45,6 +46,7 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
       />
       <div className="mt-4 min-h-[50vh]">
         {tab === 'general' && <General />}
+        {tab === 'look' && <Look />}
         {tab === 'modes' && <Modes />}
         {tab === 'tags' && <Tags />}
         {tab === 'sync' && <Sync />}
@@ -113,26 +115,37 @@ function General() {
   const wsItems = Object.fromEntries([['last', '上次打开的'], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
   return (
     <div>
-      <Section title="外观">
-      <Row label="主题"><Pick label="主题" value={settings.theme} items={{ system: '跟随系统', light: '浅色', dark: '深色' }} onChange={(theme) => set({ theme })} /></Row>
-      <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
-      </Section>
-      <Section title="工作区">
-      <Row label="工作区导航"><Pick label="工作区导航" value={settings.navPosition} items={{ left: '左侧', right: '右侧', top: '顶部', bottom: '底部' }} onChange={(navPosition) => set({ navPosition })} /></Row>
-      <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
-      <Row label="工作区图标" info="Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标', char: '字符' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
+      <Section title="打开">
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
-      </Section>
-      <Section title="书签与抽屉">
       <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
-      <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
-      <Row label="抽屉标题栏"><Pick label="抽屉标题栏" value={settings.drawerHead} items={{ peek: '悬停显示', show: '始终显示' }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
       </Section>
       <Section title="网站图标">
       <IconRows />
       </Section>
       <Section title="新标签页">
       <Row label="新标签页" info="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
+      </Section>
+    </div>
+  );
+}
+
+function Look() {
+  const { settings, updateSettings } = useApp();
+  const set = (p: Partial<S>) => void updateSettings(p);
+  return (
+    <div>
+      <Section title="主题">
+      <Row label="主题"><Pick label="主题" value={settings.theme} items={{ system: '跟随系统', light: '浅色', dark: '深色' }} onChange={(theme) => set({ theme })} /></Row>
+      <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
+      </Section>
+      <Section title="工作区导航">
+      <Row label="导航位置"><Pick label="导航位置" value={settings.navPosition} items={{ left: '左侧', right: '右侧', top: '顶部', bottom: '底部' }} onChange={(navPosition) => set({ navPosition })} /></Row>
+      <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
+      <Row label="工作区图标" info="Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标', char: '字符' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
+      </Section>
+      <Section title="抽屉">
+      <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
+      <Row label="抽屉标题栏"><Pick label="抽屉标题栏" value={settings.drawerHead} items={{ peek: '悬停显示', show: '始终显示' }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
       </Section>
     </div>
   );

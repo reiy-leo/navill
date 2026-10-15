@@ -359,7 +359,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
                 <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>线性图标</Button>
                 <Button size="xs" variant={tab === 'char' ? 'secondary' : 'ghost'} onClick={() => setTab('char')}>字符</Button>
               </span>
-              <InfoTip>三种都会保存，显示哪种在「设置 → 通用」切换。字符留空时用名称首字。</InfoTip>
+              <InfoTip>三种都会保存，显示哪种在「设置 → 外观」切换。字符留空时用名称首字。</InfoTip>
             </div>
             {tab === 'char' ? (
               <Input
