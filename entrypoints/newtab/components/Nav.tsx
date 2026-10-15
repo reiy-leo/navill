@@ -83,7 +83,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   }
 
   return (
-    <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-14 items-center' : 'w-max min-w-36 max-w-60'}`}>
+    <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
       <div ref={sideRef} className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? 'right' : 'top'} />
@@ -260,9 +260,13 @@ function NavItem({
       {label === 'both' && <WorkspaceIcon ws={w} size={DOCK_BASE} />}
       {label === 'icon' && (
         <span data-dock className="relative shrink-0 transition-[width,height] duration-100 ease-out motion-reduce:transition-none"
-          style={horizontal ? { height: DOCK_MAX, width: `calc(${DOCK_BASE}px * var(--dock-s, 1))` } : { width: DOCK_MAX, height: `calc(${DOCK_BASE}px * var(--dock-s, 1))` }}>
-          <span className="absolute left-1/2 top-1/2 block transition-transform duration-100 ease-out motion-reduce:transition-none"
-            style={{ transform: `translate(-50%, -50%) scale(calc(var(--dock-s, 1) * ${DOCK_BASE / DOCK_MAX}))` }}>
+          style={horizontal ? { height: DOCK_BASE, width: `calc(${DOCK_BASE}px * var(--dock-s, 1))` } : { width: DOCK_BASE, height: `calc(${DOCK_BASE}px * var(--dock-s, 1))` }}>
+          {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，侧栏贴左沿向右长 */}
+          <span className={`absolute block transition-transform duration-100 ease-out motion-reduce:transition-none ${horizontal ? 'left-1/2 top-0' : 'left-0 top-1/2'}`}
+            style={{
+              transformOrigin: horizontal ? 'top center' : 'left center',
+              transform: `${horizontal ? 'translateX(-50%)' : 'translateY(-50%)'} scale(calc(var(--dock-s, 1) * ${DOCK_BASE / DOCK_MAX}))`,
+            }}>
             <WorkspaceIcon ws={w} size={DOCK_MAX} />
           </span>
         </span>
