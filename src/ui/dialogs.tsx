@@ -8,7 +8,7 @@ import { createTag, renameDrawer, setTags, toggleTagOn, updateBookmark, updateDr
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
 import { InfoTip } from './InfoTip';
-import { IconBox } from './ColorPicker';
+import { ColorSwatch, IconBox } from './ColorPicker';
 import { useTone } from './colors';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
@@ -179,9 +179,11 @@ function CreateDialog({ what, color: initColor, onDone }: { what: string; color:
   return (
     <Modal open size="sm" form title={`新建${what}`} onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" onClick={ok}>确定</Button></>}>
       <div className="flex items-start gap-3">
-        <IconBox color={color} onColor={setColor} label={`${what}颜色`}>
-          <WorkspaceIcon ws={{ name: name || what, color }} size={40} style="emoji" />
-        </IconBox>
+        {what === '抽屉' ? <ColorSwatch color={color} onColor={setColor} label="抽屉颜色" /> : (
+          <IconBox color={color} onColor={setColor} label={`${what}颜色`}>
+            <WorkspaceIcon ws={{ name: name || what, color }} size={36} style="emoji" />
+          </IconBox>
+        )}
         <NameFields what={what} name={name} description={description} onName={setName} onDescription={setDescription} onEnter={ok} />
       </div>
     </Modal>
@@ -204,9 +206,7 @@ function EditDrawerDialog({ id, onClose }: { id: string; onClose: () => void }) 
     <Modal open size="sm" form title="编辑抽屉" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="flex items-start gap-3">
-          <IconBox color={shown} onColor={(color) => setForm({ ...form, color })} label="抽屉颜色">
-            <WorkspaceIcon ws={{ name: form.name || '抽屉', color: shown }} size={40} style="emoji" />
-          </IconBox>
+          <ColorSwatch color={shown} onColor={(color) => setForm({ ...form, color })} label="抽屉颜色" />
           <NameFields what="抽屉" name={form.name} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
         </div>
       )}
@@ -293,7 +293,7 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
     <Modal open form title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-3">
-          <div className="flex items-start gap-3">
+          <div className="flex items-end gap-3">
             <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
             <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
@@ -341,9 +341,9 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
     <Modal open form title="编辑工作区" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-4">
-          <div className="flex items-end gap-3">
+          <div className="flex items-start gap-3">
             <IconBox color={form.color} onColor={(color) => setForm({ ...form, color })} label="工作区颜色">
-              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={40} style={tab} />
+              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={36} style={tab} />
             </IconBox>
             <NameFields what="工作区" name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>

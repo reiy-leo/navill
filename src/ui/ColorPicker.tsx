@@ -2,6 +2,30 @@ import { Popover, Tooltip } from '@cloudflare/kumo';
 import { useRef, useState, type ReactNode } from 'react';
 import { COLOR_GROUPS, tone, useDarkMode, useTone } from './colors';
 
+/** 颜色方块：整个方块就是按钮，点击弹出颜色选择（抽屉弹窗用） */
+export function ColorSwatch({ color, onColor, label = '颜色', size = 36 }: { color?: string; onColor: (hex: string) => void; label?: string; size?: number }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLButtonElement>(null);
+  const shown = useTone(color) ?? '#8d8d86';
+  return (
+    <>
+      <Tooltip content={label} asChild>
+        <button
+          ref={box} type="button" aria-label={label}
+          className="shrink-0 rounded-md transition-transform hover:scale-105"
+          style={{ width: size, height: size, background: shown }}
+          onClick={() => setOpen(true)}
+        />
+      </Tooltip>
+      <Popover open={open} onOpenChange={setOpen}>
+        <Popover.Content anchor={box} side="right" align="start" sideOffset={8} className="w-[37rem] max-w-[90vw] p-3">
+          <ColorPicker label={label} value={color} onChange={(hex) => { onColor(hex); setOpen(false); }} />
+        </Popover.Content>
+      </Popover>
+    </>
+  );
+}
+
 /** 图标框：右上角颜色小圆点，点击弹出颜色选择 */
 export function IconBox({ color, onColor, children, label = '颜色' }: { color?: string; onColor: (hex: string) => void; children: ReactNode; label?: string }) {
   const [open, setOpen] = useState(false);
