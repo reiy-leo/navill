@@ -60,7 +60,7 @@ export function DrawerCard({
   return (
     <section
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
-      className={`nv-drawer flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated/75 p-3 backdrop-blur-sm ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
+      className={`nv-drawer flex flex-col rounded-xl border border-kumo-line bg-kumo-elevated/75 p-1 backdrop-blur-sm ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
       onDragOver={(e) => {
         if (!hasType(e, DND_DRAWER)) return;
         e.preventDefault();
@@ -77,7 +77,7 @@ export function DrawerCard({
       }}
     >
       <header
-        className="nv-drawer-head flex items-center gap-0.5 text-kumo-subtle"
+        className="nv-drawer-head flex h-8 items-center gap-0.5 pl-2.5 pr-0.5 text-kumo-subtle"
         draggable={!editing}
         onDragStart={(e) => {
           e.dataTransfer.setData(DND_DRAWER, drawer.id);
@@ -150,6 +150,7 @@ export function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </header>
+      <div className="nv-drawer-primary rounded-lg bg-kumo-base p-2 ring ring-kumo-line">
       <div
         ref={bodyRef}
         className={height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}
@@ -167,6 +168,7 @@ export function DrawerCard({
             })();
           }}
         />
+      </div>
       </div>
       <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />
     </section>
@@ -208,7 +210,7 @@ function ResizeHandle({ bodyRef, onLive, onCommit }: { bodyRef: React.RefObject<
   return (
     <div
       role="separator" aria-orientation="horizontal" aria-label="拖动调整抽屉高度，双击恢复"
-      className="group/handle -mb-3 -mt-1 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
+      className="group/handle -my-1.5 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
       onPointerDown={(e) => {
         const el = bodyRef.current;
         if (!el || e.button !== 0) return;

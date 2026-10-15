@@ -163,6 +163,7 @@ function NameFields({ name, description, onName, onDescription, what, disabled, 
     <div className="grid min-w-0 flex-1 gap-2">
       <Input autoFocus value={name} disabled={disabled} placeholder={`${what}名称`} aria-label={`${what}名称`} onChange={(e) => onName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()} />
       <Input
+        size="sm" className="!h-7 !text-xs"
         value={description} maxLength={50} placeholder="说明" aria-label={`${what}说明`}
         onChange={(e) => onDescription(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()}
       />
