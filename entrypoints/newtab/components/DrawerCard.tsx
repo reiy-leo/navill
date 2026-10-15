@@ -1,7 +1,7 @@
 import { Button, DropdownMenu, Input } from '@cloudflare/kumo';
 import {
-  ArrowSquareOut, ArrowsOutCardinal, CaretDown, CaretRight, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive } from '@phosphor-icons/react';
-import { useState } from 'react';
+  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive } from '@phosphor-icons/react';
+import { useRef, useState } from 'react';
 import { db, type Workspace } from '@/src/db';
 import {
   AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, movePlacement, renameDrawer,
@@ -23,6 +23,9 @@ export function DrawerCard({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(drawer.name);
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [live, setLive] = useState<number>();
+  const height = live ?? drawer.height;
   const view = effectiveView(drawer, workspace);
   const all = [...items, ...mounted];
   const display = settings.drawerName === 'last' ? drawer.path[drawer.path.length - 1] ?? drawer.name : drawer.name;
@@ -77,7 +80,6 @@ export function DrawerCard({
           e.dataTransfer.effectAllowed = 'move';
         }}
       >
-        <Button variant="ghost" size="xs" shape="square" icon={drawer.collapsed ? <CaretRight /> : <CaretDown />} aria-label={drawer.collapsed ? '展开' : '折叠'} onClick={() => void updateDrawer(db, drawer.id, { collapsed: !drawer.collapsed })} />
         {editing ? (
           <Input
             autoFocus
@@ -135,7 +137,7 @@ export function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </header>
-      {!drawer.collapsed && (
+      <div ref={bodyRef} className={height !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'} style={height !== undefined ? { height } : undefined}>
         <Items
           items={all}
           view={view}
@@ -148,7 +150,47 @@ export function DrawerCard({
             })();
           }}
         />
-      )}
+      </div>
+      <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />
     </section>
+  );
+}
+
+/**
+ * 抽屉底部的拖拽手柄（resize handle）：上下拖动调整内容区高度，拖到最矮只剩标题行；
+ * 拖到不小于内容自然高度时恢复自适应；双击恢复自适应。
+ */
+function ResizeHandle({ bodyRef, onLive, onCommit }: { bodyRef: React.RefObject<HTMLDivElement | null>; onLive: (h: number) => void; onCommit: (h: number | null) => void }) {
+  const drag = useRef<{ y: number; h: number; max: number; last: number } | null>(null);
+  return (
+    <div
+      role="separator" aria-orientation="horizontal" aria-label="拖动调整抽屉高度，双击恢复"
+      className="group/handle -mb-3 -mt-1 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
+      onPointerDown={(e) => {
+        const el = bodyRef.current;
+        if (!el || e.button !== 0) return;
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        const h = el.clientHeight;
+        drag.current = { y: e.clientY, h, max: el.scrollHeight, last: h };
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d) return;
+        d.last = Math.max(0, Math.min(d.max, Math.round(d.h + e.clientY - d.y)));
+        onLive(d.last);
+      }}
+      onPointerUp={() => {
+        const d = drag.current;
+        drag.current = null;
+        if (!d) return;
+        if (d.last === d.h) { onCommit(d.h >= d.max - 1 ? null : d.h); return; }
+        onCommit(d.last >= d.max - 1 ? null : d.last);
+      }}
+      onPointerCancel={() => { drag.current = null; }}
+      onDoubleClick={() => onCommit(null)}
+    >
+      <span className="h-1 w-full rounded-full bg-current opacity-15 transition-opacity group-hover/handle:opacity-40 group-active/handle:opacity-60" />
+    </div>
   );
 }

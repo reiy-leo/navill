@@ -19,6 +19,7 @@ export interface Drawer {
   id: string; workspaceId: string; name: string; path: string[]; order: number; collapsed: boolean;
   viewMode?: ViewMode; sortMode?: SortMode; adult?: boolean; sourceNodeId?: string;
   /** 归档时间：归档的抽屉在工作区隐藏，集中到「归档」 */ archivedAt?: number; updatedAt: number;
+  /** 内容区高度（px），底部拖拽手柄调整；为空时自适应。collapsed 已停用 */ height?: number;
 }
 /** 关联链接：同一个书签的其他方面（GitHub、文档、社交账号…） */
 export interface BookmarkLink { url: string; title?: string }

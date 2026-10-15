@@ -31,10 +31,11 @@ export async function renameDrawer(db: NavillDB, id: string, name: string) {
 
 export async function updateDrawer(
   db: NavillDB, id: string,
-  changes: Partial<Pick<Drawer, 'collapsed' | 'adult'>> & { viewMode?: ViewMode | null; sortMode?: SortMode },
+  changes: Partial<Pick<Drawer, 'collapsed' | 'adult'>> & { viewMode?: ViewMode | null; sortMode?: SortMode; height?: number | null },
 ) {
-  const c: Partial<Drawer> = { ...changes, viewMode: changes.viewMode ?? undefined };
+  const c: Partial<Drawer> = { ...changes, viewMode: changes.viewMode ?? undefined, height: changes.height ?? undefined };
   if (changes.viewMode === undefined) delete c.viewMode;
+  if (changes.height === undefined) delete c.height;
   await patch<Drawer>(db, 'drawers', id, c);
 }
 

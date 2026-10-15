@@ -48,7 +48,7 @@ Navill 是一个 Chrome / Edge 扩展：**一次性**导入浏览器书签，按
 ## 4. 数据模型
 ```
 Workspace  { id, name, emoji?, color, description?, order, viewMode: 'icon'|'row'|'tile'|'bento', source: 'bookmark_bar'|'other'|'mobile'|'edge_workspace'|'manual'|'inbox', sourceNodeId?, createdAt }
-Drawer     { id, workspaceId, name, path: string[], order, collapsed, viewMode?: 'icon'|'row'|'tile'|'bento', sortMode?: 'manual'|'name-asc'|'name-desc'|'clicks-asc'|'clicks-desc' }  // viewMode 为空时继承工作区
+Drawer     { id, workspaceId, name, path: string[], order, height?（内容区高度，底部拖拽手柄调整，空=自适应；collapsed 已停用）, viewMode?: 'icon'|'row'|'tile'|'bento', sortMode?: 'manual'|'name-asc'|'name-desc'|'clicks-asc'|'clicks-desc' }  // viewMode 为空时继承工作区
 Bookmark   { id, url, title, faviconUrl, note?, archivedAt?, openCount, lastOpenedAt?, createdAt, updatedAt }
 OpenEvent  { id, bookmarkId, placementId, openedAt }   // 每次打开一条时间戳记录
 Placement  { id, bookmarkId, workspaceId, drawerId: string|null, order, isAlias }  // drawerId 为 null = 工作区顶层无抽屉书签；多个 placement = 分身
