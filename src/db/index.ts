@@ -39,6 +39,8 @@ export interface AliasGroup {
 export interface Mode {
   id: string; name: string; builtin: 'default' | null; order: number;
   hiddenWorkspaceIds: string[]; hiddenDrawerIds: string[]; showAdult: boolean; createdAt: number; updatedAt: number;
+  /** 场景颜色与 Lucide 图标名；缺省时按预设或顺序取 */
+  color?: string; icon?: string;
 }
 export interface Tag {
   id: string; name: string; builtin: 'adult' | 'favorite' | 'todo' | null; order: number; createdAt: number; updatedAt: number;

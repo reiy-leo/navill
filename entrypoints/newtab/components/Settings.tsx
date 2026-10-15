@@ -3,11 +3,13 @@ import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } fr
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState, type ReactNode } from 'react';
-import { MODE_DEFAULT, db, type Mode } from '@/src/db';
+import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
+import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
+import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
-import { clearOpenEvents, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setShowAdult, setVisible, unmount } from '@/src/lib/store';
+import { clearOpenEvents, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setModeLook, setShowAdult, setVisible, unmount } from '@/src/lib/store';
 import { isConfigured, redirectUri, signOut } from '@/src/lib/sync/auth';
 import { deleteRemoteData, signInAndLog } from '@/src/lib/sync/engine';
 import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
@@ -117,36 +119,35 @@ function General() {
 function Modes() {
   const modes = useLiveQuery(() => db.modes.orderBy('order').toArray(), []) ?? [];
   const [sel, setSel] = useState(MODE_DEFAULT);
-  const dialogs = useDialogs();
+  const [fresh, setFresh] = useState<string>();
   const mode = modes.find((m) => m.id === sel) ?? modes[0];
   return (
     <div className="grid grid-cols-[180px_1fr] gap-6">
       <div className="flex flex-col gap-1">
         {modes.map((m) => (
-          <button key={m.id} className={`rounded-md px-3 py-1.5 text-left text-sm ${m.id === mode?.id ? 'bg-kumo-tint font-medium' : 'hover:bg-kumo-tint'}`} onClick={() => setSel(m.id)}>
-            {m.name}
+          <button key={m.id} className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-left text-sm ${m.id === mode?.id ? 'bg-kumo-tint font-medium' : 'hover:bg-kumo-tint'}`} onClick={() => setSel(m.id)}>
+            <ModeIcon mode={m} />{m.name}
           </button>
         ))}
-        <Button size="sm" variant="ghost" icon={<Plus />} onClick={async () => {
-          const name = await dialogs.prompt('新建场景', '', '场景名称');
-          if (name?.trim()) setSel((await createMode(db, name)).id);
-        }}>新建场景</Button>
+        <Button size="sm" variant="ghost" icon={<Plus />} onClick={async () => { const m = await createMode(db, '新场景'); setFresh(m.id); setSel(m.id); }}>新建场景</Button>
       </div>
-      {mode && <ModeEditor mode={mode} onDeleted={() => setSel(MODE_DEFAULT)} />}
+      {mode && <ModeEditor key={mode.id} mode={mode} autoFocus={mode.id === fresh} onDeleted={() => setSel(MODE_DEFAULT)} />}
     </div>
   );
 }
 
-function ModeEditor({ mode, onDeleted }: { mode: Mode; onDeleted: () => void }) {
+function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () => void; autoFocus?: boolean }) {
   const dialogs = useDialogs();
   const data = useLiveQuery(async () => ({ ws: await db.workspaces.orderBy('order').toArray(), ds: await db.drawers.toArray() }), []);
   const isDefault = mode.id === MODE_DEFAULT;
   const hiddenW = new Set(mode.hiddenWorkspaceIds);
   const hiddenD = new Set(mode.hiddenDrawerIds);
+  const [name, setName] = useState(mode.name);
+  const look = modeLook(mode);
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Input size="sm" className="flex-1" value={mode.name} disabled={isDefault} onChange={(e) => void renameMode(db, mode.id, e.target.value)} aria-label="场景名称" />
+        <Input size="sm" className="flex-1" value={name} disabled={isDefault} autoFocus={autoFocus} onFocus={(e) => autoFocus && e.currentTarget.select()} onChange={(e) => { setName(e.target.value); void renameMode(db, mode.id, e.target.value); }} aria-label="场景名称" />
         {!isDefault && (
           <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
             if (await dialogs.confirm({ title: `删除场景「${mode.name}」？`, okText: '删除', danger: true })) {
@@ -156,6 +157,12 @@ function ModeEditor({ mode, onDeleted }: { mode: Mode; onDeleted: () => void }) 
           }}>删除</Button>
         )}
       </div>
+      <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="场景颜色">
+        {PALETTE.map((c) => (
+          <button key={c} type="button" role="radio" aria-checked={look.color === c} aria-label={c} className={`size-6 rounded-full ring-offset-2 ring-offset-kumo-base ${look.color === c ? 'ring-2' : ''}`} style={{ background: c, ['--tw-ring-color' as string]: c }} onClick={() => void setModeLook(db, mode.id, { color: c })} />
+        ))}
+      </div>
+      <LucidePicker allowNone={false} value={look.icon} onChange={(icon) => icon && void setModeLook(db, mode.id, { icon })} />
       <Switch label="显示 18+ 内容" checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
       {isDefault ? (
         <div><InfoTip text="可见性">「默认」场景显示全部工作区与抽屉，可见性不可编辑。</InfoTip></div>

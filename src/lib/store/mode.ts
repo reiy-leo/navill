@@ -1,4 +1,4 @@
-import { MODE_DEFAULT, type Mode, type NavillDB } from '@/src/db';
+import { MODE_DEFAULT, PALETTE, type Mode, type NavillDB } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
 
 export async function createMode(db: NavillDB, name: string) {
@@ -6,7 +6,12 @@ export async function createMode(db: NavillDB, name: string) {
   return put<Mode>(db, 'modes', {
     id: uid(), name: name.trim() || '新场景', builtin: null, order: all.reduce((m, x) => Math.max(m, x.order), -1) + 1,
     hiddenWorkspaceIds: [], hiddenDrawerIds: [], showAdult: false, createdAt: Date.now(), updatedAt: 0,
+    color: PALETTE[all.length % PALETTE.length], icon: 'circle-dot',
   });
+}
+
+export async function setModeLook(db: NavillDB, id: string, look: { color?: string; icon?: string }) {
+  await patch<Mode>(db, 'modes', id, look);
 }
 
 export async function renameMode(db: NavillDB, id: string, name: string) {

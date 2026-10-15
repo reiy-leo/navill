@@ -1,14 +1,15 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, GearSix, MagnifyingGlass, Stack } from '@phosphor-icons/react';
+import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, GearSix, MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useRef } from 'react';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
+import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
 import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
-/** ⋯ 菜单：搜索 · 场景 | 新建工作区 · 整理 · 归档 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
+/** ⋯ 菜单：搜索 · 场景（分段图标） | 新建工作区 · 整理 · 归档 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' }) {
-  const { organize, setOrganize, settings, modes, mode, updateSettings, view, setView } = useApp();
+  const { organize, setOrganize, settings, view, setView } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
   const syncLabel = !settings.sync.enabled ? '同步未开启' : sync.state === 'error' ? '同步失败' : sync.state === 'syncing' ? '正在同步…' : sync.lastSyncAt ? `已同步 ${new Date(sync.lastSyncAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}` : '同步';
@@ -17,16 +18,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' 
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" title="更多" />} />
       <DropdownMenu.Content side={side} align={side === 'bottom' ? 'end' : 'start'}>
         <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>搜索<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
-        <DropdownMenu.Sub>
-          <DropdownMenu.SubTrigger icon={Stack}>场景 · {mode?.name ?? '默认'}</DropdownMenu.SubTrigger>
-          <DropdownMenu.SubContent>
-            {modes.map((m) => (
-              <DropdownMenu.Item key={m.id} icon={m.id === mode?.id ? Check : undefined} inset={m.id !== mode?.id} onClick={() => void updateSettings({ currentModeId: m.id })}>
-                {m.name}{m.showAdult ? ' · 18+' : ''}
-              </DropdownMenu.Item>
-            ))}
-          </DropdownMenu.SubContent>
-        </DropdownMenu.Sub>
+        <div className="flex justify-center px-1 py-1"><ModeSwitcher /></div>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>新建工作区</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? '退出整理' : '整理'}</DropdownMenu.Item>

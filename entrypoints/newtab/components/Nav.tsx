@@ -118,8 +118,15 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
       e.preventDefault();
       const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
-      el.scrollBy({ left: dy, behavior: Math.abs(dy) >= 50 && !reducedMotion() ? 'smooth' : 'auto' });
+      // 连续滚动时累加目标位置：平滑滚动途中再次 scrollBy 会从当前位置重算，导致距离被吞掉
+      const max = el.scrollWidth - el.clientWidth;
+      const base = target !== null && Date.now() - lastWheel < 400 ? target : el.scrollLeft;
+      target = Math.max(0, Math.min(max, base + dy));
+      lastWheel = Date.now();
+      el.scrollTo({ left: target, behavior: Math.abs(dy) >= 50 && !reducedMotion() ? 'smooth' : 'auto' });
     };
+    let target: number | null = null;
+    let lastWheel = 0;
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => { ro.disconnect(); el.removeEventListener('wheel', onWheel); };
   }, [measure, count]);

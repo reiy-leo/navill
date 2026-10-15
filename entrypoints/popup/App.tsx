@@ -124,7 +124,7 @@ function Popup() {
         {q && results?.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">没有找到</li>}
       </ul>
       <footer className="-mb-1 flex justify-end">
-        <ModeSwitcher size="xs" />
+        <ModeSwitcher side="top" />
       </footer>
     </main>
   );
