@@ -59,7 +59,7 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 ```
 - 书签字段【已定】：名字、URL、图标；并统计**使用次数**及**每次使用的时间戳**。只统计从 Navill（新标签页 / 弹窗 / 搜索 / 抽屉全部打开）发起的打开；分身与原书签是同一实体，计数合并，`OpenEvent.placementId` 记录从哪个位置打开。
 - 统计随同步上传；`OpenEvent` 可在设置中清空。
-- 存储：IndexedDB（Dexie）存数据，`chrome.storage.local` 存设置。设置随同步上传到 Drive `settings.json.gz`，整体以修改时间新者胜；侧边栏收起、上次工作区、当前场景、同步开关与频率按设备不同步【已定】。
+- 存储：IndexedDB（Dexie）存数据，`chrome.storage.local` 存设置。设置随同步上传到 Drive `settings.json.gz`，整体以修改时间新者胜；上次工作区、当前场景、同步开关与频率按设备不同步【已定】。
 - 分身书签组需防循环挂载（A→B→A，或更长链）。
 - 场景、标签定义随同步上传；**当前场景**存 `chrome.storage.local`，按设备各自记，不同步【已定】。
 

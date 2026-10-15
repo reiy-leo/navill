@@ -20,7 +20,6 @@ export interface Settings {
   workspaceIconStyle: 'emoji' | 'lucide' | 'char';
   /** 抽屉与书签的表面风格：色调卡片 / 磨砂玻璃 / 无框漂浮 */
   surface: 'tint' | 'glass' | 'bare';
-  sidebarCollapsed: boolean;
   startWorkspace: 'last' | string;
   lastWorkspaceId?: string;
   currentModeId: string;
@@ -58,7 +57,6 @@ export const DEFAULT_SETTINGS: Settings = {
   navLabel: 'both',
   workspaceIconStyle: 'emoji',
   surface: 'tint',
-  sidebarCollapsed: false,
   startWorkspace: 'last',
   currentModeId: MODE_DEFAULT,
   sync: { enabled: false, intervalMinutes: 15, logs: false },
@@ -80,7 +78,7 @@ export async function getSettings(): Promise<Settings> {
 }
 
 /** 只属于本机、不同步的设置 */
-export const SYNC_EXCLUDED = ['sidebarCollapsed', 'lastWorkspaceId', 'currentModeId', 'sync'] as const;
+export const SYNC_EXCLUDED = ['lastWorkspaceId', 'currentModeId', 'sync'] as const;
 export type SyncedSettings = Omit<Settings, (typeof SYNC_EXCLUDED)[number]>;
 /** 同步设置的本地修改时间（只在同步项变化时更新） */
 export const settingsModifiedItem = storage.defineItem<number>('local:settingsModifiedAt', { fallback: 0 });
