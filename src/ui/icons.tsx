@@ -37,7 +37,10 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
   );
 }
 
-export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'>; size?: number; style?: 'emoji' | 'lucide' }) {
+/** 字符图标：用户输入的字符，否则名称首字 */
+export const charIcon = (ws: { name: string; glyph?: string }) => Array.from(ws.glyph?.trim() ?? '').slice(0, 2).join('') || Array.from(ws.name.trim())[0] || '?';
+
+export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'> & { glyph?: string }; size?: number; style?: 'emoji' | 'lucide' | 'char' }) {
   const global = useIconStyle();
   const mode = style ?? global;
   const bg = useTone(ws.color) ?? '#8d8d86';
@@ -53,12 +56,12 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold text-white"
       style={{
-        width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * 0.5,
+        width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * (Array.from(charIcon(ws)).length > 1 ? 0.36 : 0.5),
         letterSpacing: emoji ? '-0.05em' : undefined,
         background: emoji ? 'transparent' : bg,
       }}
     >
-      {emoji || ws.name.trim().charAt(0) || '?'}
+      {emoji || charIcon(ws)}
     </span>
   );
 }

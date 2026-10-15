@@ -319,19 +319,22 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
   );
 }
 
+/** 字符图标最多 2 个字（输入法组字期间不截断，失焦和保存时再截） */
+const limitGlyph = (v: string) => Array.from(v.trim()).slice(0, 2).join('');
+
 const EMOJIS: string[] = Array.from('📁💼🏠🎯📚🧠💡🛠️🧪🎨🎵🎮📷✈️🍜💰📈🗂️📝🔖⭐🔥🌱🧘🏃🎬📺🛒🧾🔒🤖💻🌐📰🗓️❤️🐱🌙☀️🚀'.match(/\p{Extended_Pictographic}\uFE0F?/gu) ?? []);
 
 function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const w = useLiveQuery(() => db.workspaces.get(id), [id]);
   const globalStyle = useIconStyle();
-  const [tab, setTab] = useState<'emoji' | 'lucide'>(globalStyle);
-  const [form, setForm] = useState<{ name: string; emoji: string; lucide?: string; color: string; description: string } | null>(null);
-  if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
+  const [tab, setTab] = useState<'emoji' | 'lucide' | 'char'>(globalStyle);
+  const [form, setForm] = useState<{ name: string; emoji: string; lucide?: string; glyph: string; color: string; description: string } | null>(null);
+  if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, glyph: w.glyph ?? '', color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
   const isInbox = w?.source === 'inbox';
   const pickTone = useTone(form?.color) ?? '#8d8d86';
   const save = async () => {
     if (!form) return;
-    await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, lucide: form.lucide, color: form.color, description: form.description || undefined });
+    await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, lucide: form.lucide, glyph: limitGlyph(form.glyph) || undefined, color: form.color, description: form.description || undefined });
     onClose();
   };
   return (
@@ -340,7 +343,7 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
         <div className="grid gap-4">
           <div className="flex items-end gap-3">
             <IconBox color={form.color} onColor={(color) => setForm({ ...form, color })} label="工作区颜色">
-              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, color: form.color }} size={40} style={tab} />
+              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={40} style={tab} />
             </IconBox>
             <NameFields what="工作区" name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>
@@ -349,14 +352,20 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
               <span className="flex gap-1">
                 <Button size="xs" variant={tab === 'emoji' ? 'secondary' : 'ghost'} onClick={() => setTab('emoji')}>Emoji</Button>
                 <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>线性图标</Button>
+                <Button size="xs" variant={tab === 'char' ? 'secondary' : 'ghost'} onClick={() => setTab('char')}>字符</Button>
               </span>
-              <InfoTip>两种都会保存，显示哪种在「设置 → 通用」切换。</InfoTip>
+              <InfoTip>三种都会保存，显示哪种在「设置 → 通用」切换。字符留空时用名称首字。</InfoTip>
             </div>
-            {tab === 'lucide' ? <LucidePicker color={form.color} value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
+            {tab === 'char' ? (
+              <Input
+                className="w-40" placeholder={Array.from(form.name.trim())[0] ?? '字'} aria-label="字符图标" value={form.glyph}
+                onChange={(e) => setForm({ ...form, glyph: e.target.value })}
+                onBlur={() => setForm({ ...form, glyph: limitGlyph(form.glyph) })}
+              />
+            ) : tab === 'lucide' ? <LucidePicker color={form.color} value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
             <div className="flex flex-wrap gap-1">
-              <Button size="sm" variant={!form.emoji ? 'outline' : 'ghost'} className={!form.emoji ? '!ring-kumo-brand' : ''} onClick={() => setForm({ ...form, emoji: '' })}>首字</Button>
               {EMOJIS.map((e) => (
-                <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${form.emoji === e ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
+                <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${form.emoji === e ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: form.emoji === e ? '' : e })}>{e}</Button>
               ))}
               <Input size="sm" className="w-24" placeholder="自定义" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
             </div>)}

@@ -13,6 +13,7 @@ export interface Workspace {
   id: string; name: string;
   /** Emoji 图标（最多 2 个） */ emoji?: string;
   /** Lucide 图标名（kebab-case，如 "briefcase"） */ lucide?: string;
+  /** 字符图标：用户输入的 1–2 个字；为空时用名称首字 */ glyph?: string;
   color?: string; description?: string; order: number; viewMode: ViewMode;
   source: WorkspaceSource; sourceNodeId?: string; adult?: boolean; createdAt: number; updatedAt: number;
 }

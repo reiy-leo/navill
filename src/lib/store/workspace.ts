@@ -11,7 +11,7 @@ export class WorkspaceLimitError extends Error {
 }
 
 export async function createWorkspace(
-  db: NavillDB, input: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description'>> = {}, onlyInMode?: string,
+  db: NavillDB, input: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'glyph' | 'color' | 'description'>> = {}, onlyInMode?: string,
 ) {
   return logged(db, async (log) => {
     const all = await db.workspaces.toArray();
@@ -21,6 +21,7 @@ export async function createWorkspace(
       id: uid(),
       ...normalizeName(input.name, input.emoji, '新工作区'),
       lucide: input.lucide,
+      glyph: input.glyph,
       color: input.color ?? PALETTE[regular.length % PALETTE.length],
       description: input.description,
       order: regular.reduce((m, w) => Math.max(m, w.order), -1) + 1,
@@ -36,7 +37,7 @@ export async function createWorkspace(
 }
 
 export async function updateWorkspace(
-  db: NavillDB, id: string, changes: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color' | 'description' | 'viewMode' | 'adult'>>,
+  db: NavillDB, id: string, changes: Partial<Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'glyph' | 'color' | 'description' | 'viewMode' | 'adult'>>,
 ) {
   await logged(db, async (log) => {
   const ws = await db.workspaces.get(id);
