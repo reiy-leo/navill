@@ -75,3 +75,8 @@ docs/                PLAN.md、PRODUCT.md
 - 用户写操作在 store 层用 `logged(db, async (log) => …)` 包裹并调用 `log()`；嵌套调用自动只记最外层。同步合并、导入、恢复备份直接写表，不记日志。
 - 页面快捷键集中在 `src/ui/feedback.ts` 的 `useShortcuts`（捕获阶段）；⌘S 跳过规则是 `src/lib/sync/shortcut.ts` 纯函数。
 - 「新建工作区」「归档」在 ⋯ 菜单里，不要再放回导航栏。
+
+## 版本与发布
+- 版本号只写在 `package.json`。从 0.2.0 起开发中用预发布版本 `X.Y.Z-alpha.N`（WXT 会把清单 `version` 写成 `X.Y.Z`、`version_name` 写成完整版本）。
+- 发布 = 推送与 `package.json` 一致的 tag：`vX.Y.Z-alpha.N` 只构建，zip 留作 Actions 产物；`vX.Y.Z` 正式版由 `.github/workflows/release.yml` 自动创建 GitHub Release，附 Chrome/Edge zip 和自上个正式版以来的提交列表。
+- Release 构建从仓库 Secret `WXT_GOOGLE_CLIENT_ID` 写入 `.env`，缺失时包里没有 Drive 同步。

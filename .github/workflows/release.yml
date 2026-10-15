@@ -1,0 +1,59 @@
+# 推送版本 tag 时构建扩展包。
+# - vX.Y.Z（正式版）：构建并创建 GitHub Release，附 Chrome / Edge zip 与自上个正式版以来的提交列表。
+# - vX.Y.Z-alpha.N 等预发布 tag：只构建，zip 作为 Actions 产物保留，不发 Release。
+# tag 必须与 package.json 的 version 一致（不含前缀 v）。
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 校验 tag 与 package.json 版本一致
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then echo "tag $GITHUB_REF_NAME 与 package.json 版本 $PKG 不一致"; exit 1; fi
+          if [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "STABLE=1" >> "$GITHUB_ENV"; else echo "STABLE=0" >> "$GITHUB_ENV"; fi
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm compile
+      - run: pnpm test
+
+      - name: 写入 .env（Google OAuth Client ID，用于 Drive 同步）
+        run: echo "WXT_GOOGLE_CLIENT_ID=${{ secrets.WXT_GOOGLE_CLIENT_ID }}" > .env
+
+      - run: pnpm zip
+      - run: pnpm zip:edge
+
+      - name: 预发布：上传产物
+        if: env.STABLE == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: navill-${{ github.ref_name }}
+          path: .output/*.zip
+
+      - name: 正式版：创建 Release
+        if: env.STABLE == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PREV="$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$GITHUB_REF_NAME" | head -n1 || true)"
+          RANGE="${PREV:+$PREV..}$GITHUB_REF_NAME"
+          { echo "## 更新内容"; echo; git log --no-merges --pretty='- %s' "$RANGE"; } > notes.md
+          gh release create "$GITHUB_REF_NAME" .output/*.zip --title "Navill $GITHUB_REF_NAME" --notes-file notes.md
