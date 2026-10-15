@@ -59,10 +59,9 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
   const p = detail?.payload;
   const dialogs = useDialogs();
   const install = async (d: { name: string; bookmarks: PublicShareDetail['payload']['drawers'][number]['bookmarks'] }) => {
-    const t = await dialogs.pickTarget({ title: `安装「${d.name}」到工作区…`, workspacesOnly: true });
+    const t = await dialogs.pickTarget({ title: '安装抽屉', workspacesOnly: true, name: d.name });
     if (!t) return;
-    const name = (await dialogs.prompt('抽屉名称', d.name, d.name))?.trim();
-    if (name === undefined) return;
+    const name = t.name || d.name;
     try {
       await installSharedDrawer(db, t.workspaceId, { ...d, name: name || d.name });
       toast(`已安装「${name || d.name}」，共 ${d.bookmarks.length} 个书签`);
