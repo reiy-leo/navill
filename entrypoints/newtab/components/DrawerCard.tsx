@@ -140,7 +140,7 @@ export function DrawerCard({
             <DropdownMenu.Item icon={ArrowsOutCardinal} onClick={async () => {
               const t = await dialogs.pickTarget({ title: '移动抽屉到工作区…', workspacesOnly: true });
               if (t) await moveDrawer(db, drawer.id, t.workspaceId);
-            }}>移动到工作区…</DropdownMenu.Item>
+            }}>移动到…</DropdownMenu.Item>
             <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? '取消 18+' : '标记为 18+'}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>打乱</DropdownMenu.Item>
             <DropdownMenu.Separator />
