@@ -10,6 +10,8 @@ export interface Settings {
   navLabel: 'both' | 'icon' | 'name';
   /** 工作区图标风格：emoji 或 Lucide 线性图标 */
   workspaceIconStyle: 'emoji' | 'lucide';
+  /** 抽屉与书签的表面风格：色调卡片 / 磨砂玻璃 / 无框漂浮 */
+  surface: 'tint' | 'glass' | 'bare';
   sidebarCollapsed: boolean;
   startWorkspace: 'last' | string;
   lastWorkspaceId?: string;
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   navLayout: 'sidebar',
   navLabel: 'both',
   workspaceIconStyle: 'emoji',
+  surface: 'tint',
   sidebarCollapsed: false,
   startWorkspace: 'last',
   currentModeId: MODE_DEFAULT,

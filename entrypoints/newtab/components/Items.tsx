@@ -90,7 +90,7 @@ function BookmarkItem({
       case 'icon':
         return (
           <div className="flex flex-col items-center gap-1 p-2 text-center">
-            <div className="relative"><IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={32} /></IconWithLinks><span className="absolute -bottom-1 -left-1">{badge}</span></div>
+            <div className="nv-plate relative rounded-xl p-2"><IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={32} /></IconWithLinks><span className="absolute -bottom-1 -left-1">{badge}</span></div>
             <span className="line-clamp-2 w-full break-all text-xs leading-tight">{b.title}</span>
           </div>
         );
@@ -104,7 +104,7 @@ function BookmarkItem({
         );
       case 'tile':
         return (
-          <div className="flex items-center gap-2 rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
+          <div className="flex items-center gap-2 nv-tile rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
             <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={24} /></IconWithLinks>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{b.title}</div>
@@ -115,7 +115,7 @@ function BookmarkItem({
         );
       case 'bento':
         return (
-          <div className="flex h-full flex-col justify-between rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
+          <div className="flex h-full flex-col justify-between nv-tile rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
             <div className="flex items-center justify-between">
               <IconWithLinks item={item}><BookmarkIcon url={b.url} src={b.faviconUrl} size={size === 'sm' ? 20 : 32} /></IconWithLinks>
               {badge}

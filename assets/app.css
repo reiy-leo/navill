@@ -26,3 +26,41 @@ body { margin: 0; }
 .navill-popup [data-kumo-component='Button'] svg { width: 16px; height: 16px; }
 .navill-popup [data-kumo-component='Button'].h-6\.5,
 .navill-popup [data-kumo-component='Button'].h-5 { height: 1.75rem; padding-inline: 0.5rem; font-size: 0.8125rem; gap: 0.25rem; }
+
+/*
+ * 抽屉与书签的表面风格（设置 → 通用 → 卡片风格），<html data-surface>：
+ * tint 色调卡片（默认）/ glass 磨砂玻璃 / bare 无框漂浮。--ws-color 为当前工作区颜色。
+ * 只有抽屉用 backdrop-filter，书签底板不模糊，避免大量元素模糊导致滚动卡顿。
+ */
+.nv-drawer, .nv-tile, .nv-plate { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
+
+[data-surface='tint'] .nv-drawer {
+  background: color-mix(in srgb, var(--ws-color, #94a3b8) 5%, var(--color-kumo-elevated));
+  border-color: color-mix(in srgb, var(--ws-color, #94a3b8) 18%, var(--color-kumo-line));
+}
+[data-surface='tint'] .nv-tile {
+  background: color-mix(in srgb, var(--ws-color, #94a3b8) 3%, var(--color-kumo-base));
+  border-color: color-mix(in srgb, var(--ws-color, #94a3b8) 14%, var(--color-kumo-line));
+}
+[data-surface='tint'] .nv-plate { background: color-mix(in srgb, var(--ws-color, #94a3b8) 8%, var(--color-kumo-base)); }
+
+[data-surface='glass'] .nv-drawer {
+  background: rgb(255 255 255 / 0.55);
+  border-color: rgb(255 255 255 / 0.6);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 4px 16px rgb(0 0 0 / 0.04);
+}
+[data-surface='glass'] .nv-tile,
+[data-surface='glass'] .nv-plate { background: rgb(255 255 255 / 0.6); border-color: rgb(255 255 255 / 0.7); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
+[data-surface='glass'] .nv-plate { outline: 1px solid rgb(255 255 255 / 0.7); }
+[data-mode='dark'][data-surface='glass'] .nv-drawer { background: rgb(0 0 0 / 0.4); border-color: rgb(255 255 255 / 0.08); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06); }
+[data-mode='dark'][data-surface='glass'] .nv-tile,
+[data-mode='dark'][data-surface='glass'] .nv-plate { background: rgb(255 255 255 / 0.06); border-color: rgb(255 255 255 / 0.08); outline-color: rgb(255 255 255 / 0.08); }
+
+[data-surface='bare'] .nv-drawer { background: transparent; border-color: transparent; box-shadow: none; }
+[data-surface='bare'] .nv-tile,
+[data-surface='bare'] .nv-plate { background: transparent; border-color: transparent; }
+[data-surface='bare'] a:hover .nv-tile,
+[data-surface='bare'] a:hover .nv-plate { background: rgb(255 255 255 / 0.6); border-color: rgb(255 255 255 / 0.7); backdrop-filter: blur(8px); }
+[data-mode='dark'][data-surface='bare'] a:hover .nv-tile,
+[data-mode='dark'][data-surface='bare'] a:hover .nv-plate { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.1); }
