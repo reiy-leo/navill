@@ -1,9 +1,9 @@
 import { Badge, Banner, Button, Input, Switch } from '@cloudflare/kumo';
-import { ArrowSquareOut, Copy, Trash } from '@phosphor-icons/react';
+import { ArrowSquareOut, Copy, GoogleLogo, Trash } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { storage } from 'wxt/utils/storage';
 import { db } from '@/src/db';
-import { STATUS_LABEL, buildPayload, deleteShare, findShare, putShare, type MyShare, type ShareKind } from '@/src/lib/share';
+import { STATUS_LABEL, buildPayload, deleteShare, listShares, putShare, type MyShare, type ShareKind } from '@/src/lib/share';
 import { Modal } from './Modal';
 import { toast } from './toast';
 
@@ -24,6 +24,16 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
   const [includeAdult, setIncludeAdult] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  /** 分享要用 Google 账号确认身份：打开时先静默取 token，拿不到就只显示登录按钮 */
+  const [needLogin, setNeedLogin] = useState(false);
+
+  const load = (interactive: boolean) => {
+    setErr('');
+    return listShares(interactive).then(
+      (l) => { setShare(l.find((x) => x.kind === kind && x.sourceId === sourceId) ?? null); setNeedLogin(false); },
+      (e) => { if (interactive) setErr(e instanceof Error ? e.message : String(e)); else setNeedLogin(true); },
+    );
+  };
 
   useEffect(() => {
     void authorItem.getValue().then(setAuthor);
@@ -31,7 +41,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
       const d = kind === 'drawer' ? await db.drawers.get(sourceId) : await db.workspaces.get(sourceId);
       setDescription(d?.description ?? '');
     })();
-    findShare(kind, sourceId).then(setShare, (e) => { setShare(null); setErr(e instanceof Error ? e.message : String(e)); });
+    void load(false);
   }, [kind, sourceId]);
 
   const submit = async () => {
@@ -73,12 +83,21 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
         <>
           {share && <Button variant="secondary-destructive" icon={<Trash />} disabled={busy} onClick={() => void remove()} className="mr-auto">取消分享</Button>}
           <Button onClick={onClose}>关闭</Button>
-          <Button variant="primary" loading={busy} disabled={share === undefined} onClick={() => void submit()}>{share ? '更新分享' : '分享'}</Button>
+          {share !== undefined && <Button variant="primary" loading={busy} onClick={() => void submit()}>{share ? '更新分享' : '分享'}</Button>}
         </>
       }
     >
       <div className="flex flex-col gap-3">
         {err && <Banner variant="error" description={err} />}
+        {!needLogin && share === undefined && !err && <p className="py-6 text-center text-xs text-kumo-subtle">正在确认登录…</p>}
+        {needLogin && share === undefined && (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-sm">要用谷歌登录</p>
+            <p className="text-xs text-kumo-subtle">分享用 Google 账号确认身份，只读取邮箱。</p>
+            <Button variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => { setBusy(true); void load(true).finally(() => setBusy(false)); }}>用谷歌登录</Button>
+          </div>
+        )}
+        {share !== undefined && <>
         {share && (
           <div className="flex items-center gap-2 rounded-lg border border-kumo-line px-3 py-2">
             <Badge variant={statusVariant(share.status)}>{STATUS_LABEL[share.status]}</Badge>
@@ -92,6 +111,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
         <Input value={author} maxLength={40} placeholder="作者名，留空显示「Navill 用户」" aria-label="作者名" onChange={(e) => setAuthor(e.target.value)} />
         <Input value={description} maxLength={300} placeholder="简介" aria-label="简介" onChange={(e) => setDescription(e.target.value)} />
         <Switch label="包含 18+ 内容" checked={includeAdult} onClick={() => setIncludeAdult(!includeAdult)} />
+        </>}
       </div>
     </Modal>
   );
