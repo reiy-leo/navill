@@ -1,13 +1,15 @@
 import { Badge, Banner, Button, Input, Switch } from '@cloudflare/kumo';
-import { ArrowSquareOut, Copy, GoogleLogo, Trash } from '@phosphor-icons/react';
+import { ArrowSquareOut, Copy, GoogleLogo } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { storage } from 'wxt/utils/storage';
 import { db } from '@/src/db';
-import { STATUS_LABEL, buildPayload, deleteShare, listShares, putShare, type MyShare, type ShareKind } from '@/src/lib/share';
+import { STATUS_LABEL, buildPayload, listShares, putShare, type MyShare, type ShareKind } from '@/src/lib/share';
 import { getShareUser, type GoogleUser } from '@/src/lib/sync/auth';
+import { Confetti } from './Confetti';
 import { Modal } from './Modal';
 import { toast } from './toast';
 
+const SITE_ICON = 'https://navill.rei8t.dev/icon-192.png';
 const authorItem = storage.defineItem<string>('local:shareAuthor', { fallback: '' });
 
 export const statusVariant = (s: MyShare['status']) => (s === 'live' ? 'primary' : s === 'pending' ? 'neutral' : 'destructive') as 'primary' | 'neutral' | 'destructive';
@@ -24,6 +26,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
   const [description, setDescription] = useState('');
   const [includeAdult, setIncludeAdult] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
   const [err, setErr] = useState('');
   /** 分享要用 Google 账号确认身份：打开时先静默取 token，拿不到就只显示登录按钮 */
   const [needLogin, setNeedLogin] = useState(false);
@@ -57,21 +60,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
       if (!count) throw new Error('没有可以分享的书签');
       const s = await putShare(kind, sourceId, payload);
       setShare(s);
-      toast(share ? '已提交更新，审核通过后替换公开版本' : '已提交，审核通过后公开');
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const remove = async () => {
-    if (!share) return;
-    setBusy(true); setErr('');
-    try {
-      await deleteShare(share.id);
-      setShare(null);
-      toast('已取消分享');
+      setCelebrate(true);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -85,10 +74,9 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
       open form size="base" onClose={onClose}
       title={`分享${what}「${name}」`}
       footer={
-        <>
-          {share && <Button variant="secondary-destructive" icon={<Trash />} disabled={busy} onClick={() => void remove()} className="mr-auto">取消分享</Button>}
+        share ? <Button variant="primary" onClick={onClose}>完成</Button> : <>
           <Button onClick={onClose}>关闭</Button>
-          {share !== undefined && <Button variant="primary" loading={busy} onClick={() => void submit()}>{share ? '更新分享' : '分享'}</Button>}
+          {share !== undefined && <Button variant="primary" loading={busy} onClick={() => void submit()}>分享</Button>}
         </>
       }
     >
@@ -102,23 +90,28 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
             <Button variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => { setBusy(true); void load(true).finally(() => setBusy(false)); }}>用谷歌登录</Button>
           </div>
         )}
-        {share !== undefined && <>
         {share && (
-          <div className="flex items-center gap-2 rounded-lg border border-kumo-line px-3 py-2">
+          <div className="flex flex-col items-center gap-2 py-2">
+            {celebrate && <Confetti />}
             <Badge variant={statusVariant(share.status)}>{STATUS_LABEL[share.status]}</Badge>
-            {share.pendingVersion !== null && share.status === 'live' && <Badge variant="neutral">更新审核中</Badge>}
-            <span className="min-w-0 flex-1 truncate text-xs text-kumo-subtle">{share.url}</span>
-            <Button size="xs" variant="ghost" shape="square" icon={<Copy />} aria-label="复制链接" onClick={() => void copyLink(share.url)} />
-            <Button size="xs" variant="ghost" shape="square" icon={<ArrowSquareOut />} aria-label="打开分享页" onClick={() => void browser.tabs.create({ url: share.url })} />
+            {share.rejectedNote && <p className="text-xs text-kumo-danger">未通过：{share.rejectedNote}</p>}
+            <div className="flex aspect-square w-56 flex-col items-center justify-center gap-3 rounded-2xl border border-kumo-line bg-kumo-base p-4">
+              <img src={SITE_ICON} alt="" className="size-16 rounded-2xl" />
+              <span className="w-full truncate text-center text-xs text-kumo-subtle" title={share.url}>{share.url.replace(/^https:\/\//, "")}</span>
+              <div className="flex gap-1">
+                <Button size="sm" icon={<Copy />} onClick={() => void copyLink(share.url)}>复制</Button>
+                <Button size="sm" icon={<ArrowSquareOut />} onClick={() => void browser.tabs.create({ url: share.url })}>打开</Button>
+              </div>
+            </div>
           </div>
         )}
+        {share === null && <>
         {user && (
           <div className="flex items-center gap-2 text-xs text-kumo-subtle">
             {user.picture ? <img src={user.picture} alt="" referrerPolicy="no-referrer" className="size-5 rounded-full" /> : <GoogleLogo size={16} />}
             <span className="min-w-0 truncate">已用谷歌登录：{user.name ? `${user.name} · ` : ''}{user.email}</span>
           </div>
         )}
-        {share?.rejectedNote && <Banner variant="alert" description={`未通过：${share.rejectedNote}`} />}
         <Input value={author} maxLength={40} placeholder="作者名，留空显示「Navill 用户」" aria-label="作者名" onChange={(e) => setAuthor(e.target.value)} />
         <Input value={description} maxLength={300} placeholder="简介" aria-label="简介" onChange={(e) => setDescription(e.target.value)} />
         <Switch label="包含 18+ 内容" checked={includeAdult} onClick={() => setIncludeAdult(!includeAdult)} />
