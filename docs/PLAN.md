@@ -198,6 +198,13 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 
 > 2026-10-14：M0–M5 已实现（v0.1.0）。Drive 同步需在构建时配置 `WXT_GOOGLE_CLIENT_ID`。
 
+### 版本目标【已定】
+| 版本 | 目标 |
+|---|---|
+| 0.1.11 ✅ | 分享首版、仅图标导航动画、抽屉标题栏半隐藏 |
+| 0.1.12 | 分享功能完善（含查看市场） |
+| 0.1.13 | 添加主页 |
+
 ## 9. 发布【已定】
 上架 Chrome Web Store 与 Edge Add-ons；GitHub 公开仓库，MIT 许可。
 
