@@ -1,4 +1,4 @@
-import { Plus, Trash } from '@phosphor-icons/react';
+import { Check, Plus, Trash } from '@phosphor-icons/react';
 import { limitIcon } from '@/src/lib/emoji';
 import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -342,18 +342,40 @@ function TagsDialog({ ids, onClose }: { ids: string[]; onClose: () => void }) {
     await toggle(t.id, true);
   };
   return (
-    <Modal open title={single ? '标签' : `为 ${ids.length} 个书签设置标签`} onClose={onClose} footer={<Button variant="primary" onClick={onClose}>完成</Button>}>
-      <div className="grid gap-2">
+    <Modal open size="sm" title={single ? '标签' : `为 ${ids.length} 个书签设置标签`} onClose={onClose}>
+      <div className="flex flex-wrap gap-2">
         {tags?.map((t) => {
           const s = state(t.id);
+          const on = s === true;
           return (
-            <Checkbox key={t.id} label={`#${t.name}`} checked={s === true} indeterminate={s === 'some'} onCheckedChange={(v) => void toggle(t.id, Boolean(v))} />
+            <button
+              key={t.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => void toggle(t.id, !on)}
+              className={`inline-flex h-8 items-center gap-1 rounded-full border px-3 text-sm transition-colors ${
+                on
+                  ? 'border-transparent bg-kumo-brand text-white'
+                  : s === 'some'
+                    ? 'border-dashed border-kumo-brand text-kumo-brand'
+                    : 'border-kumo-line text-kumo-default hover:bg-kumo-tint'
+              }`}
+            >
+              {on && <Check size={14} weight="bold" />}
+              <span>#{t.name}</span>
+            </button>
           );
         })}
-        <div className="mt-2 flex gap-2">
-          <Input size="sm" className="flex-1" placeholder="新建标签" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void add()} />
-          <Button size="sm" onClick={() => void add()}>添加</Button>
-        </div>
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void add()}
+          onBlur={() => void add()}
+          placeholder="+ 新建标签"
+          aria-label="新建标签"
+          className="h-8 w-28 rounded-full border border-dashed border-kumo-line bg-transparent px-3 text-sm outline-none placeholder:text-kumo-subtle focus:w-40 focus:border-kumo-brand transition-[width,border-color]"
+        />
       </div>
     </Modal>
   );

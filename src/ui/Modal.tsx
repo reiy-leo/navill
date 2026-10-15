@@ -8,7 +8,7 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={(o: boolean) => !o && onClose()}>
       <Dialog size={size} className="flex max-h-[85vh] flex-col p-6">
-        <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
           <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label="关闭" onClick={onClose} />
         </div>
