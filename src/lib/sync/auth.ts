@@ -18,12 +18,17 @@ export const isConfigured = () => Boolean(CLIENT_ID);
 export const isSignedIn = () => signedInItem.getValue();
 export const redirectUri = () => browser.identity.getRedirectURL();
 
-async function launch(interactive: boolean): Promise<Token> {
+/** 分享需要邮箱身份：增量申请 openid email，令牌单独缓存 */
+export const SHARE_SCOPE = `openid email ${'https://www.googleapis.com/auth/drive.appdata'}`;
+const shareTokenItem = storage.defineItem<Token | null>('session:shareToken', { fallback: null });
+
+async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Promise<Token> {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', CLIENT_ID);
   url.searchParams.set('response_type', 'token');
   url.searchParams.set('redirect_uri', redirectUri());
-  url.searchParams.set('scope', SCOPE);
+  url.searchParams.set('scope', scope);
+  url.searchParams.set('include_granted_scopes', 'true');
   if (!interactive) url.searchParams.set('prompt', 'none');
   const result = await browser.identity.launchWebAuthFlow({ url: url.toString(), interactive });
   if (!result) throw new Error('授权已取消');
@@ -33,7 +38,7 @@ async function launch(interactive: boolean): Promise<Token> {
   const accessToken = params.get('access_token');
   if (!accessToken) throw new Error('Google 授权失败：没有拿到令牌');
   const token = { accessToken, expiresAt: Date.now() + (Number(params.get('expires_in')) || 3600) * 1000 - 60_000 };
-  await tokenItem.setValue(token);
+  await item.setValue(token);
   return token;
 }
 
@@ -51,6 +56,20 @@ export async function getToken(interactive = false): Promise<string> {
   }
 }
 
+/** 分享用令牌（含 email scope）：缓存 → 静默 → 弹窗 */
+export async function getShareToken(interactive = true): Promise<string> {
+  if (!isConfigured()) throw new Error('未配置 Google OAuth 客户端 ID');
+  const cached = await shareTokenItem.getValue();
+  if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
+  try {
+    return (await launch(false, SHARE_SCOPE, shareTokenItem)).accessToken;
+  } catch (e) {
+    if (!interactive) throw e;
+    return (await launch(true, SHARE_SCOPE, shareTokenItem)).accessToken;
+  }
+}
+export const invalidateShareToken = () => shareTokenItem.setValue(null);
+
 export async function signIn(): Promise<void> {
   await launch(true);
   await signedInItem.setValue(true);
@@ -60,6 +79,7 @@ export async function signOut(): Promise<void> {
   const t = await tokenItem.getValue();
   if (t) await fetch(`https://oauth2.googleapis.com/revoke?token=${t.accessToken}`, { method: 'POST' }).catch(() => {});
   await tokenItem.setValue(null);
+  await shareTokenItem.setValue(null);
   await signedInItem.setValue(false);
 }
 

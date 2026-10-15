@@ -11,6 +11,7 @@ import { DialogsProvider } from '@/src/ui/dialogs';
 import { useTone } from '@/src/ui/colors';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 import { ArchiveView } from './components/ArchiveView';
+import { SharesView } from './components/SharesView';
 import { SearchDialog } from './components/AppMenu';
 import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
 import { shortcutSync, useLogToasts, useShortcuts } from '@/src/ui/feedback';
@@ -103,12 +104,12 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
 
   return (
     <div className={`relative isolate flex h-full ${top ? 'flex-col' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
-      {view !== 'archive' && <WorkspaceBackdrop color={wsColor} />}
+      {view === 'workspace' && <WorkspaceBackdrop color={wsColor} />}
       {!top && <Nav current={current?.id} {...menu} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {top && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
-          {view === 'archive' ? <ArchiveView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
+          {view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
             <p className="p-8 text-center text-sm text-kumo-subtle">当前场景下没有可见的工作区，可以在设置 → 场景中调整。</p>
           )}
         </main>

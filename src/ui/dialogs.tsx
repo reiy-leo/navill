@@ -1,3 +1,4 @@
+import { ShareDialog } from './ShareDialog';
 import { Check, Plus, Trash } from '@phosphor-icons/react';
 import { limitIcon } from '@/src/lib/emoji';
 import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
@@ -35,6 +36,7 @@ interface DialogsApi {
   editBookmark(bookmarkId: string): void;
   editWorkspace(workspaceId: string): void;
   editTags(bookmarkIds: string[]): void;
+  share(kind: 'workspace' | 'drawer', id: string, name: string): void;
 }
 
 const Ctx = createContext<DialogsApi | null>(null);
@@ -50,7 +52,8 @@ type Pending =
   | { kind: 'newBookmark'; resolve: (v: { url: string; title: string } | null) => void }
   | { kind: 'bookmark'; id: string }
   | { kind: 'workspace'; id: string }
-  | { kind: 'tags'; ids: string[] };
+  | { kind: 'tags'; ids: string[] }
+  | { kind: 'share'; what: 'workspace' | 'drawer'; id: string; name: string };
 
 export function DialogsProvider({ children }: { children: ReactNode }) {
   const [p, setP] = useState<Pending | null>(null);
@@ -87,6 +90,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       editWorkspace: (id) => setP({ kind: 'workspace', id }),
       editDrawer: (id) => setP({ kind: 'drawer', id }),
       editTags: (ids) => setP({ kind: 'tags', ids }),
+      share: (what, id, name) => setP({ kind: 'share', what, id, name }),
     }),
     [],
   );
@@ -94,6 +98,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={api}>
       {children}
+      {p?.kind === 'share' && <ShareDialog kind={p.what} sourceId={p.id} name={p.name} onClose={close} />}
       {p?.kind === 'confirm' && (
         <Modal
           open

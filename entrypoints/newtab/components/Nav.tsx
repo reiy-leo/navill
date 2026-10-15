@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
-import { CaretLeft, CaretRight, PencilSimple, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, PencilSimple, ShareNetwork, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
@@ -45,6 +45,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const ctx = (e: React.MouseEvent, w: Workspace) =>
     menu(e, [
       { label: '编辑', icon: PencilSimple, onSelect: () => dialogs.editWorkspace(w.id) },
+      { label: '分享…', icon: ShareNetwork, onSelect: () => dialogs.share('workspace', w.id, w.name) },
       { divider: true },
       { label: w.adult ? '取消 18+' : '标记为 18+', icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
       { divider: true },
