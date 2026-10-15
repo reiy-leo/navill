@@ -7,7 +7,7 @@ import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
 /** ⋯ 菜单：新建工作区 · 开始整理 · 管理归档 · 管理分享 · 搜索 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
-export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' }) {
+export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end' }) {
   const { organize, setOrganize, settings, view, setView } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
@@ -15,7 +15,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' 
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" title="更多" />} />
-      <DropdownMenu.Content side={side} align={side === 'bottom' ? 'end' : 'start'}>
+      <DropdownMenu.Content side={side} align={align ?? (side === 'bottom' ? 'end' : 'start')}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>新建工作区</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? '退出整理' : '开始整理'}</DropdownMenu.Item>
         <DropdownMenu.Item icon={view === 'archive' ? Check : Archive} onClick={() => setView('archive')}>管理归档</DropdownMenu.Item>

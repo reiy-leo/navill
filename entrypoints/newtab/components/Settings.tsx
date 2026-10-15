@@ -118,7 +118,7 @@ function General() {
       <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
       </Section>
       <Section title="工作区">
-      <Row label="工作区导航"><Pick label="工作区导航" value={settings.navLayout} items={{ sidebar: '侧边栏', top: '顶部横铺' }} onChange={(navLayout) => set({ navLayout })} /></Row>
+      <Row label="工作区导航"><Pick label="工作区导航" value={settings.navPosition} items={{ left: '左侧', right: '右侧', top: '顶部', bottom: '底部' }} onChange={(navPosition) => set({ navPosition })} /></Row>
       <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
       <Row label="工作区图标" info="Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标', char: '字符' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>

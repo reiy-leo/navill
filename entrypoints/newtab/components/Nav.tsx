@@ -24,7 +24,10 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
   const menu = useContextMenu();
-  const top = settings.navLayout === 'top';
+  const pos = settings.navPosition;
+  const top = pos === 'top' || pos === 'bottom';
+  const right = pos === 'right';
+  const bottom = pos === 'bottom';
   const label = settings.navLabel;
 
   const total = useLiveQuery(() => db.workspaces.count(), []) ?? 0;
@@ -67,7 +70,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   };
 
   const items = workspaces.map((w) => (
-    <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top}
+    <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
   ));
 
@@ -76,7 +79,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
       <nav className="relative flex items-center px-11 py-1">
         <ScrollStrip activeKey={view === 'workspace' ? current : undefined}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
-          <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} />
+          <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
         </div>
       </nav>
     );
@@ -86,7 +89,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
-        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? 'right' : 'top'} />
+        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} />
       </div>
     </nav>
   );
@@ -183,9 +186,9 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
 }
 
 function NavItem({
-  w, active, label, horizontal, onClick, onContextMenu, onReorder,
+  w, active, label, horizontal, right = false, bottom = false, onClick, onContextMenu, onReorder,
 }: {
-  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean;
+  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; right?: boolean; bottom?: boolean;
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void; onReorder: (dragId: string, targetId: string, after: boolean) => void;
 }) {
   const [over, setOver] = useState<'bookmark' | 'before' | 'after' | null>(null);
@@ -232,10 +235,10 @@ function NavItem({
           style={horizontal
             ? { height: ICON, width: active ? ICON_BIG : ICON, marginInline: active ? GAP_BIG : 0 }
             : { width: ICON, height: active ? ICON_BIG : ICON, marginBlock: active ? GAP_BIG : 0 }}>
-          {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，侧栏贴左沿向右长 */}
-          <span className={`absolute block ${horizontal ? 'left-1/2 top-0 -translate-x-1/2' : 'left-0 top-1/2 -translate-y-1/2'}`}>
+          {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，底栏贴下沿向上长，左侧栏贴左沿向右长，右侧栏贴右沿向左长 */}
+          <span className={`absolute block ${horizontal ? `left-1/2 ${bottom ? 'bottom-0' : 'top-0'} -translate-x-1/2` : `${right ? 'right-0' : 'left-0'} top-1/2 -translate-y-1/2`}`}>
             <span className="block transition-transform duration-300 ease-out motion-reduce:transition-none"
-              style={{ transformOrigin: horizontal ? 'top center' : 'left center', transform: `scale(${active ? 1 : ICON / ICON_BIG})` }}>
+              style={{ transformOrigin: horizontal ? (bottom ? 'bottom center' : 'top center') : right ? 'right center' : 'left center', transform: `scale(${active ? 1 : ICON / ICON_BIG})` }}>
               <WorkspaceIcon ws={w} size={ICON_BIG} />
             </span>
           </span>
@@ -246,5 +249,5 @@ function NavItem({
     </button>
   );
   const tip = [label === 'icon' ? w.name : '', w.description].filter(Boolean).join(' · ');
-  return tip ? <Tooltip content={tip} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip> : btn;
+  return tip ? <Tooltip content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
 }

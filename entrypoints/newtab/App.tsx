@@ -99,24 +99,27 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? 'general') };
   const current = workspaces?.find((w) => w.id === workspaceId) ?? workspaces?.[0];
   const wsColor = useTone(current?.color);
-  const top = settings.navLayout === 'top';
+  const pos = settings.navPosition;
+  const bar = pos === 'top' || pos === 'bottom';
+  const right = pos === 'right';
   useEffect(() => { document.documentElement.dataset.surface = settings.surface; }, [settings.surface]);
 
   return (
-    <div className={`relative isolate flex h-full ${top ? 'flex-col' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
+    <div className={`relative isolate flex h-full overflow-hidden ${bar ? 'flex-col' : right ? 'flex-row-reverse' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
       {view === 'workspace' && <WorkspaceBackdrop color={wsColor} />}
-      {!top && <Nav current={current?.id} {...menu} />}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {top && <Nav current={current?.id} {...menu} />}
+      {!bar && <Nav current={current?.id} {...menu} />}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {pos === 'top' && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
           {view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
             <p className="p-8 text-center text-sm text-kumo-subtle">当前场景下没有可见的工作区，可以在设置 → 场景中调整。</p>
           )}
         </main>
+        {pos === 'bottom' && <Nav current={current?.id} {...menu} />}
       </div>
       <OrganizeBar />
-      {/* 场景切换固定在页面右下角 */}
-      <div className="fixed bottom-4 right-4 z-20"><ModeSwitcher side="top" /></div>
+      {/* 场景切换固定在页面右下角；侧边栏在右侧时移到左下角、底部横条时上移，避开应用菜单 */}
+      <div className={`fixed bottom-4 z-20 ${right ? 'left-4' : 'right-4'} ${pos === 'bottom' ? 'bottom-16' : ''}`}><ModeSwitcher side="top" /></div>
       {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>

@@ -8,7 +8,8 @@ export interface Settings {
   drawerName: 'full' | 'last';
   /** 抽屉标题栏：始终显示，或默认被书签区盖住 80%、悬停时露出 */
   drawerHead: 'show' | 'peek';
-  navLayout: 'sidebar' | 'top';
+  /** 工作区导航位置：左右为侧边栏，上下为横条；都固定不随内容滚动 */
+  navPosition: 'left' | 'right' | 'top' | 'bottom';
   navLabel: 'both' | 'icon' | 'name';
   /** 工作区图标风格：emoji 或 Lucide 线性图标 */
   workspaceIconStyle: 'emoji' | 'lucide' | 'char';
@@ -47,7 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   openMode: 'current',
   drawerName: 'full',
   drawerHead: 'peek',
-  navLayout: 'sidebar',
+  navPosition: 'left',
   navLabel: 'both',
   workspaceIconStyle: 'emoji',
   surface: 'tint',
@@ -62,8 +63,11 @@ export const settingsItem = storage.defineItem<Settings>('local:settings', { fal
 
 export async function getSettings(): Promise<Settings> {
   const s = await settingsItem.getValue();
+  // 旧版设置 navLayout: 'sidebar' | 'top' 迁移到 navPosition
+  const legacy = (s as { navLayout?: string }).navLayout;
   return {
     ...DEFAULT_SETTINGS, ...s,
+    navPosition: s.navPosition ?? (legacy === 'top' ? 'top' : 'left'),
     sync: { ...DEFAULT_SETTINGS.sync, ...s.sync },
     toast: { ...DEFAULT_TOAST, ...s.toast, show: { ...DEFAULT_TOAST.show, ...s.toast?.show } },
   };
