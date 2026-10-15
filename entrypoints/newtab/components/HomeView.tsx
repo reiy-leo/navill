@@ -35,14 +35,14 @@ export function HomeView() {
         {!favs ? <div className="flex justify-center py-6"><Loader /></div> : favs.length === 0 ? (
           <Empty icon={<Star size={36} />} title="还没有收藏" description="给书签加上「收藏」标签，就会出现在这里。" />
         ) : (
-          <div className="nv-drawer rounded-xl p-2"><Items items={favs} view="icon" /></div>
+          <Items items={favs} view="icon" />
         )}
       </section>
 
       {!!top?.length && (
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-medium">最常用</h2>
-          <div className="nv-drawer rounded-xl p-2"><Items items={top} view="icon" strip /></div>
+          <Items items={top} view="icon" strip />
         </section>
       )}
 
