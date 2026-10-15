@@ -5,11 +5,11 @@ import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db';
-import { createTag, renameDrawer, setTags, toggleTagOn, updateBookmark, updateDrawer, updateWorkspace } from '@/src/lib/store';
+import { createTag, setTags, toggleTagOn, updateBookmark, updateDrawer, updateWorkspace } from '@/src/lib/store';
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
 import { InfoTip } from './InfoTip';
-import { ColorSwatch, IconBox } from './ColorPicker';
+import { ColorPicker, ColorSwatch, IconBox } from './ColorPicker';
 import { useTone } from './colors';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
@@ -28,7 +28,7 @@ interface DialogsApi {
   pickTarget(o: PickOpts): Promise<Target | null>;
   /** 新建工作区/抽屉：名称 + 图标框右上角小圆点选颜色 */
   create(what: '工作区' | '抽屉', color: string): Promise<{ name: string; color: string; description: string } | null>;
-  editDrawer(drawerId: string): void;
+  drawerColor(drawerId: string): void;
   /** 当前处于非默认场景时，新建项询问可见范围；默认场景直接返回 'all' */
   askVisibility(currentModeId: string, what: string): Promise<'current' | 'all' | null>;
   /** 新建书签：名称 + URL，支持浏览记录补全 */
@@ -88,7 +88,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       },
       editBookmark: (id) => setP({ kind: 'bookmark', id }),
       editWorkspace: (id) => setP({ kind: 'workspace', id }),
-      editDrawer: (id) => setP({ kind: 'drawer', id }),
+      drawerColor: (id) => setP({ kind: 'drawer', id }),
       editTags: (ids) => setP({ kind: 'tags', ids }),
       share: (what, id, name) => setP({ kind: 'share', what, id, name }),
     }),
@@ -134,7 +134,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       {p?.kind === 'pick' && <PickDialog o={p.o} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'newBookmark' && <NewBookmarkDialog onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'bookmark' && <EditBookmarkDialog id={p.id} onClose={close} />}
-      {p?.kind === 'drawer' && <EditDrawerDialog id={p.id} onClose={close} />}
+      {p?.kind === 'drawer' && <DrawerColorDialog id={p.id} onClose={close} />}
       {p?.kind === 'workspace' && <EditWorkspaceDialog id={p.id} onClose={close} />}
       {p?.kind === 'tags' && <TagsDialog ids={p.ids} onClose={close} />}
     </Ctx.Provider>
@@ -195,26 +195,16 @@ function CreateDialog({ what, color: initColor, onDone }: { what: string; color:
   );
 }
 
-function EditDrawerDialog({ id, onClose }: { id: string; onClose: () => void }) {
+/** 抽屉菜单「指定颜色」：点一个颜色立即生效；「跟随工作区」清除抽屉自己的颜色 */
+function DrawerColorDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const d = useLiveQuery(() => db.drawers.get(id), [id]);
-  const ws = useLiveQuery(async () => (d ? db.workspaces.get(d.workspaceId) : undefined), [d?.workspaceId]);
-  const [form, setForm] = useState<{ name: string; description: string; color?: string } | null>(null);
-  if (d && !form) setForm({ name: d.name, description: d.description ?? '', color: d.color });
-  const save = async () => {
-    if (!form || !d) return;
-    if (form.name.trim() && form.name.trim() !== d.name) await renameDrawer(db, id, form.name);
-    await updateDrawer(db, id, { color: form.color, description: form.description.trim() || undefined });
+  const set = async (color: string | undefined) => {
+    await updateDrawer(db, id, { color });
     onClose();
   };
-  const shown = form?.color ?? ws?.color;
   return (
-    <Modal open size="sm" form title="编辑抽屉" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
-      {form && (
-        <div className="flex items-start gap-3">
-          <ColorSwatch color={shown} onColor={(color) => setForm({ ...form, color })} label="抽屉颜色" />
-          <NameFields what="抽屉" name={form.name} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
-        </div>
-      )}
+    <Modal open size="sm" title="指定颜色" onClose={onClose} footer={<><Button disabled={!d?.color} onClick={() => void set(undefined)}>跟随工作区</Button><Button onClick={onClose}>取消</Button></>}>
+      {d && <ColorPicker label="抽屉颜色" value={d.color} onChange={(hex) => void set(hex)} />}
     </Modal>
   );
 }
