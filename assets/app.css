@@ -53,9 +53,18 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
   background: color-mix(in oklab, var(--ws-color, #94a3b8) 13%, var(--nv-tint-base));
   --tw-ring-color: color-mix(in oklab, var(--ws-color, #94a3b8) 20%, var(--nv-tint-base));
 }
-/* primary 上沿一点工作区主色的阴影 */
-.nv-drawer-primary { --nv-primary-glow: color-mix(in oklab, var(--ws-color, #94a3b8) 40%, transparent); }
-[data-surface='bare'] .nv-drawer-primary { --nv-primary-glow: transparent; }
+/* 层次：不用主色光晕，改用中性的分层投影。
+ * 抽屉整体：贴边 1px 细影 + 向下扩散的柔影（混入一点工作区色的暗调，避免发灰），把抽屉从背景上托起来；
+ * primary：上沿一道内高光 + 极淡的贴边影，像一张纸放在有色托盘里。 */
+[data-surface='tint'] .nv-drawer {
+  box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 2px rgb(0 0 0 / 0.05),
+    0 8px 24px -10px color-mix(in oklab, color-mix(in oklab, var(--ws-color, #94a3b8) 35%, #000) 30%, transparent);
+}
+[data-mode='dark'][data-surface='tint'] .nv-drawer { box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -8px rgb(0 0 0 / 0.5); }
+.nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 6px -2px rgb(0 0 0 / 0.05); }
+[data-mode='dark'] .nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.3); }
+[data-surface='bare'] .nv-drawer-primary { box-shadow: none; }
+[data-surface='glass'] .nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 3px rgb(0 0 0 / 0.05); }
 /* Layer Card：外层（标题栏）是有色的 secondary，内层 primary 更亮，承载书签 */
 [data-surface='tint'] .nv-drawer-primary {
   background: color-mix(in oklab, var(--ws-color, #94a3b8) 3%, var(--nv-tint-base));
@@ -97,16 +106,6 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-drawer-head [data-kumo-component='Button'].size-6\.5,
 .nv-drawer-head [data-kumo-component='Button'].size-3\.5 { width: 1.75rem; height: 1.75rem; }
 .nv-drawer-head [data-kumo-component='Button']:hover { color: var(--color-kumo-default); }
-
-/* 「仅图标」工作区导航：选中图标从上方落下、轻弹一下停在 1.5 倍 */
-@keyframes nv-drop {
-  0% { transform: translateY(-14px) scale(0.72); opacity: 0.4; }
-  55% { transform: translateY(2px) scale(1.06, 0.94); opacity: 1; }
-  78% { transform: translateY(-1px) scale(0.98, 1.02); }
-  100% { transform: translateY(0) scale(1); }
-}
-.nv-drop { animation: nv-drop 420ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
-@media (prefers-reduced-motion: reduce) { .nv-drop { animation: none; } }
 
 /* 图标选择（编辑/新建弹窗）：底色跟随所选颜色 --pick */
 .nv-pick:hover { background: color-mix(in oklab, var(--pick) 14%, transparent) !important; }

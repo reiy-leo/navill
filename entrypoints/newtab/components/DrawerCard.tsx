@@ -152,7 +152,7 @@ export function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </LayerCard.Secondary>
-      <LayerCard.Primary className="nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line shadow-[0_-2px_8px_-2px_var(--nv-primary-glow)]">
+      <LayerCard.Primary className="nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line">
       <div
         ref={bodyRef}
         className={height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}

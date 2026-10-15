@@ -92,9 +92,11 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   );
 }
 
-/** 「仅图标」模式：选中的工作区图标放大到 1.5 倍，切换时带一下落入的动画（assets/app.css .nv-drop） */
+/** 「仅图标」模式：选中的工作区图标放大到 1.5 倍，切换时两侧空间以动画撑开 */
 const ICON = 22;
 const ICON_BIG = 33;
+/** 选中图标两侧额外撑开的空间 */
+const GAP_BIG = 6;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FADE = 40;
@@ -226,11 +228,13 @@ function NavItem({
     >
       {label === 'both' && <WorkspaceIcon ws={w} size={ICON} />}
       {label === 'icon' && (
-        <span className="relative shrink-0 transition-[width,height] duration-200 ease-out motion-reduce:transition-none"
-          style={horizontal ? { height: ICON, width: active ? ICON_BIG : ICON } : { width: ICON, height: active ? ICON_BIG : ICON }}>
+        <span className="relative shrink-0 transition-[width,height,margin] duration-300 ease-out motion-reduce:transition-none"
+          style={horizontal
+            ? { height: ICON, width: active ? ICON_BIG : ICON, marginInline: active ? GAP_BIG : 0 }
+            : { width: ICON, height: active ? ICON_BIG : ICON, marginBlock: active ? GAP_BIG : 0 }}>
           {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，侧栏贴左沿向右长 */}
           <span className={`absolute block ${horizontal ? 'left-1/2 top-0 -translate-x-1/2' : 'left-0 top-1/2 -translate-y-1/2'}`}>
-            <span key={active ? 'on' : 'off'} className={`block transition-transform duration-200 ease-out motion-reduce:transition-none ${active ? 'nv-drop' : ''}`}
+            <span className="block transition-transform duration-300 ease-out motion-reduce:transition-none"
               style={{ transformOrigin: horizontal ? 'top center' : 'left center', transform: `scale(${active ? 1 : ICON / ICON_BIG})` }}>
               <WorkspaceIcon ws={w} size={ICON_BIG} />
             </span>
