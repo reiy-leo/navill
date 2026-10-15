@@ -5,7 +5,7 @@ import type { SortMode, ViewMode } from '@/src/db';
 export const VIEW_LABEL: Record<ViewMode, string> = { icon: '图标', row: '行', tile: '平铺', bento: 'Bento' };
 const VIEW_ICON = { icon: SquaresFour, row: Rows, tile: GridFour, bento: Layout } as const;
 export const SORT_LABEL: Record<SortMode, string> = {
-  manual: '手动', 'name-asc': '名称升序', 'name-desc': '名称降序', 'clicks-asc': '点击次数升序', 'clicks-desc': '点击次数降序',
+  smart: '智能', manual: '手动', 'name-asc': '名称升序', 'name-desc': '名称降序', 'clicks-asc': '点击次数升序', 'clicks-desc': '点击次数降序',
 };
 
 export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inherited?: boolean; onChange: (v: ViewMode | null) => void }) {

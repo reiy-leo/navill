@@ -27,9 +27,19 @@ export const bookmarkVisible = (b: Bookmark, v: Visibility) =>
 
 const collator = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
 
-export function sortItems(items: Item[], mode: SortMode = 'manual'): Item[] {
+const DAY = 86_400_000;
+/** 智能排序得分：点击次数 × 新近系数。30 天内打开过不打折，之后每 30 天减半，最低保留 1/4 */
+export function smartScore(b: Bookmark, now = Date.now()): number {
+  if (!b.openCount) return 0;
+  const idle = b.lastOpenedAt ? Math.max(0, now - b.lastOpenedAt - 30 * DAY) : 0;
+  return b.openCount * Math.max(0.25, 0.5 ** (idle / (30 * DAY)));
+}
+
+export function sortItems(items: Item[], mode: SortMode = 'manual', now = Date.now()): Item[] {
   const list = [...items];
   switch (mode) {
+    case 'smart':
+      return list.sort((a, b) => smartScore(b.bookmark, now) - smartScore(a.bookmark, now) || (b.bookmark.lastOpenedAt ?? 0) - (a.bookmark.lastOpenedAt ?? 0) || a.placement.order - b.placement.order);
     case 'name-asc':
       return list.sort((a, b) => collator.compare(a.bookmark.title, b.bookmark.title));
     case 'name-desc':
@@ -78,14 +88,14 @@ export async function loadWorkspace(db: NavillDB, workspaceId: string, v: Visibi
     for (const g of groups.filter((x) => x.targetDrawerId === drawer.id).sort((a, b) => a.order - b.order)) {
       const src = sourceDrawers.get(g.sourceDrawerId);
       if (!src || !drawerVisible(src, v)) continue;
-      const items = sortItems(toItems(sourcePlacements.filter((p) => p.drawerId === src.id)), src.sortMode);
+      const items = sortItems(toItems(sourcePlacements.filter((p) => p.drawerId === src.id)), src.sortMode ?? 'smart');
       for (const it of items) {
         if (ownBookmarks.has(it.bookmark.id)) continue;
         ownBookmarks.add(it.bookmark.id);
         mounted.push({ ...it, mountedFrom: { group: g, drawer: src } });
       }
     }
-    return { drawer, items: sortItems(own, drawer.sortMode), mounted };
+    return { drawer, items: sortItems(own, drawer.sortMode ?? 'smart'), mounted };
   });
   return { workspace, top, drawers: data };
 }

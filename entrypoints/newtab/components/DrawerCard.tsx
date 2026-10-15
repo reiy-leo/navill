@@ -105,7 +105,7 @@ export function DrawerCard({
           </h2>
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
-        <SortMenu value={drawer.sortMode ?? 'manual'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
+        <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
         <DropdownMenu>
           <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
           <DropdownMenu.Content>
@@ -145,7 +145,7 @@ export function DrawerCard({
           onReveal={onReveal}
           onDrop={(placementId, index) => {
             void (async () => {
-              if (drawer.sortMode && drawer.sortMode !== 'manual') await updateDrawer(db, drawer.id, { sortMode: 'manual' });
+              if (drawer.sortMode !== 'manual') await updateDrawer(db, drawer.id, { sortMode: 'manual' });
               await movePlacement(db, placementId, workspace.id, drawer.id, Math.min(index, items.length));
             })();
           }}

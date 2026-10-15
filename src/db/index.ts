@@ -2,7 +2,8 @@ import Dexie, { type EntityTable } from 'dexie';
 
 // 数据模型见 docs/PLAN.md §4。IndexedDB 为本地事实来源，界面不等待网络。
 export type ViewMode = 'icon' | 'row' | 'tile' | 'bento';
-export type SortMode = 'manual' | 'name-asc' | 'name-desc' | 'clicks-asc' | 'clicks-desc';
+/** smart：智能（默认），点击多的在前，近期打开过的略靠前 */
+export type SortMode = 'smart' | 'manual' | 'name-asc' | 'name-desc' | 'clicks-asc' | 'clicks-desc';
 export type WorkspaceSource = 'bookmark_bar' | 'other' | 'mobile' | 'edge_workspace' | 'manual' | 'inbox';
 
 /** 工作区上限（含「待整理」） */
