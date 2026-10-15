@@ -2,6 +2,7 @@ import { InfoTip } from '@/src/ui/InfoTip';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Bell, CloudCog, Copy, Database, Keyboard, Layers, Palette, Settings2, Tag, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
@@ -33,16 +34,9 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
         value={tab}
         onValueChange={(v) => setTab(v as Tab)}
         tabs={[
-          { value: 'general', label: '通用' },
-          { value: 'look', label: '外观' },
-          { value: 'modes', label: '场景' },
-          { value: 'tags', label: '标签' },
-          { value: 'sync', label: '同步' },
-          { value: 'alias', label: '分身' },
-          { value: 'toast', label: '提醒' },
-          { value: 'keys', label: '快捷键' },
-          { value: 'data', label: '数据' },
-        ]}
+          ['general', '通用', Settings2], ['look', '外观', Palette], ['modes', '场景', Layers], ['tags', '标签', Tag],
+          ['sync', '同步', CloudCog], ['alias', '分身', Copy], ['toast', '提醒', Bell], ['keys', '快捷键', Keyboard], ['data', '数据', Database],
+        ].map(([value, label, Icon]) => ({ value: value as string, label: <TabLabel icon={Icon as LucideIcon} text={label as string} /> }))}
       />
       <div className="mt-4 min-h-[50vh]">
         {tab === 'general' && <General />}
@@ -57,6 +51,10 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
       </div>
     </Modal>
   );
+}
+
+function TabLabel({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
+  return <span className="inline-flex items-center gap-1.5"><Icon size={15} strokeWidth={1.75} />{text}</span>;
 }
 
 /** hint：状态类短文字（常显）；info：说明类文字（收进 ⓘ） */
