@@ -10,10 +10,12 @@ import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { DrawerCard } from './DrawerCard';
 import { Items } from './Items';
-import { ViewMenu } from './menus';
+import { ArrangeMenu, ViewMenu } from './menus';
+import { Bento } from './Bento';
+import { effectiveView } from '@/src/lib/view';
 
 export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
-  const { visibility, settings, selectWorkspace } = useApp();
+  const { visibility, settings, selectWorkspace, updateSettings } = useApp();
   const dialogs = useDialogs();
   const data = useLiveQuery(() => loadWorkspace(db, workspaceId, visibility), [workspaceId, visibility]);
 
@@ -46,6 +48,11 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     void reorderDrawers(db, ids);
   };
 
+  const arrange = settings.arrange[workspace.id] ?? 'masonry';
+  const card = (d: (typeof drawers)[number]) => (
+    <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={reveal} onDropDrawer={(id, after) => dropDrawer(id, d.drawer.id, after)} />
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -54,6 +61,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
           <h1 className="truncate text-base font-medium">{workspace.name}</h1>
           {workspace.description && <p className="truncate text-sm text-kumo-subtle">{workspace.description}</p>}
         </div>
+        <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
         <Tooltip content="新建书签" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label="新建书签" onClick={() => void newBookmark()} /></Tooltip>
         <Tooltip content="新建抽屉" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<FolderPlus />} aria-label="新建抽屉" onClick={() => void newDrawer()} /></Tooltip>
@@ -74,13 +82,24 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
               onDrop={(id, index) => void movePlacement(db, id, workspace.id, null, index)}
             />
           )}
-          <Masonry>
-            {drawers.map((d) => (
-              <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>
-                <DrawerCard data={d} workspace={workspace} onReveal={reveal} onDropDrawer={(id, after) => dropDrawer(id, d.drawer.id, after)} />
-              </MasonryItem>
-            ))}
-          </Masonry>
+          {arrange === 'masonry' ? (
+            <Masonry>
+              {drawers.map((d) => (
+                <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>{card(d)}</MasonryItem>
+              ))}
+            </Masonry>
+          ) : arrange === 'bento' ? (
+            <Bento
+              head={settings.drawerHead === 'peek' ? 6 : 32}
+              items={drawers.map((d) => ({ key: d.drawer.id, id: `drawer-${d.drawer.id}`, count: d.items.length + d.mounted.length, view: effectiveView(d.drawer, workspace), node: card(d) }))}
+            />
+          ) : (
+            <div className={arrange === 'board' ? 'nv-masonry -mx-6 flex items-start gap-4 overflow-x-auto px-6 pb-3 [scrollbar-width:thin]' : 'nv-masonry flex flex-col gap-4'}>
+              {drawers.map((d) => (
+                <div key={d.drawer.id} id={`drawer-${d.drawer.id}`} className={arrange === 'board' ? 'w-[300px] shrink-0' : ''}>{card(d)}</div>
+              ))}
+            </div>
+          )}
           {top.length === 0 && (
             <div
               className="rounded-lg border border-dashed border-kumo-line p-3 text-center text-xs text-kumo-subtle"

@@ -19,7 +19,12 @@ interface Props {
   onDrop?: (placementId: string, index: number) => void;
   onReveal?: (item: Item) => void;
   emptyHint?: string;
+  /** 横条排列：书签横向排成一行，超出时横向滚动 */
+  strip?: boolean;
 }
+
+/** 横条排列时每个书签的固定宽度 */
+const STRIP_W: Record<ViewMode, string> = { icon: 'w-[84px]', row: 'w-44', tile: 'w-48', bento: 'w-48' };
 
 const LAYOUT: Record<ViewMode, string> = {
   icon: 'grid grid-cols-[repeat(auto-fill,minmax(76px,1fr))] gap-1',
@@ -28,7 +33,7 @@ const LAYOUT: Record<ViewMode, string> = {
   bento: 'grid grid-cols-4 auto-rows-[64px] gap-2 grid-flow-dense',
 };
 
-export function Items({ items, view, onDrop, onReveal, emptyHint }: Props) {
+export function Items({ items, view, onDrop, onReveal, emptyHint, strip }: Props) {
   const [over, setOver] = useState(false);
   // bento：按打开次数排名决定大小
   const rank = new Map(
@@ -36,7 +41,7 @@ export function Items({ items, view, onDrop, onReveal, emptyHint }: Props) {
   );
   return (
     <div
-      className={`${LAYOUT[view]} min-h-8 rounded-md ${over ? 'bg-kumo-tint outline-2 outline-dashed outline-kumo-line' : ''}`}
+      className={`${strip ? `flex ${view === 'icon' ? 'gap-1' : 'gap-2'} overflow-x-auto [scrollbar-width:thin]` : LAYOUT[view]} min-h-8 rounded-md ${over ? 'bg-kumo-tint outline-2 outline-dashed outline-kumo-line' : ''}`}
       onDragOver={(e) => {
         if (!onDrop || !hasType(e, DND_PLACEMENT)) return;
         e.preventDefault();
@@ -57,7 +62,8 @@ export function Items({ items, view, onDrop, onReveal, emptyHint }: Props) {
           key={it.placement.id + (it.mountedFrom?.group.id ?? '')}
           item={it}
           view={view}
-          size={view === 'bento' ? (rank.get(it.placement.id)! === 0 ? 'xl' : rank.get(it.placement.id)! < 3 ? 'lg' : 'sm') : 'sm'}
+          strip={strip}
+          size={!strip && view === 'bento' ? (rank.get(it.placement.id)! === 0 ? 'xl' : rank.get(it.placement.id)! < 3 ? 'lg' : 'sm') : 'sm'}
           onDropBefore={onDrop ? (id, after) => onDrop(id, after ? i + 1 : i) : undefined}
           onReveal={onReveal}
         />
@@ -67,15 +73,15 @@ export function Items({ items, view, onDrop, onReveal, emptyHint }: Props) {
 }
 
 function BookmarkItem({
-  item, view, size, onDropBefore, onReveal,
-}: { item: Item; view: ViewMode; size: 'sm' | 'lg' | 'xl'; onDropBefore?: (placementId: string, after: boolean) => void; onReveal?: (i: Item) => void }) {
+  item, view, size, strip, onDropBefore, onReveal,
+}: { item: Item; view: ViewMode; strip?: boolean; size: 'sm' | 'lg' | 'xl'; onDropBefore?: (placementId: string, after: boolean) => void; onReveal?: (i: Item) => void }) {
   const { settings, organize, selection, toggleSelect } = useApp();
   const menu = useContextMenu();
   const dialogs = useDialogs();
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const { bookmark: b, placement: p, mountedFrom } = item;
   const selected = selection.has(p.id);
-  const horizontal = view !== 'row';
+  const horizontal = strip || view !== 'row';
   const badge = mountedFrom ? (
     <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label="挂载" />
   ) : p.isAlias ? (
@@ -129,7 +135,7 @@ function BookmarkItem({
     }
   })();
 
-  const span = view === 'bento' ? (size === 'xl' ? 'col-span-2 row-span-2' : size === 'lg' ? 'col-span-2' : '') : '';
+  const span = strip ? `shrink-0 ${STRIP_W[view]}` : view === 'bento' ? (size === 'xl' ? 'col-span-2 row-span-2' : size === 'lg' ? 'col-span-2' : '') : '';
   return (
     <a
       href={b.url}

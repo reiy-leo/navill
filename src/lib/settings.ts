@@ -2,12 +2,17 @@ import { storage } from 'wxt/utils/storage';
 import { MODE_DEFAULT } from '@/src/db';
 
 /** 设置存 chrome.storage.local（按设备），不进 IndexedDB、不同步 */
+/** 抽屉排列：横条（一行一个）、瀑布、便当（120px 网格）、看板（一列一个，横向滚动） */
+export type Arrange = 'strip' | 'masonry' | 'bento' | 'board';
+
 export interface Settings {
   theme: 'system' | 'light' | 'dark';
   openMode: 'current' | 'new' | 'background';
   drawerName: 'full' | 'last';
   /** 抽屉标题栏：始终显示，或默认被书签区盖住 80%、悬停时露出 */
   drawerHead: 'show' | 'peek';
+  /** 每个工作区的抽屉排列方式（按设备），未设置为瀑布 */
+  arrange: Record<string, Arrange>;
   /** 工作区导航位置：左右为侧边栏，上下为横条；都固定不随内容滚动 */
   navPosition: 'left' | 'right' | 'top' | 'bottom';
   navLabel: 'both' | 'icon' | 'name';
@@ -48,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   openMode: 'current',
   drawerName: 'full',
   drawerHead: 'peek',
+  arrange: {},
   navPosition: 'left',
   navLabel: 'both',
   workspaceIconStyle: 'emoji',

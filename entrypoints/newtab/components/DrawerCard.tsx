@@ -11,13 +11,14 @@ import { effectiveView, type DrawerData, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
 import { OPEN_ALL_MAX, openAll } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
+import type { Arrange } from '@/src/lib/settings';
 import { DND_DRAWER, hasType, insertAfter } from './dnd';
 import { Items } from './Items';
 import { SortMenu, ViewMenu } from './menus';
 
 export function DrawerCard({
-  data, workspace, onDropDrawer, onReveal,
-}: { data: DrawerData; workspace: Workspace; onDropDrawer: (drawerId: string, after: boolean) => void; onReveal: (i: Item) => void }) {
+  data, workspace, arrange, onDropDrawer, onReveal,
+}: { data: DrawerData; workspace: Workspace; arrange: Arrange; onDropDrawer: (drawerId: string, after: boolean) => void; onReveal: (i: Item) => void }) {
   const { drawer, items, mounted } = data;
   const { settings } = useApp();
   const dialogs = useDialogs();
@@ -27,8 +28,11 @@ export function DrawerCard({
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState<number>();
-  const cap = useRowCap(bodyRef, live === undefined && drawer.height === undefined);
-  const height = live ?? drawer.height;
+  // 横条和便当不用高度上限与手动高度：横条单行横向滚动，便当由网格格子决定高度
+  const sized = arrange === 'masonry' || arrange === 'board';
+  const cap = useRowCap(bodyRef, sized && live === undefined && drawer.height === undefined);
+  const height = sized ? live ?? drawer.height : undefined;
+  const fill = arrange === 'bento';
   const tint = useTone(drawer.color);
   const view = effectiveView(drawer, workspace);
   const all = [...items, ...mounted];
@@ -64,11 +68,11 @@ export function DrawerCard({
       data-head={settings.drawerHead}
       data-open={menuOpen || editing || dropSide !== null || undefined}
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
-      className={`nv-drawer rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${dropSide === 'before' ? 'outline-2 outline-offset-2 outline-kumo-brand' : ''} ${dropSide === 'after' ? 'outline-2 outline-kumo-brand' : ''}`}
+      className={`nv-drawer ${fill ? 'h-full' : ''} rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${dropSide === 'before' ? 'outline-2 outline-offset-2 outline-kumo-brand' : ''} ${dropSide === 'after' ? 'outline-2 outline-kumo-brand' : ''}`}
       onDragOver={(e) => {
         if (!hasType(e, DND_DRAWER)) return;
         e.preventDefault();
-        setDropSide(insertAfter(e, true) ? 'after' : 'before');
+        setDropSide(insertAfter(e, arrange !== 'strip') ? 'after' : 'before');
       }}
       onDragLeave={() => setDropSide(null)}
       onDrop={(e) => {
@@ -155,15 +159,16 @@ export function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </LayerCard.Secondary>
-      <LayerCard.Primary className="nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line">
+      <LayerCard.Primary className={`nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line ${fill ? 'min-h-0 flex-1' : ''}`}>
       <div
         ref={bodyRef}
-        className={height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}
+        className={fill ? 'nv-drawer-body -mx-1 min-h-0 flex-1 overflow-y-auto px-1 [scrollbar-width:thin]' : height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}
         style={height !== undefined ? { height } : cap !== undefined ? { maxHeight: cap } : undefined}
       >
         <Items
           items={all}
           view={view}
+          strip={arrange === 'strip'}
           emptyHint="拖书签到这里"
           onReveal={onReveal}
           onDrop={(placementId, index) => {
@@ -174,7 +179,7 @@ export function DrawerCard({
           }}
         />
       </div>
-      <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />
+      {sized && <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />}
       </LayerCard.Primary>
     </LayerCard>
   );
