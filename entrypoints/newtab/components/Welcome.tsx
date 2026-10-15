@@ -1,7 +1,7 @@
 import { Banner, Button, Empty, Text } from '@cloudflare/kumo';
 import { BookmarksSimple, CloudArrowDown, DownloadSimple, FileArrowUp, Plus } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
-import { db } from '@/src/db';
+import { PALETTE, db } from '@/src/db';
 import { parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { parseNetscapeHtml } from '@/src/lib/io/html';
 import { skipImport } from '@/src/lib/import/commit';
@@ -52,10 +52,10 @@ export default function Welcome({ onImport }: { onImport: (tree?: BookmarkNode) 
 
   const newWorkspace = () =>
     run('new', async () => {
-      const name = await dialogs.prompt('新建工作区', '', '工作区名称');
-      if (name === null) return;
+      const res = await dialogs.create('工作区', PALETTE[(await db.workspaces.filter((w) => w.source !== 'inbox').count()) % PALETTE.length]!);
+      if (!res) return;
       await skipImport(db);
-      await createWorkspace(db, { name });
+      await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined });
     });
 
   return (

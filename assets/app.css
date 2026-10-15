@@ -96,3 +96,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 }
 .nv-drop { animation: nv-drop 420ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
 @media (prefers-reduced-motion: reduce) { .nv-drop { animation: none; } }
+
+/* 图标选择（编辑/新建弹窗）：底色跟随所选颜色 --pick */
+.nv-pick:hover { background: color-mix(in oklab, var(--pick) 14%, transparent) !important; }
+.nv-pick-on { background: var(--pick) !important; color: #fff !important; }
+.nv-pick-on.nv-pick-soft { background: color-mix(in oklab, var(--pick) 30%, var(--color-kumo-base)) !important; }

@@ -1,7 +1,8 @@
-import { Button, DropdownMenu, Input } from '@cloudflare/kumo';
+import { Button, DropdownMenu, Input, Tooltip } from '@cloudflare/kumo';
 import {
-  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive } from '@phosphor-icons/react';
-import { useRef, useState } from 'react';
+  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, PencilSimple } from '@phosphor-icons/react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { useTone } from '@/src/ui/colors';
 import { db, type Workspace } from '@/src/db';
 import {
   AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, movePlacement, renameDrawer,
@@ -25,7 +26,9 @@ export function DrawerCard({
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState<number>();
+  const cap = useRowCap(bodyRef, live === undefined && drawer.height === undefined);
   const height = live ?? drawer.height;
+  const tint = useTone(drawer.color);
   const view = effectiveView(drawer, workspace);
   const all = [...items, ...mounted];
   const display = settings.drawerName === 'last' ? drawer.path[drawer.path.length - 1] ?? drawer.name : drawer.name;
@@ -56,6 +59,7 @@ export function DrawerCard({
 
   return (
     <section
+      style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
       className={`nv-drawer flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated/75 p-3 backdrop-blur-sm ${dropSide === 'before' ? 'ring-2 ring-kumo-brand ring-offset-2' : ''} ${dropSide === 'after' ? 'ring-2 ring-kumo-brand' : ''}`}
       onDragOver={(e) => {
         if (!hasType(e, DND_DRAWER)) return;
@@ -98,11 +102,19 @@ export function DrawerCard({
             aria-label="抽屉名称"
           />
         ) : (
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={`${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
+          drawer.description ? <Tooltip content={drawer.description} side="top" asChild>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : `${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
             {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
             {display}
             <span className="ml-1.5 opacity-70">{all.length}</span>
           </h2>
+          </Tooltip> : <>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : `${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
+            {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
+            {display}
+            <span className="ml-1.5 opacity-70">{all.length}</span>
+          </h2>
+          </>
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
@@ -113,6 +125,7 @@ export function DrawerCard({
               <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开</DropdownMenu.Item>
             )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>新建书签</DropdownMenu.Item>
+            <DropdownMenu.Item icon={PencilSimple} onClick={() => dialogs.editDrawer(drawer.id)}>编辑</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身</DropdownMenu.Item>
             {groups.map((g) => (
@@ -137,7 +150,11 @@ export function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </header>
-      <div ref={bodyRef} className={height !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'} style={height !== undefined ? { height } : undefined}>
+      <div
+        ref={bodyRef}
+        className={height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}
+        style={height !== undefined ? { height } : cap !== undefined ? { maxHeight: cap } : undefined}
+      >
         <Items
           items={all}
           view={view}
@@ -154,6 +171,32 @@ export function DrawerCard({
       <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />
     </section>
   );
+}
+
+/** 自适应高度时最多显示的行数，多余的在抽屉内滚动 */
+export const AUTO_MAX_ROWS = 10;
+
+/** 自适应模式下按网格实际行位置量出第 11 行的顶部，作为最大高度；不足 10 行返回 undefined */
+function useRowCap(bodyRef: React.RefObject<HTMLDivElement | null>, enabled: boolean) {
+  const [cap, setCap] = useState<number>();
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    if (!enabled || !body) { setCap(undefined); return; }
+    const measure = () => {
+      const grid = body.firstElementChild as HTMLElement | null;
+      if (!grid) return setCap(undefined);
+      const origin = body.getBoundingClientRect().top - body.scrollTop;
+      const tops = [...new Set([...grid.children].map((c) => Math.round(c.getBoundingClientRect().top - origin)))].sort((x, y) => x - y);
+      const next = tops[AUTO_MAX_ROWS];
+      setCap(next === undefined ? undefined : next - 2);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(body);
+    if (body.firstElementChild) ro.observe(body.firstElementChild);
+    return () => ro.disconnect();
+  }, [bodyRef, enabled]);
+  return cap;
 }
 
 /**

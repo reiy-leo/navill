@@ -2,7 +2,7 @@ import { Masonry, MasonryItem } from './Masonry';
 import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
 import { FolderPlus, Plus, Tray } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/src/db';
+import { PALETTE, db } from '@/src/db';
 import { createBookmark, createDrawer, movePlacement, reorderDrawers, setWorkspaceView } from '@/src/lib/store';
 import { loadWorkspace, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
@@ -22,11 +22,12 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const { workspace, top, drawers } = data;
 
   const newDrawer = async () => {
-    const name = await dialogs.prompt('新建抽屉', '', '抽屉名称');
-    if (name === null) return;
+    const base = workspace.color ?? PALETTE[0]!;
+    const res = await dialogs.create('抽屉', base);
+    if (!res) return;
     const vis = await dialogs.askVisibility(settings.currentModeId, '抽屉');
     if (!vis) return;
-    await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined);
+    await createDrawer(db, workspace.id, res.name, vis === 'current' ? settings.currentModeId : undefined, res.color !== base ? res.color : undefined, res.description);
   };
   const newBookmark = async () => {
     const nb = await dialogs.newBookmark();

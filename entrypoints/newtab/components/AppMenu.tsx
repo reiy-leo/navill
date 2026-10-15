@@ -3,11 +3,10 @@ import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash
 import { useEffect, useRef } from 'react';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
-import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
 import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
-/** ⋯ 菜单：搜索 · 场景（分段图标） | 新建工作区 · 整理 · 归档 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
+/** ⋯ 菜单：新建工作区 · 整理 · 归档 · 搜索 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' }) {
   const { organize, setOrganize, settings, view, setView } = useApp();
   const sync = useSyncStatus();
@@ -17,12 +16,10 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom' 
     <DropdownMenu>
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" title="更多" />} />
       <DropdownMenu.Content side={side} align={side === 'bottom' ? 'end' : 'start'}>
-        <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>搜索<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
-        <div className="flex justify-center px-1 py-1"><ModeSwitcher /></div>
-        <DropdownMenu.Separator />
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>新建工作区</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? '退出整理' : '整理'}</DropdownMenu.Item>
         <DropdownMenu.Item icon={view === 'archive' ? Check : Archive} onClick={() => setView('archive')}>归档</DropdownMenu.Item>
+        <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>搜索<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>设置</DropdownMenu.Item>

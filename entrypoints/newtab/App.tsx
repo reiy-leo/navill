@@ -12,6 +12,7 @@ import { useTone } from '@/src/ui/colors';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 import { ArchiveView } from './components/ArchiveView';
 import { SearchDialog } from './components/AppMenu';
+import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
 import { shortcutSync, useLogToasts, useShortcuts } from '@/src/ui/feedback';
 import { Toaster } from '@/src/ui/toast';
 import type { Tab } from './components/Settings';
@@ -113,6 +114,8 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
         </main>
       </div>
       <OrganizeBar />
+      {/* 场景切换固定在页面右下角 */}
+      <div className="fixed bottom-4 right-4 z-20"><ModeSwitcher side="top" /></div>
       {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>

@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
-import { ColorPicker } from '@/src/ui/ColorPicker';
+import { IconBox } from '@/src/ui/ColorPicker';
 import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
@@ -148,6 +148,9 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
+        <IconBox color={look.color} onColor={(color) => void setModeLook(db, mode.id, { color })} label="场景颜色">
+          <span className="inline-flex size-8 items-center justify-center rounded-md border border-kumo-line"><ModeIcon mode={mode} size={20} /></span>
+        </IconBox>
         <Input size="sm" className="flex-1" value={name} disabled={isDefault} autoFocus={autoFocus} onFocus={(e) => autoFocus && e.currentTarget.select()} onChange={(e) => { setName(e.target.value); void renameMode(db, mode.id, e.target.value); }} aria-label="场景名称" />
         {!isDefault && (
           <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
@@ -158,7 +161,6 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
           }}>删除</Button>
         )}
       </div>
-      <ColorPicker label="场景颜色" value={look.color} onChange={(color) => void setModeLook(db, mode.id, { color })} />
       <LucidePicker allowNone={false} value={look.icon} onChange={(icon) => icon && void setModeLook(db, mode.id, { icon })} />
       <Switch label="显示 18+ 内容" checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
       {isDefault ? (

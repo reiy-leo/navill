@@ -1,3 +1,4 @@
+import { useTone } from './colors';
 import { Button, Input } from '@cloudflare/kumo';
 import { DynamicIcon, iconNames, type IconName } from 'lucide-react/dynamic';
 import { useMemo, useState } from 'react';
@@ -14,8 +15,9 @@ const COMMON: IconName[] = [
 const LIMIT = 80;
 
 /** Lucide 图标选择：关键词按图标英文名匹配；allowNone 时再点一次已选图标即取消（回到名称首字） */
-export function LucidePicker({ value, onChange, allowNone = true }: { value?: string; onChange: (name: string | undefined) => void; allowNone?: boolean }) {
+export function LucidePicker({ value, onChange, allowNone = true, color }: { value?: string; onChange: (name: string | undefined) => void; allowNone?: boolean; color?: string }) {
   const [q, setQ] = useState('');
+  const c = useTone(color);
   const list = useMemo(() => {
     const k = q.trim().toLowerCase().replace(/\s+/g, '-');
     if (!k) return COMMON;
@@ -26,7 +28,12 @@ export function LucidePicker({ value, onChange, allowNone = true }: { value?: st
       <Input size="sm" placeholder="搜索图标，如 book、code、home" aria-label="搜索图标" value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
         {list.map((n) => (
-          <Button key={n} size="sm" shape="square" title={n} aria-label={n} variant={value === n ? 'outline' : 'ghost'} className={value === n ? '!ring-kumo-brand' : ''} onClick={() => onChange(allowNone && value === n ? undefined : n)}>
+          <Button
+            key={n} size="sm" shape="square" title={n} aria-label={n}
+            variant={value === n && !c ? 'outline' : 'ghost'}
+            className={value === n ? (c ? 'nv-pick-on' : '!ring-kumo-brand') : c ? 'nv-pick' : ''}
+            style={c ? ({ '--pick': c } as React.CSSProperties) : undefined}
+            onClick={() => onChange(allowNone && value === n ? undefined : n)}>
             <DynamicIcon name={n} size={18} />
           </Button>
         ))}

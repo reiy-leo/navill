@@ -4,13 +4,13 @@ import { hideEverywhereExcept } from './mode';
 import { nextOrder, placementsAt, removePlacement } from './placement';
 import { logged, q } from '../log';
 
-export async function createDrawer(db: NavillDB, workspaceId: string, name: string, onlyInMode?: string) {
+export async function createDrawer(db: NavillDB, workspaceId: string, name: string, onlyInMode?: string, color?: string, description?: string) {
   return logged(db, async (log) => {
     const siblings = await db.drawers.where('workspaceId').equals(workspaceId).toArray();
     const n = name.trim() || '新抽屉';
     const d = await put<Drawer>(db, 'drawers', {
       id: uid(), workspaceId, name: n, path: [n], order: siblings.reduce((m, x) => Math.max(m, x.order), -1) + 1,
-      collapsed: false, updatedAt: 0,
+      collapsed: false, color, description: description?.trim() || undefined, updatedAt: 0,
     });
     if (onlyInMode && onlyInMode !== MODE_DEFAULT) await hideEverywhereExcept(db, 'drawer', d.id, onlyInMode);
     log({ kind: 'create', targetType: 'drawer', targetId: d.id, summary: `新建抽屉${q(n)}` });
@@ -31,7 +31,7 @@ export async function renameDrawer(db: NavillDB, id: string, name: string) {
 
 export async function updateDrawer(
   db: NavillDB, id: string,
-  changes: Partial<Pick<Drawer, 'collapsed' | 'adult'>> & { viewMode?: ViewMode | null; sortMode?: SortMode; height?: number | null },
+  changes: Partial<Pick<Drawer, 'collapsed' | 'adult' | 'color' | 'description'>> & { viewMode?: ViewMode | null; sortMode?: SortMode; height?: number | null },
 ) {
   const c: Partial<Drawer> = { ...changes, viewMode: changes.viewMode ?? undefined, height: changes.height ?? undefined };
   if (changes.viewMode === undefined) delete c.viewMode;

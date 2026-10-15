@@ -2,7 +2,7 @@ import { Button, Tooltip } from '@cloudflare/kumo';
 import { CaretLeft, CaretRight, PencilSimple, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { MAX_WORKSPACES, db, type Workspace } from '@/src/db';
+import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
 import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, updateWorkspace } from '@/src/lib/store';
 import { workspaceVisible } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
@@ -34,11 +34,11 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
       await dialogs.confirm({ title: '工作区已满', description: `最多 ${MAX_WORKSPACES} 个工作区。可以删除不用的，或把它们合并成抽屉。`, okText: '知道了' });
       return;
     }
-    const name = await dialogs.prompt('新建工作区', '', '工作区名称');
-    if (name === null) return;
+    const res = await dialogs.create('工作区', PALETTE[(await db.workspaces.filter((w) => w.source !== 'inbox').count()) % PALETTE.length]!);
+    if (!res) return;
     const vis = await dialogs.askVisibility(settings.currentModeId, '工作区');
     if (!vis) return;
-    const ws = await createWorkspace(db, { name }, vis === 'current' ? settings.currentModeId : undefined);
+    const ws = await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined }, vis === 'current' ? settings.currentModeId : undefined);
     selectWorkspace(ws.id);
   };
 

@@ -1,5 +1,31 @@
-import { Tooltip } from '@cloudflare/kumo';
-import { COLOR_GROUPS, tone, useDarkMode } from './colors';
+import { Popover, Tooltip } from '@cloudflare/kumo';
+import { useRef, useState, type ReactNode } from 'react';
+import { COLOR_GROUPS, tone, useDarkMode, useTone } from './colors';
+
+/** 图标框：右上角颜色小圆点，点击弹出颜色选择 */
+export function IconBox({ color, onColor, children, label = '颜色' }: { color?: string; onColor: (hex: string) => void; children: ReactNode; label?: string }) {
+  const [open, setOpen] = useState(false);
+  const dot = useRef<HTMLButtonElement>(null);
+  const shown = useTone(color) ?? '#8d8d86';
+  return (
+    <span className="relative inline-flex shrink-0">
+      {children}
+      <Tooltip content={label} asChild>
+        <button
+          ref={dot} type="button" aria-label={label}
+          className="absolute -top-1 -right-1 size-3.5 rounded-full ring-2 ring-kumo-base transition-transform hover:scale-125"
+          style={{ background: shown }}
+          onClick={() => setOpen(true)}
+        />
+      </Tooltip>
+      <Popover open={open} onOpenChange={setOpen}>
+        <Popover.Content anchor={dot} side="right" align="start" sideOffset={8} className="w-[37rem] max-w-[90vw] p-3">
+          <ColorPicker label={label} value={color} onChange={(hex) => { onColor(hex); setOpen(false); }} />
+        </Popover.Content>
+      </Popover>
+    </span>
+  );
+}
 
 /** 统一的颜色选择：64 种预置色按类分行，色块按当前主题显示，悬停显示名称 */
 export function ColorPicker({ value, onChange, label = '颜色' }: { value?: string; onChange: (hex: string) => void; label?: string }) {

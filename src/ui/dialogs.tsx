@@ -4,11 +4,12 @@ import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db';
-import { createTag, setTags, toggleTagOn, updateBookmark, updateWorkspace } from '@/src/lib/store';
+import { createTag, renameDrawer, setTags, toggleTagOn, updateBookmark, updateDrawer, updateWorkspace } from '@/src/lib/store';
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
 import { InfoTip } from './InfoTip';
-import { ColorPicker } from './ColorPicker';
+import { IconBox } from './ColorPicker';
+import { useTone } from './colors';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
 import { HistoryAutocomplete, useHistoryPermission } from './HistoryAutocomplete';
@@ -24,6 +25,9 @@ interface DialogsApi {
   choose<T extends string>(o: ChoiceOpts<T>): Promise<T | null>;
   prompt(title: string, initial?: string, placeholder?: string): Promise<string | null>;
   pickTarget(o: PickOpts): Promise<Target | null>;
+  /** 新建工作区/抽屉：名称 + 图标框右上角小圆点选颜色 */
+  create(what: '工作区' | '抽屉', color: string): Promise<{ name: string; color: string; description: string } | null>;
+  editDrawer(drawerId: string): void;
   /** 当前处于非默认场景时，新建项询问可见范围；默认场景直接返回 'all' */
   askVisibility(currentModeId: string, what: string): Promise<'current' | 'all' | null>;
   /** 新建书签：名称 + URL，支持浏览记录补全 */
@@ -41,6 +45,8 @@ type Pending =
   | { kind: 'choose'; o: ChoiceOpts<string>; resolve: (v: string | null) => void }
   | { kind: 'prompt'; title: string; initial: string; placeholder?: string; resolve: (v: string | null) => void }
   | { kind: 'pick'; o: PickOpts; resolve: (v: Target | null) => void }
+  | { kind: 'create'; what: string; color: string; resolve: (v: { name: string; color: string; description: string } | null) => void }
+  | { kind: 'drawer'; id: string }
   | { kind: 'newBookmark'; resolve: (v: { url: string; title: string } | null) => void }
   | { kind: 'bookmark'; id: string }
   | { kind: 'workspace'; id: string }
@@ -56,6 +62,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       choose: <T extends string>(o: ChoiceOpts<T>) =>
         new Promise<T | null>((resolve) => setP({ kind: 'choose', o, resolve: resolve as (v: string | null) => void })),
       prompt: (title, initial = '', placeholder) => new Promise((resolve) => setP({ kind: 'prompt', title, initial, placeholder, resolve })),
+      create: (what, color) => new Promise((resolve) => setP({ kind: 'create', what, color, resolve })),
       newBookmark: () => new Promise((resolve) => setP({ kind: 'newBookmark', resolve })),
       pickTarget: (o) => new Promise((resolve) => setP({ kind: 'pick', o, resolve })),
       askVisibility: async (modeId, what) => {
@@ -78,6 +85,7 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       },
       editBookmark: (id) => setP({ kind: 'bookmark', id }),
       editWorkspace: (id) => setP({ kind: 'workspace', id }),
+      editDrawer: (id) => setP({ kind: 'drawer', id }),
       editTags: (ids) => setP({ kind: 'tags', ids }),
     }),
     [],
@@ -117,9 +125,11 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
         </Modal>
       )}
       {p?.kind === 'prompt' && <PromptDialog {...p} onDone={(v) => { p.resolve(v); close(); }} />}
+      {p?.kind === 'create' && <CreateDialog what={p.what} color={p.color} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'pick' && <PickDialog o={p.o} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'newBookmark' && <NewBookmarkDialog onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'bookmark' && <EditBookmarkDialog id={p.id} onClose={close} />}
+      {p?.kind === 'drawer' && <EditDrawerDialog id={p.id} onClose={close} />}
       {p?.kind === 'workspace' && <EditWorkspaceDialog id={p.id} onClose={close} />}
       {p?.kind === 'tags' && <TagsDialog ids={p.ids} onClose={close} />}
     </Ctx.Provider>
@@ -131,6 +141,7 @@ function PromptDialog({ title, initial, placeholder, onDone }: { title: string; 
   return (
     <Modal
       open
+      form
       size="sm"
       title={title}
       onClose={() => onDone(null)}
@@ -142,6 +153,63 @@ function PromptDialog({ title, initial, placeholder, onDone }: { title: string; 
       }
     >
       <Input autoFocus value={v} placeholder={placeholder} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onDone(v)} />
+    </Modal>
+  );
+}
+
+/** 名称与说明：无 label，说明为名称下方的小字输入 */
+function NameFields({ name, description, onName, onDescription, what, disabled, onEnter }: { name: string; description: string; onName: (v: string) => void; onDescription: (v: string) => void; what: string; disabled?: boolean; onEnter?: () => void }) {
+  return (
+    <div className="grid min-w-0 flex-1 gap-1">
+      <Input autoFocus value={name} disabled={disabled} placeholder={`${what}名称`} aria-label={`${what}名称`} onChange={(e) => onName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()} />
+      <input
+        className="w-full bg-transparent px-1 text-xs text-kumo-subtle outline-none placeholder:text-kumo-subtle/60"
+        value={description} maxLength={50} placeholder="添加说明，悬停时显示" aria-label={`${what}说明`}
+        onChange={(e) => onDescription(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()}
+      />
+    </div>
+  );
+}
+
+function CreateDialog({ what, color: initColor, onDone }: { what: string; color: string; onDone: (v: { name: string; color: string; description: string } | null) => void }) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [color, setColor] = useState(initColor);
+  const ok = () => onDone({ name, color, description });
+  return (
+    <Modal open size="sm" form title={`新建${what}`} onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" onClick={ok}>确定</Button></>}>
+      <div className="flex items-start gap-3">
+        <IconBox color={color} onColor={setColor} label={`${what}颜色`}>
+          <WorkspaceIcon ws={{ name: name || what, color }} size={40} style="emoji" />
+        </IconBox>
+        <NameFields what={what} name={name} description={description} onName={setName} onDescription={setDescription} onEnter={ok} />
+      </div>
+    </Modal>
+  );
+}
+
+function EditDrawerDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const d = useLiveQuery(() => db.drawers.get(id), [id]);
+  const ws = useLiveQuery(async () => (d ? db.workspaces.get(d.workspaceId) : undefined), [d?.workspaceId]);
+  const [form, setForm] = useState<{ name: string; description: string; color?: string } | null>(null);
+  if (d && !form) setForm({ name: d.name, description: d.description ?? '', color: d.color });
+  const save = async () => {
+    if (!form || !d) return;
+    if (form.name.trim() && form.name.trim() !== d.name) await renameDrawer(db, id, form.name);
+    await updateDrawer(db, id, { color: form.color, description: form.description.trim() || undefined });
+    onClose();
+  };
+  const shown = form?.color ?? ws?.color;
+  return (
+    <Modal open size="sm" form title="编辑抽屉" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+      {form && (
+        <div className="flex items-start gap-3">
+          <IconBox color={shown} onColor={(color) => setForm({ ...form, color })} label="抽屉颜色">
+            <WorkspaceIcon ws={{ name: form.name || '抽屉', color: shown }} size={40} style="emoji" />
+          </IconBox>
+          <NameFields what="抽屉" name={form.name} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
+        </div>
+      )}
     </Modal>
   );
 }
@@ -197,7 +265,7 @@ function NewBookmarkDialog({ onDone }: { onDone: (v: { url: string; title: strin
   const history = useHistoryPermission();
   const ok = form.url.trim().length > 0;
   return (
-    <Modal open title="新建书签" onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" disabled={!ok} onClick={() => onDone(form)}>添加</Button></>}>
+    <Modal open form title="新建书签" onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" disabled={!ok} onClick={() => onDone(form)}>添加</Button></>}>
       <div className="grid gap-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !(e.target as HTMLElement).closest('[aria-expanded=true]')) onDone(form); }}>
         <div className="flex items-end gap-3">
           <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url || 'https://'} size={32} /></div>
@@ -222,10 +290,10 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
     onClose();
   };
   return (
-    <Modal open title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+    <Modal open form title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-3">
-          <div className="flex items-end gap-3">
+          <div className="flex items-start gap-3">
             <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
             <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
@@ -260,44 +328,39 @@ function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void 
   const [form, setForm] = useState<{ name: string; emoji: string; lucide?: string; color: string; description: string } | null>(null);
   if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
   const isInbox = w?.source === 'inbox';
+  const pickTone = useTone(form?.color) ?? '#8d8d86';
   const save = async () => {
     if (!form) return;
     await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, lucide: form.lucide, color: form.color, description: form.description || undefined });
     onClose();
   };
   return (
-    <Modal open title="编辑工作区" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+    <Modal open form title="编辑工作区" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
       {form && (
         <div className="grid gap-4">
           <div className="flex items-end gap-3">
-            <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, color: form.color }} size={40} style={tab} />
-            <div className="flex-1">
-              <Input label="名称" value={form.name} disabled={isInbox} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </div>
+            <IconBox color={form.color} onColor={(color) => setForm({ ...form, color })} label="工作区颜色">
+              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, color: form.color }} size={40} style={tab} />
+            </IconBox>
+            <NameFields what="工作区" name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <span className="text-sm font-medium">图标</span>
               <span className="flex gap-1">
                 <Button size="xs" variant={tab === 'emoji' ? 'secondary' : 'ghost'} onClick={() => setTab('emoji')}>Emoji</Button>
                 <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>线性图标</Button>
               </span>
               <InfoTip>两种都会保存，显示哪种在「设置 → 通用」切换。</InfoTip>
             </div>
-            {tab === 'lucide' ? <LucidePicker value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
+            {tab === 'lucide' ? <LucidePicker color={form.color} value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
             <div className="flex flex-wrap gap-1">
               <Button size="sm" variant={!form.emoji ? 'outline' : 'ghost'} className={!form.emoji ? '!ring-kumo-brand' : ''} onClick={() => setForm({ ...form, emoji: '' })}>首字</Button>
               {EMOJIS.map((e) => (
-                <Button key={e} size="sm" shape="square" variant={form.emoji === e ? 'outline' : 'ghost'} className={`text-lg ${form.emoji === e ? '!ring-kumo-brand' : ''}`} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
+                <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${form.emoji === e ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: e })}>{e}</Button>
               ))}
               <Input size="sm" className="w-24" placeholder="自定义" value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label="自定义 emoji" />
             </div>)}
           </div>
-          <div>
-            <div className="mb-1 text-sm font-medium">颜色</div>
-            <ColorPicker value={form.color} onChange={(color) => setForm({ ...form, color })} />
-          </div>
-          <Input label="说明" placeholder="悬停时显示，最多 50 字" value={form.description} maxLength={50} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
       )}
     </Modal>
