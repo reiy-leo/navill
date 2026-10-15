@@ -35,9 +35,6 @@ jobs:
       - run: pnpm compile
       - run: pnpm test
 
-      - name: 写入 .env（Google OAuth Client ID，用于 Drive 同步）
-        run: echo "WXT_GOOGLE_CLIENT_ID=${{ secrets.WXT_GOOGLE_CLIENT_ID }}" > .env
-
       - run: pnpm zip
       - run: pnpm zip:edge
 

@@ -2,10 +2,12 @@ import { storage } from 'wxt/utils/storage';
 
 /**
  * Google OAuth：chrome.identity.launchWebAuthFlow（Chrome / Edge 通用），仅 drive.appdata scope。
- * 客户端 ID 构建时注入：.env 中 WXT_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+ * 客户端 ID 默认用内置的正式 ID；自建 fork 可在 .env 中用 WXT_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com 覆盖
  * Google Cloud 里为 Chrome 和 Edge 的扩展 ID 各登记一个回调：https://<extension-id>.chromiumapp.org/
  */
-export const CLIENT_ID: string = import.meta.env.WXT_GOOGLE_CLIENT_ID ?? '';
+/** 正式扩展的 OAuth 客户端 ID。客户端 ID 是公开信息（会出现在授权地址里），直接写进代码，CI 打包无需额外配置。 */
+const DEFAULT_CLIENT_ID = '71336458400-odpqtecn9rhrqp913lmpka5r8mk2r0fg.apps.googleusercontent.com';
+export const CLIENT_ID: string = import.meta.env.WXT_GOOGLE_CLIENT_ID || DEFAULT_CLIENT_ID;
 export const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 
 interface Token { accessToken: string; expiresAt: number }
