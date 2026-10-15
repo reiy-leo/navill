@@ -1,4 +1,4 @@
-import { Button, DropdownMenu } from '@cloudflare/kumo';
+import { Button, DropdownMenu, Tooltip } from '@cloudflare/kumo';
 import { Check, GridFour, Rows, SortAscending, SquaresFour, Layout } from '@phosphor-icons/react';
 import type { SortMode, ViewMode } from '@/src/db';
 
@@ -12,7 +12,9 @@ export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inhe
   const Icon = VIEW_ICON[value];
   return (
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon />} aria-label={`视图：${VIEW_LABEL[value]}`} title={`视图：${VIEW_LABEL[value]}${inherited ? '（跟随工作区）' : ''}`} />} />
+      <Tooltip content={`视图：${VIEW_LABEL[value]}${inherited ? ' · 跟随工作区' : ''}`} side="bottom">
+        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon />} aria-label={`视图：${VIEW_LABEL[value]}`} />} />
+      </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(VIEW_LABEL) as ViewMode[]).map((v) => (
           <DropdownMenu.Item key={v} icon={VIEW_ICON[v]} onClick={() => onChange(v)}>
@@ -32,7 +34,9 @@ export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inhe
 export function SortMenu({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
   return (
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<SortAscending />} aria-label={`排序：${SORT_LABEL[value]}`} title={`排序：${SORT_LABEL[value]}`} />} />
+      <Tooltip content={`排序：${SORT_LABEL[value]}`} side="bottom">
+        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<SortAscending />} aria-label={`排序：${SORT_LABEL[value]}`} />} />
+      </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(SORT_LABEL) as SortMode[]).map((v) => (
           <DropdownMenu.Item key={v} onClick={() => onChange(v)}>

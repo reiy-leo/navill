@@ -1,5 +1,5 @@
 import { Masonry, MasonryItem } from './Masonry';
-import { Button, Empty, Loader } from '@cloudflare/kumo';
+import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
 import { FolderPlus, Plus, Tray } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/db';
@@ -47,15 +47,15 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <WorkspaceIcon ws={workspace} size={32} />
+      <div className="flex items-center gap-2">
+        <WorkspaceIcon ws={workspace} size={20} />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-semibold">{workspace.name}</h1>
+          <h1 className="truncate text-base font-medium">{workspace.name}</h1>
           {workspace.description && <p className="truncate text-sm text-kumo-subtle">{workspace.description}</p>}
         </div>
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Button size="sm" variant="ghost" icon={<Plus />} onClick={() => void newBookmark()}>书签</Button>
-        <Button size="sm" icon={<FolderPlus />} onClick={() => void newDrawer()}>新建抽屉</Button>
+        <Tooltip content="新建书签" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label="新建书签" onClick={() => void newBookmark()} /></Tooltip>
+        <Tooltip content="新建抽屉" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<FolderPlus />} aria-label="新建抽屉" onClick={() => void newDrawer()} /></Tooltip>
       </div>
 
       {top.length === 0 && drawers.length === 0 ? (
