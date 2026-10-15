@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
-import { CaretLeft, CaretRight, PencilSimple, ShareNetwork, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, House, PencilSimple, ShareNetwork, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
@@ -20,7 +20,7 @@ export function useVisibleWorkspaces() {
 }
 
 export function Nav({ current, onSearch, onSettings }: { current?: string; onSearch: () => void; onSettings: (tab?: Tab) => void }) {
-  const { settings, selectWorkspace, view } = useApp();
+  const { settings, selectWorkspace, view, setView } = useApp();
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
   const menu = useContextMenu();
@@ -69,15 +69,16 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     void reorderWorkspaces(db, ids);
   };
 
-  const items = workspaces.map((w) => (
+  const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
+  const items = [home, ...workspaces.map((w) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
-  ));
+  ))];
 
   if (top) {
     return (
       <nav className="relative flex items-center px-11 py-1">
-        <ScrollStrip activeKey={view === 'workspace' ? current : undefined}>{items}</ScrollStrip>
+        <ScrollStrip activeKey={view === 'workspace' ? current : view}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
         </div>
@@ -250,4 +251,17 @@ function NavItem({
   );
   const tip = [label === 'icon' ? w.name : '', w.description].filter(Boolean).join(' · ');
   return tip ? <Tooltip content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
+}
+
+/** 导航最前面的「主页」入口 */
+function HomeItem({ active, label, horizontal, onClick }: { active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; onClick: () => void }) {
+  const btn = (
+    <button type="button" onClick={onClick} aria-label="主页" data-active={active || undefined}
+      className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${horizontal ? '' : 'w-full'} ${
+        active ? 'bg-kumo-tint font-medium text-kumo-default' : 'text-kumo-subtle hover:bg-kumo-tint hover:text-kumo-default'}`}>
+      {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} weight={active ? 'fill' : 'regular'} /></span>}
+      {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>主页</span>}
+    </button>
+  );
+  return label === 'icon' ? <Tooltip content="主页" side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip> : btn;
 }

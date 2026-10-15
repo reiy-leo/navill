@@ -1,7 +1,8 @@
 import { Checkbox } from '@cloudflare/kumo';
-import { Copy, LinkSimple } from '@phosphor-icons/react';
+import { Copy, LinkSimple, Star } from '@phosphor-icons/react';
 import { useState } from 'react';
-import type { ViewMode } from '@/src/db';
+import { TAG_FAVORITE, db, type ViewMode } from '@/src/db';
+import { toggleTagOn } from '@/src/lib/store';
 import type { Item } from '@/src/lib/view';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
@@ -81,6 +82,7 @@ function BookmarkItem({
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const { bookmark: b, placement: p, mountedFrom } = item;
   const selected = selection.has(p.id);
+  const fav = b.tagIds.includes(TAG_FAVORITE);
   const horizontal = strip || view !== 'row';
   const badge = mountedFrom ? (
     <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label="挂载" />
@@ -186,6 +188,22 @@ function BookmarkItem({
         </span>
       )}
       <div className={organize && !mountedFrom ? 'pl-6' : ''}>{body}</div>
+      {!organize && (
+        <button
+          type="button"
+          draggable={false}
+          aria-label={fav ? '取消收藏' : '收藏'}
+          title={fav ? '取消收藏' : '收藏'}
+          className={`absolute right-0.5 top-0.5 z-10 flex size-5 items-center justify-center rounded transition-opacity ${fav ? 'text-[#f5b301]' : 'text-kumo-subtle opacity-0 hover:text-[#f5b301] group-hover:opacity-100 focus-visible:opacity-100'}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void toggleTagOn(db, [b.id], TAG_FAVORITE, !fav);
+          }}
+        >
+          <Star size={13} weight={fav ? 'fill' : 'regular'} />
+        </button>
+      )}
     </a>
   );
 }

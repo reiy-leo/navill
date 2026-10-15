@@ -140,3 +140,26 @@ export async function search(db: NavillDB, query: string, v: Visibility, limit =
     .sort((a, b) => b.item.bookmark.openCount - a.item.bookmark.openCount || collator.compare(a.item.bookmark.title, b.item.bookmark.title))
     .slice(0, limit);
 }
+
+/** 打开次数最多的书签（只算打开过的），每个书签取一个可见位置，原书签优先 */
+export async function mostOpened(db: NavillDB, v: Visibility, limit = 20): Promise<Item[]> {
+  const [workspaces, drawers, placements, bookmarks] = await Promise.all([
+    db.workspaces.toArray(), db.drawers.toArray(), db.placements.toArray(), db.bookmarks.toArray(),
+  ]);
+  const wsMap = new Map(workspaces.map((w) => [w.id, w]));
+  const drMap = new Map(drawers.map((d) => [d.id, d]));
+  const byBookmark = new Map<string, Placement[]>();
+  for (const p of placements) byBookmark.set(p.bookmarkId, [...(byBookmark.get(p.bookmarkId) ?? []), p]);
+  const out: Item[] = [];
+  for (const b of [...bookmarks].filter((b) => b.openCount > 0 && bookmarkVisible(b, v)).sort((a, b) => b.openCount - a.openCount)) {
+    const ps = (byBookmark.get(b.id) ?? []).sort((x, y) => Number(x.isAlias) - Number(y.isAlias));
+    const p = ps.find((p) => {
+      const w = wsMap.get(p.workspaceId);
+      const d = p.drawerId ? drMap.get(p.drawerId) ?? null : null;
+      return w && workspaceVisible(w, v) && (!d || drawerVisible(d, v));
+    });
+    if (p) out.push({ placement: p, bookmark: b });
+    if (out.length >= limit) break;
+  }
+  return out;
+}

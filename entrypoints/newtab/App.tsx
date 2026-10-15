@@ -19,6 +19,7 @@ import { shortcutSync, useLogToasts, useShortcuts } from '@/src/ui/feedback';
 import { Toaster } from '@/src/ui/toast';
 import type { Tab } from './components/Settings';
 import ImportPreview from './components/ImportPreview';
+import { HomeView } from './components/HomeView';
 import { Nav, useVisibleWorkspaces } from './components/Nav';
 import { OrganizeBar } from './components/OrganizeBar';
 import { SettingsDialog } from './components/Settings';
@@ -112,7 +113,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {pos === 'top' && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
-          {view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : view === 'market' ? <MarketView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
+          {view === 'home' ? <HomeView /> : view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : view === 'market' ? <MarketView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
             <p className="p-8 text-center text-sm text-kumo-subtle">当前场景下没有可见的工作区，可以在设置 → 场景中调整。</p>
           )}
         </main>
