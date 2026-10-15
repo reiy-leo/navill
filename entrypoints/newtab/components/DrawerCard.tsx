@@ -28,6 +28,8 @@ export function DrawerCard({
   const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState<number>();
+  // 松手后保持拖拽高度，等数据库里的新高度回来再撤掉，避免先闪回原大小
+  useLayoutEffect(() => setLive(undefined), [drawer.height]);
   // 横条和便当不用高度上限与手动高度：横条单行横向滚动，便当由网格格子决定高度
   const sized = arrange === 'masonry' || arrange === 'board';
   const cap = useRowCap(bodyRef, sized && live === undefined && drawer.height === undefined);
@@ -179,7 +181,7 @@ export function DrawerCard({
           }}
         />
       </div>
-      {sized && <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />}
+      {sized && <ResizeHandle bodyRef={bodyRef} onLive={setLive} onCommit={(h) => { if ((h ?? null) === (drawer.height ?? null)) setLive(undefined); void updateDrawer(db, drawer.id, { height: h }); }} />}
       </LayerCard.Primary>
     </LayerCard>
   );
