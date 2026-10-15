@@ -157,14 +157,13 @@ function PromptDialog({ title, initial, placeholder, onDone }: { title: string; 
   );
 }
 
-/** 名称与说明：无 label，说明为名称下方的小字输入 */
+/** 名称与说明：两个普通输入框，无 label、无提示小字 */
 function NameFields({ name, description, onName, onDescription, what, disabled, onEnter }: { name: string; description: string; onName: (v: string) => void; onDescription: (v: string) => void; what: string; disabled?: boolean; onEnter?: () => void }) {
   return (
-    <div className="grid min-w-0 flex-1 gap-1">
+    <div className="grid min-w-0 flex-1 gap-2">
       <Input autoFocus value={name} disabled={disabled} placeholder={`${what}名称`} aria-label={`${what}名称`} onChange={(e) => onName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()} />
-      <input
-        className="w-full bg-transparent px-1 text-xs text-kumo-subtle outline-none placeholder:text-kumo-subtle/60"
-        value={description} maxLength={50} placeholder="添加说明，悬停时显示" aria-label={`${what}说明`}
+      <Input
+        value={description} maxLength={50} placeholder="说明" aria-label={`${what}说明`}
         onChange={(e) => onDescription(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()}
       />
     </div>
