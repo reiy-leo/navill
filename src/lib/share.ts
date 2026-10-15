@@ -1,6 +1,7 @@
 import type { Bookmark, NavillDB } from '@/src/db';
 import { getShareToken, invalidateShareToken } from '@/src/lib/sync/auth';
 import { loadWorkspace, sortItems, type Item } from '@/src/lib/view';
+import { createBookmark, createDrawer, updateBookmark } from '@/src/lib/store';
 
 /**
  * 分享到 navill.rei8t.dev。协议见 navill-web 仓库 docs/SHARE_API.md。
@@ -74,9 +75,9 @@ export async function buildPayload(
   const drawers = data.drawers
     .filter((d) => kind === 'workspace' || d.drawer.id === sourceId)
     .map((d) => ({ name: d.drawer.name, bookmarks: pick([...d.items, ...d.mounted]) }));
-  if (kind === 'drawer' && !drawers.length) throw new Error(opts.includeAdult ? '找不到这个抽屉' : '这是 18+ 抽屉，勾选「包含 18+ 内容」才能分享');
+  if (kind === 'drawer' && !drawers.length) throw new Error(opts.includeAdult ? '找不到这个抽屉' : '18+ 抽屉不能分享');
   const w = data.workspace;
-  if (kind === 'workspace' && w.adult && !opts.includeAdult) throw new Error('这是 18+ 工作区，勾选「包含 18+ 内容」才能分享');
+  if (kind === 'workspace' && w.adult && !opts.includeAdult) throw new Error('18+ 工作区不能分享');
   const payload: SharePayload = {
     v: 1, kind,
     ...(opts.author?.trim() ? { author: opts.author.trim() } : {}),
@@ -106,3 +107,13 @@ export const listPublicShares = (cursor?: string | null) =>
   pub<{ items: PublicShare[]; nextCursor: string | null }>(`/api/shares${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`);
 export const getPublicShare = (id: string) => pub<PublicShareDetail>(`/api/shares/${encodeURIComponent(id)}`);
 export const shareUrl = (id: string) => `${SHARE_ORIGIN}/s/${id}`;
+
+/** 市场：把分享里的一个抽屉安装到指定工作区（新建抽屉 + 书签，含关联链接） */
+export async function installSharedDrawer(db: NavillDB, workspaceId: string, drawer: { name: string; bookmarks: ShareBookmark[] }) {
+  const d = await createDrawer(db, workspaceId, drawer.name);
+  for (const b of drawer.bookmarks) {
+    const { bookmark } = await createBookmark(db, { url: b.url, title: b.title, note: b.note }, workspaceId, d.id);
+    if (b.links?.length) await updateBookmark(db, bookmark.id, { links: b.links });
+  }
+  return d;
+}

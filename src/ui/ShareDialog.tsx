@@ -1,4 +1,4 @@
-import { Badge, Banner, Button, Input, Switch } from '@cloudflare/kumo';
+import { Banner, Button, Input } from '@cloudflare/kumo';
 import { ArrowSquareOut, Copy, GoogleLogo } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { storage } from 'wxt/utils/storage';
@@ -27,7 +27,6 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
   const [share, setShare] = useState<MyShare | null | undefined>(undefined);
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
-  const [includeAdult, setIncludeAdult] = useState(false);
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [err, setErr] = useState('');
@@ -59,7 +58,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
     setBusy(true); setErr('');
     try {
       await authorItem.setValue(author.trim());
-      const { payload, count } = await buildPayload(db, kind, sourceId, { includeAdult, author, description });
+      const { payload, count } = await buildPayload(db, kind, sourceId, { includeAdult: false, author, description });
       if (!count) throw new Error('没有可以分享的书签');
       const s = await putShare(kind, sourceId, payload);
       setShare(s);
@@ -117,7 +116,6 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
         )}
         <Input value={author} maxLength={40} placeholder="作者名，留空显示「Navill 用户」" aria-label="作者名" onChange={(e) => setAuthor(e.target.value)} />
         <Input value={description} maxLength={300} placeholder="简介" aria-label="简介" onChange={(e) => setDescription(e.target.value)} />
-        <Switch label="包含 18+ 内容" checked={includeAdult} onClick={() => setIncludeAdult(!includeAdult)} />
         </>}
       </div>
     </Modal>

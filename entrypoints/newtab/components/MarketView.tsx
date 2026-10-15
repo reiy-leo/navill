@@ -1,7 +1,10 @@
-import { Badge, Banner, Button, Empty, Loader } from '@cloudflare/kumo';
-import { ArrowSquareOut, Storefront } from '@phosphor-icons/react';
+import { Badge, Banner, Button, DropdownMenu, Empty, Loader } from '@cloudflare/kumo';
+import { ArrowSquareOut, DotsThree, DownloadSimple, Storefront } from '@phosphor-icons/react';
+import { db } from '@/src/db';
+import { useDialogs } from '@/src/ui/dialogs';
+import { toast } from '@/src/ui/toast';
 import { useEffect, useState } from 'react';
-import { getPublicShare, listPublicShares, listShares, shareUrl, type PublicShare, type PublicShareDetail } from '@/src/lib/share';
+import { getPublicShare, installSharedDrawer, listPublicShares, listShares, shareUrl, type PublicShare, type PublicShareDetail } from '@/src/lib/share';
 import { BookmarkIcon } from '@/src/ui/icons';
 
 /** 查看市场：所有审核通过的分享（包括自己的），看板展示，每个分享一列 */
@@ -54,6 +57,19 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
   const [err, setErr] = useState('');
   useEffect(() => { getPublicShare(share.id).then(setDetail, (e) => setErr(e instanceof Error ? e.message : String(e))); }, [share.id]);
   const p = detail?.payload;
+  const dialogs = useDialogs();
+  const install = async (d: { name: string; bookmarks: PublicShareDetail['payload']['drawers'][number]['bookmarks'] }) => {
+    const t = await dialogs.pickTarget({ title: `安装「${d.name}」到工作区…`, workspacesOnly: true });
+    if (!t) return;
+    const name = (await dialogs.prompt('抽屉名称', d.name, d.name))?.trim();
+    if (name === undefined) return;
+    try {
+      await installSharedDrawer(db, t.workspaceId, { ...d, name: name || d.name });
+      toast(`已安装「${name || d.name}」，共 ${d.bookmarks.length} 个书签`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e));
+    }
+  };
   const groups = p ? [...(p.loose?.length ? [{ name: '', bookmarks: p.loose }] : []), ...p.drawers] : [];
 
   return (
@@ -75,8 +91,16 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
         {err && <p className="p-2 text-xs text-kumo-danger">{err}</p>}
         {!p && !err && <div className="flex justify-center py-4"><Loader size="sm" /></div>}
         {groups.map((g, i) => (
-          <div key={i} className="mb-1.5 last:mb-0">
-            {g.name && share.kind === 'workspace' && <div className="px-2 pb-0.5 pt-1 text-xs text-kumo-subtle">{g.name}</div>}
+          <div key={i} className="group/md mb-1.5 rounded-lg last:mb-0">
+            <div className="flex items-center gap-1 pl-2">
+              <span className="min-w-0 flex-1 truncate text-xs text-kumo-subtle">{g.name || share.title}</span>
+              <DropdownMenu>
+                <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
+                <DropdownMenu.Content>
+                  <DropdownMenu.Item icon={DownloadSimple} onClick={() => void install({ name: g.name || share.title, bookmarks: g.bookmarks })}>安装到…</DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu>
+            </div>
             {g.bookmarks.map((b, j) => (
               <a key={j} href={b.url} title={b.note ? `${b.title}\n${b.note}` : b.title}
                 className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-kumo-default no-underline hover:bg-kumo-tint">
