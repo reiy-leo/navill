@@ -130,6 +130,8 @@ export function createDB(name = 'navill'): NavillDB {
 export const db = createDB();
 
 export const INBOX_NAME = '待整理';
+/** 「待整理」固定 ID：多设备各自创建时同步后合并为同一个 */
+export const INBOX_ID = 'ws-inbox';
 /** 「待整理」固定排在末尾 */
 export const INBOX_ORDER = Number.MAX_SAFE_INTEGER;
 

@@ -1,7 +1,7 @@
 import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent, type SyncEntity } from '@/src/db';
 import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
-import { ensureSeed } from '../store/seed';
+import { ensureSeed, mergeInboxes } from '../store/seed';
 import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem } from '../settings';
 import { isConfigured, isSignedIn, signIn } from './auth';
 import { download, gunzip, gzip, listFiles, remove, upload, type DriveFile } from './drive';
@@ -57,6 +57,12 @@ async function run(db: NavillDB) {
         await db.tombstones.clear();
         await db.tombstones.bulkPut(m.tombstones);
       });
+      // 各设备各自建的「待整理」合并成一个（合并产生的改动随下面一起上传）
+      if ((await db.workspaces.where('source').equals('inbox').count()) > 1) {
+        await mergeInboxes(db);
+        m.merged = await snapshot(db);
+        m.tombstones = await db.tombstones.toArray();
+      }
       const state: RemoteState = { format: 'navill-state', version: 2, savedAt: Date.now(), deviceId: dev, data: m.merged, tombstones: m.tombstones };
       const saved = await upload(STATE_FILE, await gzip(JSON.stringify(state)), stateFile?.id);
       await db.meta.put({ key: 'remoteStateModified', value: saved.modifiedTime });

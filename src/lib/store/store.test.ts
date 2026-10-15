@@ -240,3 +240,25 @@ describe('工作区上限与抽屉归档', () => {
     expect((await loadWorkspace(db, ws.id, v))!.drawers.map((d) => d.drawer.name)).toEqual(['A', 'B']);
   });
 });
+
+describe('多设备「待整理」合并', () => {
+  it('保留固定 ID 的，抽屉与书签并入，同名抽屉合并', async () => {
+    const { mergeInboxes } = await import('./seed');
+    const { INBOX_ID } = await import('@/src/db');
+    const keep = (await db.workspaces.where('source').equals('inbox').first())!;
+    expect(keep.id).toBe(INBOX_ID);
+    const k1 = await createDrawer(db, keep.id, '书签栏');
+    await db.workspaces.put({ ...keep, id: 'other-inbox', createdAt: 1 });
+    const o1 = await createDrawer(db, 'other-inbox', '书签栏');
+    const o2 = await createDrawer(db, 'other-inbox', '其他');
+    const b1 = await createBookmark(db, { url: 'a.com', title: 'A' }, 'other-inbox', o1.id);
+    await createBookmark(db, { url: 'b.com', title: 'B' }, 'other-inbox', o2.id);
+    await mergeInboxes(db);
+    expect(await db.workspaces.where('source').equals('inbox').count()).toBe(1);
+    expect(await db.drawers.get(o1.id)).toBeUndefined();
+    expect((await db.drawers.get(o2.id))!.workspaceId).toBe(INBOX_ID);
+    const p = (await db.placements.where('bookmarkId').equals(b1.bookmark.id).first())!;
+    expect(p.drawerId).toBe(k1.id);
+    expect(await db.placements.where('workspaceId').equals('other-inbox').count()).toBe(0);
+  });
+});
