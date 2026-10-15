@@ -59,7 +59,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
   const p = detail?.payload;
   const dialogs = useDialogs();
   const install = async (d: { name: string; bookmarks: PublicShareDetail['payload']['drawers'][number]['bookmarks'] }) => {
-    const t = await dialogs.pickTarget({ title: '安装抽屉', workspacesOnly: true, name: d.name });
+    const t = await dialogs.pickTarget({ title: '安装抽屉', workspacesOnly: true, name: d.name, okText: '安装' });
     if (!t) return;
     const name = t.name || d.name;
     try {

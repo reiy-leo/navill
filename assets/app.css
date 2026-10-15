@@ -133,6 +133,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-drawer[data-head='peek'] > .nv-drawer-head > * { transition: opacity 150ms ease-out; }
 [data-surface='glass'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > *,
 [data-surface='bare'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > * { opacity: 0; }
+/* 收起时标题栏本身也透明，否则它的底色叠在抽屉底色上，透过书签区显出一条深色（暗色主题明显） */
+[data-surface='glass'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head { background: transparent; }
 @media (prefers-reduced-motion: reduce) { .nv-drawer[data-head='peek'] > .nv-drawer-head { transition: none; } }
 /* 第一行抽屉标题栏向上伸出时不压到工作区标题 */
 .nv-masonry:has(.nv-drawer[data-head='peek']) { margin-top: 1rem; }

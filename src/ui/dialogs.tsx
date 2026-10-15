@@ -19,7 +19,7 @@ export interface Target { workspaceId: string; drawerId: string | null; name?: s
 
 interface ConfirmOpts { title: string; description?: ReactNode; okText?: string; danger?: boolean }
 interface ChoiceOpts<T extends string> { title: string; description?: ReactNode; choices: Array<{ value: T; label: string; danger?: boolean }> }
-interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 顶部显示名称输入框，初始值为此 */ name?: string }
+interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
 
 interface DialogsApi {
   confirm(o: ConfirmOpts): Promise<boolean>;
@@ -223,22 +223,30 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
   const [q, setQ] = useState('');
   const [name, setName] = useState(o.name ?? '');
   const hasName = o.name !== undefined;
-  const done = (t: Target) => onDone(hasName ? { ...t, name: name.trim() || o.name } : t);
+  const [sel, setSel] = useState<string | null>(null);
   const data = useLiveQuery(async () => {
     const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.filter((d) => !d.archivedAt).toArray()]);
     return { ws, ds };
   }, []);
+  const selId = sel ?? data?.ws[0]?.id ?? null;
+  const ok = () => selId && onDone({ workspaceId: selId, drawerId: null, name: name.trim() || o.name });
+  const done = (t: Target) => (hasName ? setSel(t.workspaceId) : onDone(t));
   const exclude = new Set(o.excludeDrawerIds ?? []);
   const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase());
   return (
-    <Modal open title={o.title} onClose={() => onDone(null)}>
+    <Modal
+      open
+      title={o.title}
+      onClose={() => onDone(null)}
+      footer={hasName ? <><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" disabled={!selId} onClick={ok}>{o.okText ?? '确定'}</Button></> : undefined}
+    >
       {hasName ? (
-        <Input autoFocus size="sm" label="抽屉名称" placeholder={o.name} value={name} onChange={(e) => setName(e.target.value)} />
+        <Input autoFocus size="sm" label="抽屉名称" placeholder={o.name} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && ok()} />
       ) : (
         <Input autoFocus size="sm" placeholder="筛选工作区或抽屉" value={q} onChange={(e) => setQ(e.target.value)} />
       )}
       {hasName && <div className="mt-4 mb-1 text-xs text-kumo-subtle">安装到</div>}
-      <div className={hasName ? 'flex flex-col gap-1' : 'mt-3 flex flex-col gap-1'}>
+      <div className={hasName ? 'flex max-h-[184px] flex-col gap-1 overflow-y-auto [scrollbar-width:thin]' : 'mt-3 flex flex-col gap-1'}>
         {data?.ws.map((w: Workspace) => {
           const drawers = data.ds.filter((d: Drawer) => d.workspaceId === w.id && !exclude.has(d.id)).sort((a, b) => a.order - b.order);
           const shown = drawers.filter((d) => match(d.name) || match(w.name));
@@ -248,11 +256,12 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
             <div key={w.id}>
               <button
                 disabled={!canTop}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium hover:bg-kumo-tint disabled:hover:bg-transparent"
+                className={`flex w-full shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium hover:bg-kumo-tint disabled:hover:bg-transparent ${hasName && selId === w.id ? 'bg-kumo-tint' : ''}`}
                 onClick={() => done({ workspaceId: w.id, drawerId: null })}
               >
                 <WorkspaceIcon ws={w} size={20} />
                 <span className="flex-1 truncate">{w.name}</span>
+                {hasName && selId === w.id && <Check size={14} className="text-kumo-brand" />}
                 {canTop && !o.workspacesOnly && <span className="text-xs text-kumo-subtle">顶层</span>}
               </button>
               {!o.workspacesOnly &&
