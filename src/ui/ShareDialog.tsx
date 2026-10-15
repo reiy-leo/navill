@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { storage } from 'wxt/utils/storage';
 import { db } from '@/src/db';
 import { STATUS_LABEL, buildPayload, deleteShare, listShares, putShare, type MyShare, type ShareKind } from '@/src/lib/share';
+import { getShareUser, type GoogleUser } from '@/src/lib/sync/auth';
 import { Modal } from './Modal';
 import { toast } from './toast';
 
@@ -26,11 +27,15 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
   const [err, setErr] = useState('');
   /** 分享要用 Google 账号确认身份：打开时先静默取 token，拿不到就只显示登录按钮 */
   const [needLogin, setNeedLogin] = useState(false);
+  const [user, setUser] = useState<GoogleUser | null>(null);
 
   const load = (interactive: boolean) => {
     setErr('');
     return listShares(interactive).then(
-      (l) => { setShare(l.find((x) => x.kind === kind && x.sourceId === sourceId) ?? null); setNeedLogin(false); },
+      (l) => {
+        setShare(l.find((x) => x.kind === kind && x.sourceId === sourceId) ?? null); setNeedLogin(false);
+        void getShareUser().then((u) => { setUser(u); if (u?.name) setAuthor((a) => a || u.name!); });
+      },
       (e) => { if (interactive) setErr(e instanceof Error ? e.message : String(e)); else setNeedLogin(true); },
     );
   };
@@ -105,6 +110,12 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
             <span className="min-w-0 flex-1 truncate text-xs text-kumo-subtle">{share.url}</span>
             <Button size="xs" variant="ghost" shape="square" icon={<Copy />} aria-label="复制链接" onClick={() => void copyLink(share.url)} />
             <Button size="xs" variant="ghost" shape="square" icon={<ArrowSquareOut />} aria-label="打开分享页" onClick={() => void browser.tabs.create({ url: share.url })} />
+          </div>
+        )}
+        {user && (
+          <div className="flex items-center gap-2 text-xs text-kumo-subtle">
+            {user.picture ? <img src={user.picture} alt="" referrerPolicy="no-referrer" className="size-5 rounded-full" /> : <GoogleLogo size={16} />}
+            <span className="min-w-0 truncate">已用谷歌登录：{user.name ? `${user.name} · ` : ''}{user.email}</span>
           </div>
         )}
         {share?.rejectedNote && <Banner variant="alert" description={`未通过：${share.rejectedNote}`} />}

@@ -19,7 +19,7 @@ export const isSignedIn = () => signedInItem.getValue();
 export const redirectUri = () => browser.identity.getRedirectURL();
 
 /** 分享需要邮箱身份：增量申请 openid email，令牌单独缓存 */
-export const SHARE_SCOPE = `openid email ${'https://www.googleapis.com/auth/drive.appdata'}`;
+export const SHARE_SCOPE = `openid email profile ${'https://www.googleapis.com/auth/drive.appdata'}`;
 const shareTokenItem = storage.defineItem<Token | null>('session:shareToken', { fallback: null });
 
 async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Promise<Token> {
@@ -69,6 +69,20 @@ export async function getShareToken(interactive = true): Promise<string> {
   }
 }
 export const invalidateShareToken = () => shareTokenItem.setValue(null);
+
+export interface GoogleUser { email: string; name?: string; picture?: string }
+/** 分享所用的 Google 账号（用分享令牌读 userinfo，不弹窗） */
+export async function getShareUser(): Promise<GoogleUser | null> {
+  try {
+    const token = await getShareToken(false);
+    const res = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return null;
+    const u = await res.json();
+    return u?.email ? { email: u.email, name: u.name, picture: u.picture } : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function signIn(): Promise<void> {
   await launch(true);
