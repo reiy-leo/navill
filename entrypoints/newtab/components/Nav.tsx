@@ -207,11 +207,11 @@ function NavItem({
         else if (wid && wid !== w.id) onReorder(wid, w.id, side === 'after');
       }}
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
-        active ? 'bg-kumo-tint font-medium' : 'hover:bg-kumo-tint'
-      } ${over === 'bookmark' ? 'ring-2 ring-kumo-brand' : ''} ${
+        active ? 'bg-[color-mix(in_srgb,var(--nv-c)_20%,transparent)] font-medium' : 'hover:bg-[color-mix(in_srgb,var(--nv-c)_10%,transparent)]'
+      } transition-colors ${over === 'bookmark' ? 'ring-2 ring-kumo-brand' : ''} ${
         over === 'before' ? (horizontal ? 'shadow-[inset_3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_3px_0_var(--color-kumo-brand)]') : ''
       } ${over === 'after' ? (horizontal ? 'shadow-[inset_-3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_-3px_0_var(--color-kumo-brand)]') : ''}`}
-      style={active ? { boxShadow: `inset 3px 0 0 ${w.color}` } : undefined}
+      style={{ '--nv-c': w.color ?? 'var(--color-kumo-brand)' } as React.CSSProperties}
       aria-label={w.name}
       data-active={active || undefined}
     >
