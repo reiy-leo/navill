@@ -318,8 +318,10 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
             </div>
             {form.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
-                <Input className="w-32" placeholder="名称" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
-                <div className="min-w-0 flex-1"><Input placeholder="https://" aria-label="关联链接地址" value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} /></div>
+                <div className="flex min-w-0 flex-1">
+                  <Input className="w-32 rounded-r-none focus:z-10" placeholder="名称" aria-label="关联链接名称" value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
+                  <div className="-ml-px min-w-0 flex-1"><Input className="w-full rounded-l-none focus:z-10" placeholder="https://" aria-label="关联链接地址" value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} /></div>
+                </div>
                 <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label="删除关联链接" onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
               </div>
             ))}
