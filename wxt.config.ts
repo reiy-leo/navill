@@ -22,6 +22,8 @@ export default defineConfig({
     // 可选：新建 / 编辑书签时用浏览记录自动补全
     optional_permissions: ['history'],
     action: { default_title: 'Navill' },
+    // 地址栏输入 nv + 空格搜索 Navill 书签
+    omnibox: { keyword: 'nv' },
     ...(key ? { key } : {}),
   },
 });

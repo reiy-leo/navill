@@ -7,6 +7,7 @@ const fixIcons = () => parseWorkspaceIcons(db).catch((e) => console.warn('[Navil
 import { getSettings, settingsItem } from '@/src/lib/settings';
 import { backoffMinutes, syncNow } from '@/src/lib/sync/engine';
 import { logInstallOnce } from '@/src/lib/log';
+import { setupOmnibox } from '@/src/lib/omnibox';
 
 const ALARM = 'navill-sync';
 
@@ -31,6 +32,7 @@ async function trySync(reason: string) {
 }
 
 export default defineBackground(() => {
+  setupOmnibox();
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     await ensureSeed(db);
     // 新设备 / 新浏览器：首次安装时记一条日志（每台设备只记一次）
