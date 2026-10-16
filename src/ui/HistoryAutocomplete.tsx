@@ -1,4 +1,4 @@
-import { Autocomplete } from '@cloudflare/kumo';
+import { Autocomplete, Input } from '@cloudflare/kumo';
 import { useEffect, useState, type ReactNode } from 'react';
 import { hasHistory, suggest, type Suggestion } from '@/src/lib/suggest';
 import { BookmarkIcon, hostOf } from './icons';
@@ -22,12 +22,17 @@ export function HistoryAutocomplete({
     return () => { live = false; clearTimeout(t); };
   }, [value, enabled, typed]);
 
+  // 未开启补全时用普通输入框，避免 Autocomplete 的焦点管理影响对话框里其他输入框
+  if (!enabled) return <Input label={label} description={description} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />;
+
   return (
     <Autocomplete
       label={label}
       description={description}
       items={items}
       filter={null}
+      open={items.length > 0}
+      onOpenChange={(o: boolean) => { if (!o) setItems([]); }}
       value={value}
       itemToStringValue={(s: unknown) => (s as Suggestion).url}
       onValueChange={(v: string, d: { reason?: string }) => {

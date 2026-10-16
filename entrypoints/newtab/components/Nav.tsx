@@ -41,7 +41,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     if (!res) return;
     const vis = await dialogs.askVisibility(settings.currentModeId, '工作区');
     if (!vis) return;
-    const ws = await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined }, vis === 'current' ? settings.currentModeId : undefined);
+    const ws = await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined, emoji: res.emoji || undefined, lucide: res.lucide, glyph: res.glyph || undefined }, vis === 'current' ? settings.currentModeId : undefined);
     selectWorkspace(ws.id);
   };
 

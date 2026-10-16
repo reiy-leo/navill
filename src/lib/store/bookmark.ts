@@ -10,18 +10,29 @@ export function normalizeUrl(url: string): string {
   return `https://${u}`;
 }
 
+/** 关联链接：去掉空行、规范 URL；一条都没有时为 undefined */
+function cleanLinks(raw: { url: string; title?: string }[]) {
+  const links = raw
+    .map((l) => ({ url: l.url.trim(), title: l.title?.trim() || undefined }))
+    .filter((l) => l.url)
+    .map((l) => ({ ...l, url: normalizeUrl(l.url) }));
+  return links.length ? links : undefined;
+}
+
 export async function createBookmark(
   db: NavillDB,
-  input: { url: string; title?: string; note?: string; tagIds?: string[] },
+  input: { url: string; title?: string; note?: string; tagIds?: string[]; faviconUrl?: string; links?: { url: string; title?: string }[] },
   workspaceId: string,
   drawerId: string | null,
 ) {
+  const links = cleanLinks(input.links ?? []);
   return logged(db, async (log) => {
     const url = normalizeUrl(input.url);
     if (!url) throw new Error('URL 不能为空');
     const now = Date.now();
     const b = await put<Bookmark>(db, 'bookmarks', {
-      id: uid(), url, title: input.title?.trim() || url, note: input.note, tagIds: input.tagIds ?? [],
+      id: uid(), url, title: input.title?.trim() || url, note: input.note || undefined, tagIds: input.tagIds ?? [],
+      faviconUrl: input.faviconUrl?.trim() || undefined, links,
       openCount: 0, createdAt: now, updatedAt: 0,
     });
     const p = await put<Placement>(db, 'placements', {
@@ -37,13 +48,7 @@ export async function updateBookmark(
   db: NavillDB, id: string, changes: Partial<Pick<Bookmark, 'title' | 'url' | 'note' | 'faviconUrl' | 'tagIds' | 'links'>>,
 ) {
   if (changes.url !== undefined) changes.url = normalizeUrl(changes.url);
-  if (changes.links !== undefined) {
-    const links = changes.links
-      .map((l) => ({ url: l.url.trim(), title: l.title?.trim() || undefined }))
-      .filter((l) => l.url)
-      .map((l) => ({ ...l, url: normalizeUrl(l.url) }));
-    changes.links = links.length ? links : undefined;
-  }
+  if (changes.links !== undefined) changes.links = cleanLinks(changes.links);
   await logged(db, async (log) => {
     const b = await db.bookmarks.get(id);
     if (!b) return;

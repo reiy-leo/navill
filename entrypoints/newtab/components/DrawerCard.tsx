@@ -48,7 +48,7 @@ export function DrawerCard({
 
   const addBookmark = async () => {
     const nb = await dialogs.newBookmark();
-    if (nb?.url.trim()) await createBookmark(db, { url: nb.url, title: nb.title.trim() || undefined }, workspace.id, drawer.id);
+    if (nb?.url.trim()) await createBookmark(db, { ...nb, title: nb.title.trim() || undefined }, workspace.id, drawer.id);
   };
 
   const mount = async () => {

@@ -1,10 +1,9 @@
-import { Button, Popover } from '@cloudflare/kumo';
-import { PencilSimple, Plus, X } from '@phosphor-icons/react';
+import { Popover } from '@cloudflare/kumo';
+import { X } from '@phosphor-icons/react';
 import { db } from '@/src/db';
 import { updateBookmark } from '@/src/lib/store';
 import { useRef, useState, type ReactNode, type SyntheticEvent } from 'react';
 import type { Item } from '@/src/lib/view';
-import { useDialogs } from './dialogs';
 import { BookmarkIcon, hostOf } from './icons';
 import { openItem } from './open';
 import { useApp } from './state';
@@ -18,13 +17,12 @@ const stop = (e: SyntheticEvent) => e.stopPropagation();
 /** 书签图标 + 关联链接小红点。没有关联链接时只渲染图标 */
 export function IconWithLinks({ item, children, context = 'newtab' }: { item: Item; children: ReactNode; context?: 'newtab' | 'popup' }) {
   const { settings } = useApp();
-  const dialogs = useDialogs();
   const [open, setOpen] = useState(false);
   const dot = useRef<HTMLButtonElement>(null);
   const b = item.bookmark;
   const links = b.links ?? [];
   if (links.length === 0) return <>{children}</>;
-  const all = [{ url: b.url, title: b.title }, ...links];
+  const all = links;
   const rows = Math.min(all.length, PER_COLUMN);
   return (
     <span className="relative inline-flex shrink-0">
@@ -57,19 +55,19 @@ export function IconWithLinks({ item, children, context = 'newtab' }: { item: It
                   onClick={(e) => { e.preventDefault(); setOpen(false); void openItem(item, settings, e, context, l.url); }}
                   onAuxClick={(e) => { if (e.button !== 1) return; e.preventDefault(); void openItem(item, settings, e, context, l.url); }}
                 >
-                  <BookmarkIcon url={l.url} src={i === 0 ? b.faviconUrl : undefined} size={16} />
+                  <BookmarkIcon url={l.url} size={16} />
                   <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-sm ${i === 0 ? 'font-medium' : ''}`}>{l.title || hostOf(l.url)}</span>
+                    <span className="block truncate text-sm">{l.title || hostOf(l.url)}</span>
                     {l.title && <span className="block truncate text-xs text-kumo-subtle">{hostOf(l.url)}</span>}
                   </span>
                 </a>
-                {i > 0 && context === 'newtab' && (
+                {context === 'newtab' && (
                   <button
                     type="button"
                     aria-label="删除这条关联链接"
                     title="删除"
                     className="absolute right-1 top-1/2 hidden h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-kumo-subtle hover:bg-kumo-line hover:text-kumo-default group-hover/link:flex"
-                    onClick={() => void updateBookmark(db, b.id, { links: links.filter((_, j) => j !== i - 1) })}
+                    onClick={() => void updateBookmark(db, b.id, { links: links.filter((_, j) => j !== i) })}
                   >
                     <X size={12} />
                   </button>
@@ -77,12 +75,6 @@ export function IconWithLinks({ item, children, context = 'newtab' }: { item: It
                 </div>
               ))}
             </div>
-            {context === 'newtab' && (
-              <div className="mt-1 flex justify-end gap-1 border-t border-kumo-line pt-1">
-                <Button size="xs" variant="ghost" icon={<Plus />} onClick={() => { setOpen(false); dialogs.editBookmark(b.id); }}>添加</Button>
-                <Button size="xs" variant="ghost" icon={<PencilSimple />} onClick={() => { setOpen(false); dialogs.editBookmark(b.id); }}>编辑</Button>
-              </div>
-            )}
           </div>
         </Popover.Content>
       </Popover>

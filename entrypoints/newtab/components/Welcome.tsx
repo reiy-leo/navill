@@ -55,7 +55,7 @@ export default function Welcome({ onImport }: { onImport: (tree?: BookmarkNode) 
       const res = await dialogs.create('工作区', PALETTE[(await db.workspaces.filter((w) => w.source !== 'inbox').count()) % PALETTE.length]!);
       if (!res) return;
       await skipImport(db);
-      await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined });
+      await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined, emoji: res.emoji || undefined, lucide: res.lucide, glyph: res.glyph || undefined });
     });
 
   return (

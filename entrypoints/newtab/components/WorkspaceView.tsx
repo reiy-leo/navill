@@ -33,7 +33,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   };
   const newBookmark = async () => {
     const nb = await dialogs.newBookmark();
-    if (nb?.url.trim()) await createBookmark(db, { url: nb.url, title: nb.title.trim() || undefined }, workspace.id, null);
+    if (nb?.url.trim()) await createBookmark(db, { ...nb, title: nb.title.trim() || undefined }, workspace.id, null);
   };
   const reveal = (item: Item) => {
     const src = item.mountedFrom?.drawer;

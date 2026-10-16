@@ -21,18 +21,21 @@ interface ConfirmOpts { title: string; description?: ReactNode; okText?: string;
 interface ChoiceOpts<T extends string> { title: string; description?: ReactNode; choices: Array<{ value: T; label: string; danger?: boolean }> }
 interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
 
+/** 新建结果；工作区另带图标三件套 */
+type CreateResult = { name: string; color: string; description: string; emoji?: string; lucide?: string; glyph?: string };
+
 interface DialogsApi {
   confirm(o: ConfirmOpts): Promise<boolean>;
   choose<T extends string>(o: ChoiceOpts<T>): Promise<T | null>;
   prompt(title: string, initial?: string, placeholder?: string): Promise<string | null>;
   pickTarget(o: PickOpts): Promise<Target | null>;
   /** 新建工作区/抽屉：名称 + 图标框右上角小圆点选颜色 */
-  create(what: '工作区' | '抽屉', color: string): Promise<{ name: string; color: string; description: string } | null>;
+  create(what: '工作区' | '抽屉', color: string): Promise<CreateResult | null>;
   drawerColor(drawerId: string): void;
   /** 当前处于非默认场景时，新建项询问可见范围；默认场景直接返回 'all' */
   askVisibility(currentModeId: string, what: string): Promise<'current' | 'all' | null>;
-  /** 新建书签：名称 + URL，支持浏览记录补全 */
-  newBookmark(): Promise<{ url: string; title: string } | null>;
+  /** 新建书签：与编辑书签同一个对话框 */
+  newBookmark(): Promise<BookmarkForm | null>;
   editBookmark(bookmarkId: string): void;
   editWorkspace(workspaceId: string): void;
   editTags(bookmarkIds: string[]): void;
@@ -47,9 +50,9 @@ type Pending =
   | { kind: 'choose'; o: ChoiceOpts<string>; resolve: (v: string | null) => void }
   | { kind: 'prompt'; title: string; initial: string; placeholder?: string; resolve: (v: string | null) => void }
   | { kind: 'pick'; o: PickOpts; resolve: (v: Target | null) => void }
-  | { kind: 'create'; what: string; color: string; resolve: (v: { name: string; color: string; description: string } | null) => void }
+  | { kind: 'create'; what: string; color: string; resolve: (v: CreateResult | null) => void }
   | { kind: 'drawer'; id: string }
-  | { kind: 'newBookmark'; resolve: (v: { url: string; title: string } | null) => void }
+  | { kind: 'newBookmark'; resolve: (v: BookmarkForm | null) => void }
   | { kind: 'bookmark'; id: string }
   | { kind: 'workspace'; id: string }
   | { kind: 'tags'; ids: string[] }
@@ -130,9 +133,10 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
         </Modal>
       )}
       {p?.kind === 'prompt' && <PromptDialog {...p} onDone={(v) => { p.resolve(v); close(); }} />}
-      {p?.kind === 'create' && <CreateDialog what={p.what} color={p.color} onDone={(v) => { p.resolve(v); close(); }} />}
+      {p?.kind === 'create' && p.what === '工作区' && <WorkspaceDialog title="新建工作区" okText="确定" initial={{ name: '', emoji: '', glyph: '', color: p.color, description: '' }} onSubmit={(v) => { p.resolve(v); close(); }} onClose={() => { p.resolve(null); close(); }} />}
+      {p?.kind === 'create' && p.what !== '工作区' && <CreateDialog what={p.what} color={p.color} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'pick' && <PickDialog o={p.o} onDone={(v) => { p.resolve(v); close(); }} />}
-      {p?.kind === 'newBookmark' && <NewBookmarkDialog onDone={(v) => { p.resolve(v); close(); }} />}
+      {p?.kind === 'newBookmark' && <BookmarkDialog title="新建书签" okText="添加" initial={EMPTY_BOOKMARK} onSubmit={(v) => { p.resolve(v); close(); }} onClose={() => { p.resolve(null); close(); }} />}
       {p?.kind === 'bookmark' && <EditBookmarkDialog id={p.id} onClose={close} />}
       {p?.kind === 'drawer' && <DrawerColorDialog id={p.id} onClose={close} />}
       {p?.kind === 'workspace' && <EditWorkspaceDialog id={p.id} onClose={close} />}
@@ -272,44 +276,27 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
   );
 }
 
-function NewBookmarkDialog({ onDone }: { onDone: (v: { url: string; title: string } | null) => void }) {
-  const [form, setForm] = useState({ title: '', url: '' });
-  const history = useHistoryPermission();
-  const ok = form.url.trim().length > 0;
-  return (
-    <Modal open form title="新建书签" onClose={() => onDone(null)} footer={<><Button onClick={() => onDone(null)}>取消</Button><Button variant="primary" disabled={!ok} onClick={() => onDone(form)}>添加</Button></>}>
-      <div className="grid gap-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !(e.target as HTMLElement).closest('[aria-expanded=true]')) onDone(form); }}>
-        <div className="flex items-end gap-3">
-          <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url || 'https://'} size={32} /></div>
-          <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" placeholder="可留空，用网页标题" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ title: s.title || form.title, url: s.url })} /></div>
-        </div>
-        <HistoryAutocomplete label="URL" placeholder="https://" enabled={history.granted} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ url: s.url, title: form.title.trim() ? form.title : s.title })} />
-      </div>
-    </Modal>
-  );
-}
+export type BookmarkForm = { title: string; url: string; note: string; faviconUrl: string; links: { url: string; title: string }[] };
+const EMPTY_BOOKMARK: BookmarkForm = { title: '', url: '', note: '', faviconUrl: '', links: [] };
 
-function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }) {
-  const b = useLiveQuery(() => db.bookmarks.get(id), [id]);
+/** 新建 / 编辑书签共用的对话框 */
+function BookmarkDialog({ title, okText, initial, onSubmit, onClose }: { title: ReactNode; okText: string; initial: BookmarkForm | undefined; onSubmit: (f: BookmarkForm) => void | Promise<void>; onClose: () => void }) {
   const history = useHistoryPermission();
-  const [form, setForm] = useState<{ title: string; url: string; note: string; faviconUrl: string; links: { url: string; title: string }[] } | null>(null);
-  if (b && !form) setForm({ title: b.title, url: b.url, note: b.note ?? '', faviconUrl: b.faviconUrl ?? '', links: (b.links ?? []).map((l) => ({ url: l.url, title: l.title ?? '' })) });
+  const [form, setForm] = useState<BookmarkForm | null>(null);
+  if (initial && !form) setForm(initial);
   const setLink = (i: number, patch: Partial<{ url: string; title: string }>) =>
     form && setForm({ ...form, links: form.links.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
-  const save = async () => {
-    if (!form) return;
-    await updateBookmark(db, id, { title: form.title.trim() || form.url, url: form.url, note: form.note || undefined, faviconUrl: form.faviconUrl || undefined, links: form.links });
-    onClose();
-  };
+  const ok = !!form && form.url.trim().length > 0;
+  const submit = () => { if (form && ok) void onSubmit(form); };
   return (
-    <Modal open form title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+    <Modal open form title={title} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" disabled={!ok} onClick={submit}>{okText}</Button></>}>
       {form && (
         <div className="grid gap-3">
           <div className="flex items-end gap-3">
-            <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
-            <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
+            <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url || 'https://'} src={form.faviconUrl} size={32} /></div>
+            <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" placeholder="可留空，用网页标题" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
-          <HistoryAutocomplete label="URL" enabled={history.granted} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
+          <HistoryAutocomplete label="URL" placeholder="https://" enabled={history.granted} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
           <Input label="图标地址" placeholder="留空用网站图标" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -333,31 +320,51 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
   );
 }
 
+function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const b = useLiveQuery(() => db.bookmarks.get(id), [id]);
+  const initial = b && { title: b.title, url: b.url, note: b.note ?? '', faviconUrl: b.faviconUrl ?? '', links: (b.links ?? []).map((l) => ({ url: l.url, title: l.title ?? '' })) };
+  return (
+    <BookmarkDialog
+      title={<span className="flex items-center gap-1">编辑书签<InfoTip>改动会同步到这个书签的全部分身。</InfoTip></span>}
+      okText="保存" initial={initial} onClose={onClose}
+      onSubmit={async (f) => { await updateBookmark(db, id, { title: f.title.trim() || f.url, url: f.url, note: f.note || undefined, faviconUrl: f.faviconUrl || undefined, links: f.links }); onClose(); }}
+    />
+  );
+}
+
 /** 字符图标最多 2 个字（输入法组字期间不截断，失焦和保存时再截） */
 const limitGlyph = (v: string) => Array.from(v.trim()).slice(0, 2).join('');
 
 const EMOJIS: string[] = Array.from('📁💼🏠🎯📚🧠💡🛠️🧪🎨🎵🎮📷✈️🍜💰📈🗂️📝🔖⭐🔥🌱🧘🏃🎬📺🛒🧾🔒🤖💻🌐📰🗓️❤️🐱🌙☀️🚀'.match(/\p{Extended_Pictographic}\uFE0F?/gu) ?? []);
 
+export type WorkspaceForm = { name: string; emoji: string; lucide?: string; glyph: string; color: string; description: string };
+
 function EditWorkspaceDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const w = useLiveQuery(() => db.workspaces.get(id), [id]);
+  const initial = w && { name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, glyph: w.glyph ?? '', color: w.color ?? PALETTE[0]!, description: w.description ?? '' };
+  return (
+    <WorkspaceDialog
+      title="编辑工作区" okText="保存" initial={initial} isInbox={w?.source === 'inbox'} onClose={onClose}
+      onSubmit={async (f) => { await updateWorkspace(db, id, { name: f.name, emoji: f.emoji || undefined, lucide: f.lucide, glyph: limitGlyph(f.glyph) || undefined, color: f.color, description: f.description || undefined }); onClose(); }}
+    />
+  );
+}
+
+/** 新建 / 编辑工作区共用的对话框 */
+function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }: { title: string; okText: string; initial: WorkspaceForm | undefined; isInbox?: boolean; onSubmit: (f: WorkspaceForm) => void | Promise<void>; onClose: () => void }) {
   const globalStyle = useIconStyle();
   const [tab, setTab] = useState<'emoji' | 'lucide' | 'char'>(globalStyle);
-  const [form, setForm] = useState<{ name: string; emoji: string; lucide?: string; glyph: string; color: string; description: string } | null>(null);
-  if (w && !form) setForm({ name: w.name, emoji: w.emoji ?? '', lucide: w.lucide, glyph: w.glyph ?? '', color: w.color ?? PALETTE[0]!, description: w.description ?? '' });
-  const isInbox = w?.source === 'inbox';
+  const [form, setForm] = useState<WorkspaceForm | null>(null);
+  if (initial && !form) setForm(initial);
   const pickTone = useTone(form?.color) ?? '#8d8d86';
-  const save = async () => {
-    if (!form) return;
-    await updateWorkspace(db, id, { name: form.name, emoji: form.emoji || undefined, lucide: form.lucide, glyph: limitGlyph(form.glyph) || undefined, color: form.color, description: form.description || undefined });
-    onClose();
-  };
+  const save = async () => { if (form) await onSubmit({ ...form, glyph: limitGlyph(form.glyph) }); };
   return (
-    <Modal open form title="编辑工作区" size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>保存</Button></>}>
+    <Modal open form title={title} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>取消</Button><Button variant="primary" onClick={() => void save()}>{okText}</Button></>}>
       {form && (
         <div className="grid gap-4">
           <div className="flex items-start gap-3">
             <IconBox color={form.color} onColor={(color) => setForm({ ...form, color })} label="工作区颜色">
-              <WorkspaceIcon ws={{ name: form.name, emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={36} style={tab} />
+              <WorkspaceIcon ws={{ name: form.name || '工作区', emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={36} style={tab} />
             </IconBox>
             <NameFields what="工作区" name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>
