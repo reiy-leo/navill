@@ -7,7 +7,7 @@ import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
-import { IconWithLinks } from '@/src/ui/LinksDot';
+import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { search, visibilityOf } from '@/src/lib/view';
@@ -47,7 +47,7 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
             <li key={h.item.placement.id}>
               <a
                 href={h.item.bookmark.url}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-kumo-default no-underline ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
+                className={`group flex items-center gap-3 rounded-md px-3 py-2 text-kumo-default no-underline ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
                 onMouseEnter={() => setActive(i)}
                 onClick={(e) => {
                   e.preventDefault();
@@ -57,10 +57,10 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
                 onContextMenu={(e) => menu(e, bookmarkMenu(h.item, dialogs, settings))}
               >
                 {organize && <Checkbox checked={selection.has(h.item.placement.id)} aria-label="选择" />}
-                <IconWithLinks item={h.item}><BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} /></IconWithLinks>
+                <BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? ' · 已归档' : ''}</div>
-                  <div className="truncate text-xs text-kumo-subtle">{hostOf(h.item.bookmark.url)}</div>
+                  <LinkStrip item={h.item} max={6}><div className="truncate text-xs text-kumo-subtle">{hostOf(h.item.bookmark.url)}</div></LinkStrip>
                 </div>
                 <span className="shrink-0 text-xs text-kumo-subtle">{h.workspace.name}{h.drawer ? ` / ${h.drawer.name}` : ''}</span>
               </a>
