@@ -283,7 +283,7 @@ function NewBookmarkDialog({ onDone }: { onDone: (v: { url: string; title: strin
           <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url || 'https://'} size={32} /></div>
           <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" placeholder="可留空，用网页标题" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ title: s.title || form.title, url: s.url })} /></div>
         </div>
-        <HistoryAutocomplete label="URL" placeholder="https://" enabled={history.granted} description={history.hint} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ url: s.url, title: form.title.trim() ? form.title : s.title })} />
+        <HistoryAutocomplete label="URL" placeholder="https://" enabled={history.granted} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ url: s.url, title: form.title.trim() ? form.title : s.title })} />
       </div>
     </Modal>
   );
@@ -309,7 +309,7 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
             <div className="flex h-9 shrink-0 items-center"><BookmarkIcon url={form.url} src={form.faviconUrl} size={32} /></div>
             <div className="min-w-0 flex-1"><HistoryAutocomplete label="名称" enabled={history.granted} value={form.title} onChange={(title) => setForm({ ...form, title })} onPick={(s) => setForm({ ...form, title: s.title || form.title, url: s.url })} /></div>
           </div>
-          <HistoryAutocomplete label="URL" enabled={history.granted} description={history.hint} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
+          <HistoryAutocomplete label="URL" enabled={history.granted} value={form.url} onChange={(url) => setForm({ ...form, url })} onPick={(s) => setForm({ ...form, url: s.url, title: form.title.trim() ? form.title : s.title })} />
           <Input label="图标地址" placeholder="留空用网站图标" value={form.faviconUrl} onChange={(e) => setForm({ ...form, faviconUrl: e.target.value })} />
           <div className="grid gap-2">
             <div className="flex items-center justify-between">

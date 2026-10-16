@@ -3,6 +3,7 @@ export interface Suggestion { url: string; title: string; visits: number }
 
 export const hasHistory = () => browser.permissions.contains({ permissions: ['history'] }).catch(() => false);
 export const requestHistory = () => browser.permissions.request({ permissions: ['history'] }).catch(() => false);
+export const removeHistory = () => browser.permissions.remove({ permissions: ['history'] }).catch(() => false);
 
 const ok = (u: string) => /^https?:\/\//.test(u);
 

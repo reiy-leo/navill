@@ -22,6 +22,7 @@ import { Modal } from '@/src/ui/Modal';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
+import { hasHistory, removeHistory, requestHistory } from '@/src/lib/suggest';
 
 export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
 
@@ -106,6 +107,17 @@ function IconRows() {
   );
 }
 
+function HistoryRow() {
+  const initial = useLiveQuery(() => hasHistory(), []);
+  const [granted, setGranted] = useState<boolean | undefined>(undefined);
+  const on = granted ?? initial ?? false;
+  return (
+    <Row label="浏览记录补全" info="新建或编辑书签时，输入名称或网址会从本机浏览记录里找匹配的网页，选中后自动填好网址和名称。开启需授权读取浏览记录，关闭即撤销授权">
+      <Switch checked={on} aria-label="浏览记录补全" onClick={async () => setGranted(on ? !(await removeHistory()) : await requestHistory())} />
+    </Row>
+  );
+}
+
 function General() {
   const { settings, updateSettings } = useApp();
   const workspaces = useLiveQuery(() => db.workspaces.orderBy('order').toArray(), []) ?? [];
@@ -116,6 +128,9 @@ function General() {
       <Section title="打开">
       <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
       <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
+      </Section>
+      <Section title="书签编辑">
+      <HistoryRow />
       </Section>
       <Section title="网站图标">
       <IconRows />

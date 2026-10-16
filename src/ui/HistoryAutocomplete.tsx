@@ -1,8 +1,7 @@
-import { Autocomplete, Button } from '@cloudflare/kumo';
+import { Autocomplete } from '@cloudflare/kumo';
 import { useEffect, useState, type ReactNode } from 'react';
-import { hasHistory, requestHistory, suggest, type Suggestion } from '@/src/lib/suggest';
+import { hasHistory, suggest, type Suggestion } from '@/src/lib/suggest';
 import { BookmarkIcon, hostOf } from './icons';
-import { InfoTip } from './InfoTip';
 
 /**
  * 带浏览记录补全的输入框（名称或 URL 都可以用）。
@@ -59,15 +58,9 @@ export function HistoryAutocomplete({
   );
 }
 
-/** 浏览记录补全的授权状态与按钮 */
+/** 浏览记录补全是否可用（开关在 设置 → 通用；授权状态就是开关状态） */
 export function useHistoryPermission() {
   const [granted, setGranted] = useState(false);
   useEffect(() => { void hasHistory().then(setGranted); }, []);
-  const hint = granted ? undefined : (
-    <span className="flex items-center gap-2 text-xs text-kumo-subtle">
-      <Button size="xs" variant="ghost" onClick={async () => setGranted(await requestHistory())}>开启浏览记录补全</Button>
-      <InfoTip>输入名称或网址时，从本机浏览记录里找匹配的网页，选中后自动填好网址和名称。需要授权读取浏览记录。</InfoTip>
-    </span>
-  );
-  return { granted, hint };
+  return { granted };
 }
