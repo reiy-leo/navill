@@ -1,4 +1,4 @@
-import { Popover } from '@cloudflare/kumo';
+import { Popover, Tooltip } from '@cloudflare/kumo';
 import { X } from '@phosphor-icons/react';
 import { db } from '@/src/db';
 import { updateBookmark } from '@/src/lib/store';
@@ -63,19 +63,23 @@ export function LinkStrip({ item, children, placement = 'replace', max = 5, alig
       {shown.map((l, i) => {
         const s = slot(i);
         return (
-          <button
+          <Tooltip
             key={`${i}-${l.url}`}
+            delay={0}
+            side="top"
+            content={<span className="block max-w-72">{l.title && <span className="block truncate font-medium">{l.title}</span>}<span className="block truncate opacity-75">{l.url}</span></span>}
+            render={<button
             type="button"
-            title={l.title ? `${l.title}\n${l.url}` : l.url}
             aria-label={`打开关联链接：${l.title || hostOf(l.url)}`}
             draggable={false}
             className={`${s.className} flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded hover:bg-kumo-line`}
             style={s.style}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); void openItem(item, settings, e, context, l.url); }}
             onAuxClick={(e) => { if (e.button !== 1) return; e.preventDefault(); e.stopPropagation(); void openItem(item, settings, e, context, l.url); }}
+          />}
           >
             <BookmarkIcon url={l.url} size={14} />
-          </button>
+          </Tooltip>
         );
       })}
       {overflow && (() => {
@@ -126,7 +130,6 @@ function LinkList({ item, context, onOpened }: { item: Item; context: 'newtab' |
           <div key={`${i}-${l.url}`} className="group/link relative">
             <a
               href={l.url}
-              title={l.url}
               draggable={false}
               className="flex w-52 items-center gap-2 rounded-md px-2 py-1.5 text-kumo-default no-underline hover:bg-kumo-tint"
               onClick={(e) => { e.preventDefault(); onOpened(); void openItem(item, settings, e, context, l.url); }}
@@ -142,7 +145,6 @@ function LinkList({ item, context, onOpened }: { item: Item; context: 'newtab' |
               <button
                 type="button"
                 aria-label="删除这条关联链接"
-                title="删除"
                 className="absolute right-1 top-1/2 hidden h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-kumo-subtle hover:bg-kumo-line hover:text-kumo-default group-hover/link:flex"
                 onClick={() => void updateBookmark(db, b.id, { links: links.filter((_, j) => j !== i) })}
               >
