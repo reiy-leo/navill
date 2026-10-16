@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { db } from '@/src/db';
 import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { parseNetscapeHtml } from '@/src/lib/io/html';
-import { ensureSeed, parseWorkspaceIcons } from '@/src/lib/store';
+import { ensureSeed, parseWorkspaceIcons, seedFromHistory } from '@/src/lib/store';
 import { ContextMenuProvider } from '@/src/ui/ContextMenu';
 import { DialogsProvider } from '@/src/ui/dialogs';
 import { useTone } from '@/src/ui/colors';
@@ -61,6 +61,8 @@ function Root() {
     const [imported, skipped] = await Promise.all([db.meta.get('importedAt'), db.meta.get('onboardedAt')]);
     return Boolean(imported || skipped);
   });
+  // 有浏览记录权限时，用本机访问次数给书签打开次数打底（最多 6 小时一次；导入后立即统计）
+  useEffect(() => { if (onboarded) void seedFromHistory(db).catch((e) => console.warn('[Navill] 读取浏览记录失败', e)); }, [onboarded]);
 
   if (onboarded === undefined || !seeded) {
     return <div className="flex h-full items-center justify-center"><Loader size="lg" /></div>;

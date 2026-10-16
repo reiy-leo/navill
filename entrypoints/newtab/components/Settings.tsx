@@ -11,7 +11,7 @@ import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
-import { clearOpenEvents, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setModeLook, setShowAdult, setVisible, unmount } from '@/src/lib/store';
+import { clearOpenEvents, clearVisits, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setModeLook, setShowAdult, setVisible, unmount } from '@/src/lib/store';
 import { isConfigured, redirectUri, signOut } from '@/src/lib/sync/auth';
 import { deleteRemoteData, signInAndLog } from '@/src/lib/sync/engine';
 import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
@@ -112,8 +112,11 @@ function HistoryRow() {
   const [granted, setGranted] = useState<boolean | undefined>(undefined);
   const on = granted ?? initial ?? false;
   return (
-    <Row label="浏览记录补全" info="新建或编辑书签时，输入名称或网址会从本机浏览记录里找匹配的网页，选中后自动填好网址和名称。开启需授权读取浏览记录，关闭即撤销授权">
-      <Switch checked={on} aria-label="浏览记录补全" onClick={async () => setGranted(on ? !(await removeHistory()) : await requestHistory())} />
+    <Row label="读取浏览记录" info="新建或编辑书签时，输入名称或网址会从本机浏览记录里补全；书签的打开次数也会参考本机访问次数，让「最常用」和智能排序更准。浏览记录只在本机读取，不上传。关闭即撤销授权">
+      <Switch checked={on} aria-label="读取浏览记录" onClick={async () => {
+        if (on) { const off = await removeHistory(); setGranted(!off); if (off) await clearVisits(db); }
+        else { const ok = await requestHistory(); setGranted(ok); if (ok) await seedFromHistory(db, true); }
+      }} />
     </Row>
   );
 }

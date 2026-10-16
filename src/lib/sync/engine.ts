@@ -2,10 +2,11 @@ import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent, type SyncE
 import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
 import { ensureSeed, mergeInboxes } from '../store/seed';
+import { recount } from '../store/counts';
 import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem } from '../settings';
 import { isConfigured, isSignedIn, signIn } from './auth';
 import { download, gunzip, gzip, listFiles, remove, upload, type DriveFile } from './drive';
-import { countsFromEvents, mergeStates, monthKey, type RemoteState } from './merge';
+import { mergeStates, monthKey, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
 const STATE_FILE = 'state.json.gz';
@@ -170,13 +171,6 @@ export async function pendingChanges(db: NavillDB): Promise<number> {
 export async function backoffMinutes(db: NavillDB): Promise<number> {
   const f = Number((await db.meta.get('syncFailures'))?.value ?? 0);
   return f <= 0 ? 0 : f === 1 ? 1 : f === 2 ? 5 : 15;
-}
-
-async function recount(db: NavillDB) {
-  const counts = countsFromEvents(await db.openEvents.toArray());
-  await db.transaction('rw', db.bookmarks, async () => {
-    for (const [id, c] of counts) await db.bookmarks.update(id, c);
-  });
 }
 
 /** 设置页：删除云端全部 Navill 数据 */

@@ -92,8 +92,12 @@ export async function recordOpen(db: NavillDB, bookmarkId: string, placementId: 
 }
 
 export async function clearOpenEvents(db: NavillDB) {
-  await db.transaction('rw', db.bookmarks, db.openEvents, async () => {
+  await db.transaction('rw', db.bookmarks, db.openEvents, db.visits, db.meta, async () => {
     await db.openEvents.clear();
+    await db.visits.clear();
+    // 之后从浏览记录打底时，只统计清除之后的访问
+    await db.meta.put({ key: 'countsClearedAt', value: Date.now() });
+    await db.meta.delete('historySeededAt');
     await db.bookmarks.toCollection().modify({ openCount: 0, lastOpenedAt: undefined });
   });
 }

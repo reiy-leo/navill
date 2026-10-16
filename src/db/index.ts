@@ -53,6 +53,8 @@ export interface Tag {
 export interface Tombstone { id: string; entity: SyncEntity; entityId: string; deletedAt: number }
 export interface OutboxItem { id: string; entity: SyncEntity; entityId: string; op: 'put' | 'delete'; updatedAt: number }
 export interface Meta { key: string; value: unknown }
+/** 从本机浏览记录统计的访问次数（只存本地，不同步），给打开次数打底 */
+export interface Visit { bookmarkId: string; count: number; lastAt: number }
 /** 高清网站图标缓存（按域名，只存本地，不同步） */
 export interface IconCache { host: string; blob?: Blob; source?: 'page' | 'icon.horse' | 'google'; fetchedAt: number; failed?: boolean }
 
@@ -73,6 +75,7 @@ export type NavillDB = Dexie & {
   bookmarks: EntityTable<Bookmark, 'id'>;
   placements: EntityTable<Placement, 'id'>;
   openEvents: EntityTable<OpenEvent, 'id'>;
+  visits: EntityTable<Visit, 'bookmarkId'>;
   aliasGroups: EntityTable<AliasGroup, 'id'>;
   modes: EntityTable<Mode, 'id'>;
   tags: EntityTable<Tag, 'id'>;
@@ -124,6 +127,7 @@ export function createDB(name = 'navill'): NavillDB {
     });
   d.version(3).stores({ icons: 'host, fetchedAt' });
   d.version(4).stores({ logs: 'id, at, deviceId' });
+  d.version(5).stores({ visits: 'bookmarkId' });
   return d;
 }
 
