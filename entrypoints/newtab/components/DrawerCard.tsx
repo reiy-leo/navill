@@ -1,6 +1,6 @@
 import { Button, DropdownMenu, Input, LayerCard, Tooltip } from '@cloudflare/kumo';
 import {
-  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, ShareNetwork, Palette } from '@phosphor-icons/react';
+  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, ShareNetwork, PencilSimple } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTone } from '@/src/ui/colors';
 import { db, type Workspace } from '@/src/db';
@@ -135,7 +135,7 @@ export function DrawerCard({
               <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开</DropdownMenu.Item>
             )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>新建书签</DropdownMenu.Item>
-            <DropdownMenu.Item icon={Palette} onClick={() => dialogs.drawerColor(drawer.id)}>指定颜色</DropdownMenu.Item>
+            <DropdownMenu.Item icon={PencilSimple} onClick={() => dialogs.editDrawer(drawer.id)}>编辑…</DropdownMenu.Item>
             <DropdownMenu.Item icon={ShareNetwork} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>分享…</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身</DropdownMenu.Item>
