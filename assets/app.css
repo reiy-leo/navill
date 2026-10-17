@@ -146,3 +146,12 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-mode='dark'] .nv-status[data-status='pending'] { background: rgb(245 158 11 / 0.2); color: #fcd34d; }
 [data-mode='dark'] .nv-status[data-status='live'] { background: rgb(34 197 94 / 0.2); color: #86efac; }
 [data-mode='dark'] .nv-status[data-status='rejected'], [data-mode='dark'] .nv-status[data-status='taken_down'] { background: rgb(239 68 68 / 0.2); color: #fca5a5; }
+
+/* 拖拽排序：被拖项留下的同尺寸虚线占位 */
+.nv-ghost { position: relative; background: transparent !important; box-shadow: none !important; outline: none !important; backdrop-filter: none !important; }
+.nv-ghost > * { opacity: 0; }
+.nv-ghost::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  border: 2px dashed color-mix(in srgb, var(--color-kumo-brand) 55%, transparent);
+  background: color-mix(in srgb, var(--color-kumo-brand) 7%, transparent);
+}

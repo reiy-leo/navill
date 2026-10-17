@@ -74,6 +74,21 @@ export async function movePlacement(
   });
 }
 
+/**
+ * 拖拽放下：把位置移到目标处（跨位置时），再按 ids 给目标处的位置排顺序。
+ * 目标处已有该书签的分身时不移动，也不改顺序。
+ */
+export async function placeInOrder(db: NavillDB, placementId: string, ids: string[], workspaceId: string, drawerId: string | null) {
+  const p = await db.placements.get(placementId);
+  if (!p) return;
+  if (p.workspaceId !== workspaceId || p.drawerId !== drawerId) {
+    await movePlacement(db, placementId, workspaceId, drawerId, ids.indexOf(placementId));
+    const q = await db.placements.get(placementId);
+    if (q?.workspaceId !== workspaceId || q.drawerId !== drawerId) return;
+  }
+  await reorderPlacements(db, ids);
+}
+
 /** 在目标位置创建分身；目标处已有该书签时跳过，返回新位置 id 或 null */
 export async function createAlias(db: NavillDB, bookmarkId: string, workspaceId: string, drawerId: string | null) {
   return logged(db, async (log) => {

@@ -1,6 +1,6 @@
 import { Checkbox } from '@cloudflare/kumo';
 import { Copy, LinkSimple, Star } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useId, useRef } from 'react';
 import { TAG_FAVORITE, db, type ViewMode } from '@/src/db';
 import { toggleTagOn } from '@/src/lib/store';
 import type { Item } from '@/src/lib/view';
@@ -11,14 +11,17 @@ import { BookmarkIcon, hostOf } from '@/src/ui/icons';
 import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
-import { DND_PLACEMENT, hasType, insertAfter } from './dnd';
+import { DND_PLACEMENT } from './dnd';
+import { useFlip, useSortable } from './sortable';
 
 import { tr } from '@/src/i18n';
 interface Props {
   items: Item[];
   view: ViewMode;
-  /** 放下书签：插入到 index（基于 items 中可拖拽的自有书签） */
-  onDrop?: (placementId: string, index: number) => void;
+  /** 列表 id，跨列表拖动时区分来源与目标 */
+  list?: string;
+  /** 放下书签：收到被拖的位置 id 与放下后本列表自有书签（不含挂载）的位置 id 顺序 */
+  onDrop?: (placementId: string, ids: string[]) => void;
   onReveal?: (item: Item) => void;
   emptyHint?: string;
   /** 横条排列：书签横向排成一行，超出时横向滚动 */
@@ -35,38 +38,43 @@ const LAYOUT: Record<ViewMode, string> = {
   bento: 'grid grid-cols-4 auto-rows-[64px] gap-2 grid-flow-dense',
 };
 
-export function Items({ items, view, onDrop, onReveal, emptyHint, strip }: Props) {
-  const [over, setOver] = useState(false);
+export function Items({ items, view, list, onDrop, onReveal, emptyHint, strip }: Props) {
+  const auto = useId();
+  const box = useRef<HTMLDivElement>(null);
+  const keyOf = (it: Item) => it.placement.id + (it.mountedFrom?.group.id ?? '');
+  const horizontal = strip || view !== 'row';
+  const sort = useSortable({
+    list: list ?? auto, kind: 'bookmark', items, keyOf, horizontal, sortable: !!onDrop,
+    foreign: (p) => p as Item | undefined,
+    onDrop: onDrop && ((id, keys) => {
+      const own = new Set(items.filter((i) => !i.mountedFrom).map((i) => i.placement.id));
+      onDrop(id, keys.filter((k) => k === id || own.has(k)));
+    }),
+  });
+  useFlip(box, sort.sig, ':scope > [data-flip]');
   // bento：按打开次数排名决定大小
   const rank = new Map(
     [...items].sort((a, b) => b.bookmark.openCount - a.bookmark.openCount).map((it, i) => [it.placement.id, i]),
   );
+  const over = sort.dragging && !!onDrop && items.length === 0;
   return (
     <div
+      ref={box}
+      {...sort.container}
       className={`${strip ? `flex ${view === 'icon' ? 'gap-1' : 'gap-2'} overflow-x-auto [scrollbar-width:thin]` : LAYOUT[view]} min-h-8 rounded-md ${over ? 'bg-kumo-tint outline-2 outline-dashed outline-kumo-line' : ''}`}
-      onDragOver={(e) => {
-        if (!onDrop || !hasType(e, DND_PLACEMENT)) return;
-        e.preventDefault();
-        setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => {
-        setOver(false);
-        const id = e.dataTransfer.getData(DND_PLACEMENT);
-        if (!onDrop || !id) return;
-        e.preventDefault();
-        onDrop(id, items.filter((i) => !i.mountedFrom).length);
-      }}
     >
-      {items.length === 0 && emptyHint && <div className="col-span-full px-2 py-3 text-center text-xs text-kumo-subtle">{emptyHint}</div>}
-      {items.map((it, i) => (
+      {items.length === 0 && emptyHint && !sort.rows.length && <div className="col-span-full px-2 py-3 text-center text-xs text-kumo-subtle">{emptyHint}</div>}
+      {sort.rows.map(({ t: it, key, ghost, hidden }) => (
         <BookmarkItem
-          key={it.placement.id + (it.mountedFrom?.group.id ?? '')}
+          key={key}
+          flip={key}
           item={it}
           view={view}
           strip={strip}
-          size={!strip && view === 'bento' ? (rank.get(it.placement.id)! === 0 ? 'xl' : rank.get(it.placement.id)! < 3 ? 'lg' : 'sm') : 'sm'}
-          onDropBefore={onDrop ? (id, after) => onDrop(id, after ? i + 1 : i) : undefined}
+          ghost={ghost}
+          hidden={hidden}
+          size={!strip && view === 'bento' ? ((rank.get(it.placement.id) ?? 9) === 0 ? 'xl' : (rank.get(it.placement.id) ?? 9) < 3 ? 'lg' : 'sm') : 'sm'}
+          dnd={{ ...sort.target(key), ...sort.source(key, it) }}
           onReveal={onReveal}
         />
       ))}
@@ -75,16 +83,17 @@ export function Items({ items, view, onDrop, onReveal, emptyHint, strip }: Props
 }
 
 function BookmarkItem({
-  item, view, size, strip, onDropBefore, onReveal,
-}: { item: Item; view: ViewMode; strip?: boolean; size: 'sm' | 'lg' | 'xl'; onDropBefore?: (placementId: string, after: boolean) => void; onReveal?: (i: Item) => void }) {
+  item, view, size, strip, flip, ghost, hidden, dnd, onReveal,
+}: {
+  item: Item; view: ViewMode; strip?: boolean; size: 'sm' | 'lg' | 'xl'; flip: string; ghost: boolean; hidden: boolean; onReveal?: (i: Item) => void;
+  dnd: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
+}) {
   const { settings, organize, selection, toggleSelect } = useApp();
   const menu = useContextMenu();
   const dialogs = useDialogs();
-  const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const { bookmark: b, placement: p, mountedFrom } = item;
   const selected = selection.has(p.id);
   const fav = b.tagIds.includes(TAG_FAVORITE);
-  const horizontal = strip || view !== 'row';
   const badge = mountedFrom ? (
     <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('挂载')} />
   ) : p.isAlias ? (
@@ -144,9 +153,8 @@ function BookmarkItem({
       href={b.url}
       title={title}
       draggable={!mountedFrom && !organize}
-      className={`group relative block rounded-md text-kumo-default no-underline hover:bg-kumo-tint ${span} ${selected ? 'bg-kumo-tint ring-2 ring-kumo-brand' : ''} ${
-        dropSide === 'before' ? (horizontal ? 'shadow-[inset_3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_3px_0_var(--color-kumo-brand)]') : ''
-      } ${dropSide === 'after' ? (horizontal ? 'shadow-[inset_-3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_-3px_0_var(--color-kumo-brand)]') : ''}`}
+      data-flip={flip}
+      className={`group relative block rounded-md text-kumo-default no-underline hover:bg-kumo-tint ${span} ${selected ? 'bg-kumo-tint ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''} ${hidden ? 'hidden' : ''}`}
       onClick={(e) => {
         e.preventDefault();
         if (organize) {
@@ -165,23 +173,10 @@ function BookmarkItem({
         e.dataTransfer.setData(DND_PLACEMENT, p.id);
         e.dataTransfer.setData('text/uri-list', b.url);
         e.dataTransfer.effectAllowed = 'move';
+        dnd.onDragStart();
       }}
-      onDragOver={(e) => {
-        if (!onDropBefore || !hasType(e, DND_PLACEMENT)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setDropSide(insertAfter(e, horizontal) ? 'after' : 'before');
-      }}
-      onDragLeave={() => setDropSide(null)}
-      onDrop={(e) => {
-        const side = dropSide;
-        setDropSide(null);
-        const id = e.dataTransfer.getData(DND_PLACEMENT);
-        if (!onDropBefore || !id) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (id !== p.id) onDropBefore(id, side === 'after');
-      }}
+      onDragOver={dnd.onDragOver}
+      onDrop={dnd.onDrop}
     >
       {organize && !mountedFrom && (
         <span className="absolute left-1 top-1 z-10" onClick={(e) => e.stopPropagation()}>

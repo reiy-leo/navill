@@ -3,7 +3,7 @@ import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
 import { FolderPlus, Plus, Tray } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PALETTE, db } from '@/src/db';
-import { createBookmark, createDrawer, movePlacement, reorderDrawers, setWorkspaceView } from '@/src/lib/store';
+import { createBookmark, createDrawer, movePlacement, placeInOrder, reorderDrawers, setWorkspaceView } from '@/src/lib/store';
 import { loadWorkspace, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon } from '@/src/ui/icons';
@@ -13,12 +13,22 @@ import { Items } from './Items';
 import { ArrangeMenu, ViewMenu } from './menus';
 import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
+import { useRef } from 'react';
+import { useFlip, useSortable } from './sortable';
 
 import { tr } from '@/src/i18n';
 export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const { visibility, settings, selectWorkspace, updateSettings } = useApp();
   const dialogs = useDialogs();
   const data = useLiveQuery(() => loadWorkspace(db, workspaceId, visibility), [workspaceId, visibility]);
+  const area = useRef<HTMLDivElement>(null);
+  const arrange = settings.arrange[workspaceId] ?? 'masonry';
+  const sort = useSortable({
+    list: `drawers:${workspaceId}`, kind: 'drawer', items: data?.drawers ?? [], keyOf: (d) => d.drawer.id,
+    horizontal: arrange !== 'strip',
+    onDrop: (_, keys) => void reorderDrawers(db, keys),
+  });
+  useFlip(area, sort.sig, '[data-flip-drawer]');
 
   if (data === undefined) return <div className="flex justify-center p-12"><Loader /></div>;
   if (data === null) return null;
@@ -42,17 +52,10 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     selectWorkspace(src.workspaceId);
     setTimeout(() => document.getElementById(`drawer-${src.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
   };
-  const dropDrawer = (dragId: string, targetId: string, after: boolean) => {
-    const ids = drawers.map((d) => d.drawer.id).filter((id) => id !== dragId);
-    const at = ids.indexOf(targetId) + (after ? 1 : 0);
-    ids.splice(at, 0, dragId);
-    void reorderDrawers(db, ids);
-  };
-
-  const arrange = settings.arrange[workspace.id] ?? 'masonry';
-  const card = (d: (typeof drawers)[number]) => (
-    <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={reveal} onDropDrawer={(id, after) => dropDrawer(id, d.drawer.id, after)} />
+  const card = (d: (typeof drawers)[number], ghost: boolean) => (
+    <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={reveal} ghost={ghost} dnd={{ ...sort.target(d.drawer.id), ...sort.source(d.drawer.id) }} />
   );
+  const rows = sort.rows;
 
   return (
     <div className="flex flex-col gap-4">
@@ -80,27 +83,30 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
             <Items
               items={top}
               view={workspace.viewMode}
-              onDrop={(id, index) => void movePlacement(db, id, workspace.id, null, index)}
+              list={`top:${workspace.id}`}
+              onDrop={(id, ids) => void placeInOrder(db, id, ids, workspace.id, null)}
             />
           )}
+          <div ref={area} {...sort.container}>
           {arrange === 'masonry' ? (
             <Masonry>
-              {drawers.map((d) => (
-                <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>{card(d)}</MasonryItem>
+              {rows.map(({ t: d, ghost }) => (
+                <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>{card(d, ghost)}</MasonryItem>
               ))}
             </Masonry>
           ) : arrange === 'bento' ? (
             <Bento
               head={settings.drawerHead === 'peek' ? 6 : 32}
-              items={drawers.map((d) => ({ key: d.drawer.id, id: `drawer-${d.drawer.id}`, count: d.items.length + d.mounted.length, view: effectiveView(d.drawer, workspace), node: card(d) }))}
+              items={rows.map(({ t: d, ghost }) => ({ key: d.drawer.id, id: `drawer-${d.drawer.id}`, count: d.items.length + d.mounted.length, view: effectiveView(d.drawer, workspace), node: card(d, ghost) }))}
             />
           ) : (
             <div className={arrange === 'board' ? 'nv-masonry -mx-6 flex items-start gap-4 overflow-x-auto px-6 pb-3 [scrollbar-width:thin]' : 'nv-masonry flex flex-col gap-4'}>
-              {drawers.map((d) => (
-                <div key={d.drawer.id} id={`drawer-${d.drawer.id}`} className={arrange === 'board' ? 'w-[300px] shrink-0' : ''}>{card(d)}</div>
+              {rows.map(({ t: d, ghost }) => (
+                <div key={d.drawer.id} id={`drawer-${d.drawer.id}`} className={arrange === 'board' ? 'w-[300px] shrink-0' : ''}>{card(d, ghost)}</div>
               ))}
             </div>
           )}
+          </div>
           {top.length === 0 && (
             <div
               className="rounded-lg border border-dashed border-kumo-line p-3 text-center text-xs text-kumo-subtle"

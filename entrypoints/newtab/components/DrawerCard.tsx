@@ -5,28 +5,31 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useTone } from '@/src/ui/colors';
 import { db, type Workspace } from '@/src/db';
 import {
-  AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, movePlacement, renameDrawer,
+  AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, placeInOrder, renameDrawer,
   shuffleDrawer, unmount, updateDrawer, archiveDrawer } from '@/src/lib/store';
 import { effectiveView, type DrawerData, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
 import { OPEN_ALL_MAX, openAll } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import type { Arrange } from '@/src/lib/settings';
-import { DND_DRAWER, hasType, insertAfter } from './dnd';
+import { DND_DRAWER } from './dnd';
 import { Items } from './Items';
 import { SortMenu, ViewMenu } from './menus';
 
 import { tr } from '@/src/i18n';
 export function DrawerCard({
-  data, workspace, arrange, onDropDrawer, onReveal,
-}: { data: DrawerData; workspace: Workspace; arrange: Arrange; onDropDrawer: (drawerId: string, after: boolean) => void; onReveal: (i: Item) => void }) {
+  data, workspace, arrange, ghost, dnd, onReveal,
+}: {
+  data: DrawerData; workspace: Workspace; arrange: Arrange; ghost?: boolean; onReveal: (i: Item) => void;
+  /** 拖拽排序的处理函数（来自 useSortable） */
+  dnd: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
+}) {
   const { drawer, items, mounted } = data;
   const { settings } = useApp();
   const dialogs = useDialogs();
   const [editing, setEditing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [name, setName] = useState(drawer.name);
-  const [dropSide, setDropSide] = useState<'before' | 'after' | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState<number>();
   // 松手后保持拖拽高度，等数据库里的新高度回来再撤掉，避免先闪回原大小
@@ -69,23 +72,13 @@ export function DrawerCard({
     <LayerCard
       render={<section />}
       data-head={settings.drawerHead}
-      data-open={menuOpen || editing || dropSide !== null || undefined}
+      data-open={menuOpen || editing || undefined}
+      data-flip={drawer.id}
+      data-flip-drawer=""
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
-      className={`nv-drawer ${fill ? 'h-full' : ''} rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${dropSide === 'before' ? 'outline-2 outline-offset-2 outline-kumo-brand' : ''} ${dropSide === 'after' ? 'outline-2 outline-kumo-brand' : ''}`}
-      onDragOver={(e) => {
-        if (!hasType(e, DND_DRAWER)) return;
-        e.preventDefault();
-        setDropSide(insertAfter(e, arrange !== 'strip') ? 'after' : 'before');
-      }}
-      onDragLeave={() => setDropSide(null)}
-      onDrop={(e) => {
-        const id = e.dataTransfer.getData(DND_DRAWER);
-        const side = dropSide;
-        setDropSide(null);
-        if (!id || id === drawer.id) return;
-        e.preventDefault();
-        onDropDrawer(id, side === 'after');
-      }}
+      className={`nv-drawer ${fill ? 'h-full' : ''} rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${ghost ? 'nv-ghost' : ''}`}
+      onDragOver={dnd.onDragOver}
+      onDrop={dnd.onDrop}
     >
       <LayerCard.Secondary
         className="nv-drawer-head my-0 h-8 gap-0.5 bg-transparent py-0 pl-3 pr-1 text-sm font-normal"
@@ -93,6 +86,7 @@ export function DrawerCard({
         onDragStart={(e) => {
           e.dataTransfer.setData(DND_DRAWER, drawer.id);
           e.dataTransfer.effectAllowed = 'move';
+          dnd.onDragStart();
         }}
       >
         {editing ? (
@@ -172,12 +166,13 @@ export function DrawerCard({
           items={all}
           view={view}
           strip={arrange === 'strip'}
+          list={`drawer:${drawer.id}`}
           emptyHint={tr('拖书签到这里')}
           onReveal={onReveal}
-          onDrop={(placementId, index) => {
+          onDrop={(placementId, ids) => {
             void (async () => {
               if (drawer.sortMode !== 'manual') await updateDrawer(db, drawer.id, { sortMode: 'manual' });
-              await movePlacement(db, placementId, workspace.id, drawer.id, Math.min(index, items.length));
+              await placeInOrder(db, placementId, ids, workspace.id, drawer.id);
             })();
           }}
         />

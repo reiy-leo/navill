@@ -12,7 +12,8 @@ import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { AppMenu } from './AppMenu';
 import type { Tab } from './Settings';
-import { DND_PLACEMENT, DND_WORKSPACE, hasType, insertAfter } from './dnd';
+import { DND_PLACEMENT, DND_WORKSPACE, hasType } from './dnd';
+import { useFlip, useSortable } from './sortable';
 
 import { tr } from '@/src/i18n';
 export function useVisibleWorkspaces() {
@@ -30,6 +31,12 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const right = pos === 'right';
   const bottom = pos === 'bottom';
   const label = settings.navLabel;
+  const navRef = useRef<HTMLElement>(null);
+  const sort = useSortable({
+    list: 'workspaces', kind: 'workspace', items: workspaces.filter((w) => w.source !== 'inbox'), keyOf: (w) => w.id, horizontal: top,
+    onDrop: (_, ids) => void reorderWorkspaces(db, ids),
+  });
+  useFlip(navRef, sort.sig, '[data-flip-ws]');
 
   const total = useLiveQuery(() => db.workspaces.count(), []) ?? 0;
   const full = total >= MAX_WORKSPACES;
@@ -63,22 +70,19 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
       },
     ]);
 
-  const reorder = (dragId: string, targetId: string, after: boolean) => {
-    const ids = workspaces.filter((w) => w.source !== 'inbox').map((w) => w.id).filter((id) => id !== dragId);
-    const at = ids.indexOf(targetId);
-    ids.splice(at < 0 ? ids.length : at + (after ? 1 : 0), 0, dragId);
-    void reorderWorkspaces(db, ids);
-  };
-
+  // 「待整理」位置固定，其余工作区按拖拽预览顺序填回各自的槽位
+  let slot = 0;
+  const ordered = workspaces.map((w) => (w.source === 'inbox' ? { w, ghost: false } : (({ t, ghost }) => ({ w: t, ghost }))(sort.rows[slot++]!)));
   const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
-  const items = [home, ...workspaces.map((w) => (
+  const items = [home, ...ordered.map(({ w, ghost }) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
-      onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} onReorder={reorder} />
+      ghost={ghost} dnd={w.source === 'inbox' ? undefined : { ...sort.target(w.id), ...sort.source(w.id) }}
+      onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
   ))];
 
   if (top) {
     return (
-      <nav className="relative flex items-center px-11 py-1">
+      <nav ref={navRef} {...sort.container} className="relative flex items-center px-11 py-1">
         <ScrollStrip activeKey={view === 'workspace' ? current : view}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
@@ -88,7 +92,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   }
 
   return (
-    <nav className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
+    <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} />
@@ -188,12 +192,13 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
 }
 
 function NavItem({
-  w, active, label, horizontal, right = false, bottom = false, onClick, onContextMenu, onReorder,
+  w, active, label, horizontal, right = false, bottom = false, ghost = false, dnd, onClick, onContextMenu,
 }: {
-  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; right?: boolean; bottom?: boolean;
-  onClick: () => void; onContextMenu: (e: React.MouseEvent) => void; onReorder: (dragId: string, targetId: string, after: boolean) => void;
+  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; right?: boolean; bottom?: boolean; ghost?: boolean;
+  dnd?: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
+  onClick: () => void; onContextMenu: (e: React.MouseEvent) => void;
 }) {
-  const [over, setOver] = useState<'bookmark' | 'before' | 'after' | null>(null);
+  const [over, setOver] = useState(false);
   const tone = useTone(w.color);
   const btn = (
     <button
@@ -203,30 +208,26 @@ function NavItem({
       onDragStart={(e) => {
         e.dataTransfer.setData(DND_WORKSPACE, w.id);
         e.dataTransfer.effectAllowed = 'move';
+        dnd?.onDragStart();
       }}
       onDragOver={(e) => {
         if (hasType(e, DND_PLACEMENT)) {
           e.preventDefault();
-          setOver('bookmark');
-        } else if (hasType(e, DND_WORKSPACE) && w.source !== 'inbox') {
-          e.preventDefault();
-          setOver(insertAfter(e, horizontal) ? 'after' : 'before');
-        }
+          setOver(true);
+        } else dnd?.onDragOver(e);
       }}
-      onDragLeave={() => setOver(null)}
+      onDragLeave={() => setOver(false)}
       onDrop={(e) => {
-        const side = over;
-        setOver(null);
+        setOver(false);
         const pid = e.dataTransfer.getData(DND_PLACEMENT);
-        const wid = e.dataTransfer.getData(DND_WORKSPACE);
         if (pid) void movePlacement(db, pid, w.id, null);
-        else if (wid && wid !== w.id) onReorder(wid, w.id, side === 'after');
+        else dnd?.onDrop(e);
       }}
+      data-flip={w.id}
+      data-flip-ws=""
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
         active ? (label === 'icon' ? '' : 'bg-[color-mix(in_srgb,var(--nv-c)_20%,transparent)] font-medium') : 'hover:bg-[color-mix(in_srgb,var(--nv-c)_10%,transparent)]'
-      } transition-colors ${over === 'bookmark' ? 'ring-2 ring-kumo-brand' : ''} ${
-        over === 'before' ? (horizontal ? 'shadow-[inset_3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_3px_0_var(--color-kumo-brand)]') : ''
-      } ${over === 'after' ? (horizontal ? 'shadow-[inset_-3px_0_0_var(--color-kumo-brand)]' : 'shadow-[inset_0_-3px_0_var(--color-kumo-brand)]') : ''}`}
+      } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       style={{ '--nv-c': tone ?? 'var(--color-kumo-brand)' } as React.CSSProperties}
       aria-label={w.name}
       data-active={active || undefined}
