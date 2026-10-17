@@ -104,7 +104,7 @@ function BookmarkItem({
         );
       case 'row':
         return (
-          <div className="flex items-center gap-2 px-2 py-1">
+          <div className={`flex items-center gap-2 py-1 pl-2 ${organize ? 'pr-2' : 'pr-6'}`}>
             <BookmarkIcon url={b.url} src={b.faviconUrl} size={16} />
             <span className="min-w-0 flex-1"><LinkStrip item={item} placement="end" max={6}><span className="block truncate text-sm">{b.title}</span></LinkStrip></span>
             {badge}
@@ -194,7 +194,7 @@ function BookmarkItem({
           draggable={false}
           aria-label={fav ? '取消收藏' : '收藏'}
           title={fav ? '取消收藏' : '收藏'}
-          className={`absolute right-0.5 top-0.5 z-10 flex size-5 items-center justify-center rounded transition-opacity ${fav ? 'text-[#f5b301]' : 'text-kumo-subtle opacity-0 hover:text-[#f5b301] group-hover:opacity-100 focus-visible:opacity-100'}`}
+          className={`absolute right-0.5 z-10 flex size-5 ${view === 'row' ? 'top-1/2 -translate-y-1/2' : 'top-0.5'} items-center justify-center rounded transition-opacity ${fav ? 'text-[#f5b301]' : 'text-kumo-subtle opacity-0 hover:text-[#f5b301] group-hover:opacity-100 focus-visible:opacity-100'}`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
