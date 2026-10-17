@@ -6,6 +6,7 @@ import { Bell, CloudCog, Copy, Database, Keyboard, Layers, Palette, Settings2, T
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
+import { hasBingPermission, requestBingPermission } from '@/src/lib/bing';
 import { IconBox } from '@/src/ui/ColorPicker';
 import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
@@ -156,11 +157,22 @@ function General() {
 function Look() {
   const { settings, updateSettings } = useApp();
   const set = (p: Partial<S>) => void updateSettings(p);
+  // Bing 图片需要访问 bing.com：选择时申请权限，被拒绝就不切换
+  const pickBackground = async (background: S['background']) => {
+    if (background === 'bing' && !(await hasBingPermission()) && !(await requestBingPermission())) return;
+    set({ background });
+  };
   return (
     <div>
       <Section title={tr('主题')}>
       <Row label={tr('主题')}><Pick label={tr('主题')} value={settings.theme} items={{ system: tr('跟随系统'), light: tr('浅色'), dark: tr('深色') }} onChange={(theme) => set({ theme })} /></Row>
       <Row label={tr('卡片风格')}><Pick label={tr('卡片风格')} value={settings.surface} items={{ tint: tr('色调卡片'), glass: tr('磨砂玻璃'), bare: tr('无框漂浮') }} onChange={(surface) => set({ surface })} /></Row>
+      </Section>
+      <Section title={tr('背景')}>
+      <Row label={tr('背景')}><Pick label={tr('背景')} value={settings.background} items={{ plain: tr('纯色'), gradient: tr('颜色渐变'), bing: tr('Bing 每日图片') }} onChange={(background) => void pickBackground(background)} /></Row>
+      {settings.background === 'bing' && (
+        <Row label={tr('磨砂模糊')}><Pick label={tr('磨砂模糊')} value={String(settings.backgroundBlur) as '0' | '8' | '24'} items={{ '0': tr('不模糊'), '8': tr('轻度'), '24': tr('强') }} onChange={(v) => set({ backgroundBlur: Number(v) as 0 | 8 | 24 })} /></Row>
+      )}
       </Section>
       <Section title={tr('工作区导航')}>
       <Row label={tr('导航位置')}><Pick label={tr('导航位置')} value={settings.navPosition} items={{ left: tr('左侧'), right: tr('右侧'), top: tr('顶部'), bottom: tr('底部') }} onChange={(navPosition) => set({ navPosition })} /></Row>

@@ -593,5 +593,13 @@
  "同步失败：{0}": "Sync failed: {0}",
  "语言": "Language",
  "界面语言": "Interface language",
- "跟随浏览器": "Follow browser"
+ "跟随浏览器": "Follow browser",
+ "背景": "Background",
+ "纯色": "Solid",
+ "颜色渐变": "Color gradient",
+ "Bing 每日图片": "Bing daily image",
+ "磨砂模糊": "Frosted blur",
+ "不模糊": "None",
+ "轻度": "Light",
+ "强": "Strong"
 }

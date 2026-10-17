@@ -1,4 +1,4 @@
-import { WorkspaceBackdrop } from '@/src/ui/WorkspaceBackdrop';
+import { PageBackground } from '@/src/ui/PageBackground';
 import { Loader, TooltipProvider } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -111,7 +111,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
 
   return (
     <div className={`relative isolate flex h-full overflow-hidden ${bar ? 'flex-col' : right ? 'flex-row-reverse' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
-      {view === 'workspace' && <WorkspaceBackdrop color={wsColor} />}
+      <PageBackground settings={settings} color={wsColor} workspace={view === 'workspace'} />
       {!bar && <Nav current={current?.id} {...menu} />}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {pos === 'top' && <Nav current={current?.id} {...menu} />}

@@ -155,3 +155,9 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
   border: 2px dashed color-mix(in srgb, var(--color-kumo-brand) 55%, transparent);
   background: color-mix(in srgb, var(--color-kumo-brand) 7%, transparent);
 }
+
+/* 页面背景：纯色与图片遮罩（设置 → 外观 → 背景） */
+.nv-plain { background: #fff; }
+[data-mode='dark'] .nv-plain { background: #000; }
+.nv-bg-veil { background: rgb(255 255 255 / 0.28); }
+[data-mode='dark'] .nv-bg-veil { background: rgb(0 0 0 / 0.42); }

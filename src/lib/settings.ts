@@ -20,6 +20,10 @@ export interface Settings {
   workspaceIconStyle: 'emoji' | 'lucide' | 'char';
   /** 抽屉与书签的表面风格：色调卡片 / 磨砂玻璃 / 无框漂浮 */
   surface: 'tint' | 'glass' | 'bare';
+  /** 页面背景：纯色（纯白/纯黑）/ 工作区颜色渐变 / Bing 每日图片 */
+  background: 'plain' | 'gradient' | 'bing';
+  /** 图片背景的模糊半径（px），0 为不模糊 */
+  backgroundBlur: 0 | 8 | 24;
   startWorkspace: 'last' | string;
   lastWorkspaceId?: string;
   currentModeId: string;
@@ -57,6 +61,8 @@ export const DEFAULT_SETTINGS: Settings = {
   navLabel: 'both',
   workspaceIconStyle: 'emoji',
   surface: 'tint',
+  background: 'gradient',
+  backgroundBlur: 0,
   startWorkspace: 'last',
   currentModeId: MODE_DEFAULT,
   sync: { enabled: false, intervalMinutes: 15, logs: false },

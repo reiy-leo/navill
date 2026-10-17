@@ -1,0 +1,38 @@
+import { useEffect, useState } from 'react';
+import { getBingImage, type BingImage } from '@/src/lib/bing';
+import type { Settings } from '@/src/lib/settings';
+import { WorkspaceBackdrop } from './WorkspaceBackdrop';
+
+/**
+ * 页面背景（设置 → 外观 → 背景）：纯色（浅色纯白、深色纯黑）/ 工作区颜色渐变 / Bing 每日图片。
+ * 图片可加磨砂模糊，并按明暗模式盖一层薄遮罩保证文字可读；图片取不到时退回渐变。
+ */
+export function PageBackground({ settings, color, workspace }: { settings: Settings; color?: string; workspace: boolean }) {
+  const kind = settings.background;
+  const [img, setImg] = useState<BingImage | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (kind !== 'bing') return;
+    let live = true;
+    void getBingImage().then((i) => { if (live) setImg(i); });
+    return () => { live = false; };
+  }, [kind]);
+
+  if (kind === 'plain') return <div aria-hidden className="nv-plain pointer-events-none fixed inset-0 -z-10" />;
+  if (kind === 'bing' && img) {
+    const blur = settings.backgroundBlur;
+    return (
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" title={img.copyright}>
+        <img
+          src={img.url}
+          alt=""
+          onLoad={() => setLoaded(true)}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+          style={{ opacity: loaded ? 1 : 0, filter: blur ? `blur(${blur}px)` : undefined, transform: blur ? 'scale(1.15)' : undefined }}
+        />
+        <div className="nv-bg-veil absolute inset-0" />
+      </div>
+    );
+  }
+  return workspace ? <WorkspaceBackdrop color={color} /> : null;
+}
