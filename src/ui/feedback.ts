@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { NavillDB } from '@/src/db';
 import { onLogged } from '@/src/lib/log';
 import { syncStatusItem, type Settings, type ToastEvent } from '@/src/lib/settings';
-import { isConfigured, isSignedIn } from '@/src/lib/sync/auth';
+import { isConnected } from '@/src/lib/sync/backend';
 import { pendingChanges, syncNow } from '@/src/lib/sync/engine';
 import { SHORTCUT_SYNC_TEXT, shortcutSyncDecision } from '@/src/lib/sync/shortcut';
 import { toast } from './toast';
@@ -34,7 +34,7 @@ export async function syncFromPage(db: NavillDB, settings: Settings) {
 export async function shortcutSync(db: NavillDB, settings: Settings) {
   const status = await syncStatusItem.getValue();
   const decision = shortcutSyncDecision({
-    signedIn: isConfigured() && (await isSignedIn()),
+    signedIn: await isConnected(),
     enabled: settings.sync.enabled,
     lastSyncAt: status.lastSyncAt,
     pending: await pendingChanges(db),

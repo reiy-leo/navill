@@ -4,8 +4,11 @@ import { deviceId } from '../store/core';
 import { ensureSeed, mergeInboxes } from '../store/seed';
 import { recount } from '../store/counts';
 import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem } from '../settings';
-import { isConfigured, isSignedIn, signIn } from './auth';
-import { download, gunzip, gzip, listFiles, remove, upload, type DriveFile } from './drive';
+import { signIn } from './auth';
+import { gunzip, gzip } from './drive';
+import { backend, connectWebdav, disconnect, isConnected, syncProviderItem, type Backend, type RemoteFile } from './backend';
+import { HttpError } from './http';
+import type { WebdavConfig } from './webdav';
 import { mergeStates, monthKey, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
@@ -18,14 +21,24 @@ let running: Promise<void> | null = null;
 
 /** 立即同步（同一时刻只跑一个） */
 export function syncNow(db: NavillDB): Promise<void> {
-  running ??= run(db).finally(() => {
+  running ??= runWithRetry(db).finally(() => {
     running = null;
   });
   return running;
 }
 
+/** WebDAV 上传遇到 412（别的设备刚写过）时立即重新拉取合并一次 */
+async function runWithRetry(db: NavillDB) {
+  try {
+    await run(db);
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 412) return run(db);
+    throw e;
+  }
+}
+
 async function run(db: NavillDB) {
-  if (!isConfigured() || !(await isSignedIn())) {
+  if (!(await isConnected())) {
     await syncStatusItem.setValue({ state: 'signed-out' });
     return;
   }
@@ -34,7 +47,9 @@ async function run(db: NavillDB) {
   try {
     await ensureSeed(db);
     const dev = await deviceId(db);
-    const files = await listFiles();
+    const be = await backend();
+    const { download, upload } = be;
+    const files = await be.listFiles();
     const byName = new Map(files.map((f) => [f.name, f]));
 
     // 1. 结构：拉取远端 state，合并，写回本地，再上传合并结果
@@ -43,7 +58,7 @@ async function run(db: NavillDB) {
     const lastSeen = (await db.meta.get('remoteStateModified'))?.value as string | undefined;
     const outboxCount = await db.outbox.count();
     if (stateFile && stateFile.modifiedTime !== lastSeen) {
-      remote = JSON.parse(await gunzip(await download(stateFile.id))) as RemoteState;
+      remote = JSON.parse(await gunzip(await download(stateFile))) as RemoteState;
     }
     if (remote || outboxCount > 0 || !stateFile) {
       const local = await snapshot(db);
@@ -65,13 +80,13 @@ async function run(db: NavillDB) {
         m.tombstones = await db.tombstones.toArray();
       }
       const state: RemoteState = { format: 'navill-state', version: 2, savedAt: Date.now(), deviceId: dev, data: m.merged, tombstones: m.tombstones };
-      const saved = await upload(STATE_FILE, await gzip(JSON.stringify(state)), stateFile?.id);
+      const saved = await upload(STATE_FILE, await gzip(JSON.stringify(state)), stateFile);
       await db.meta.put({ key: 'remoteStateModified', value: saved.modifiedTime });
       await db.outbox.clear();
     }
 
     // 1b. 设置：整体比较修改时间，新的一方覆盖另一方（本机项不同步）
-    await syncSettings(db, byName.get(SETTINGS_FILE));
+    await syncSettings(db, be, byName.get(SETTINGS_FILE));
 
     // 2. 使用统计：每台设备只写自己的月度事件文件，读取其他设备变化过的文件
     const mine = await db.openEvents.where('deviceId').equals(dev).toArray();
@@ -81,7 +96,7 @@ async function run(db: NavillDB) {
     for (const [month, events] of months) {
       if (uploaded[month] === events.length) continue;
       const name = eventsFile(dev, month);
-      await upload(name, await gzip(events.map((e) => JSON.stringify(e)).join('\n')), byName.get(name)?.id);
+      await upload(name, await gzip(events.map((e) => JSON.stringify(e)).join('\n')), byName.get(name));
       uploaded[month] = events.length;
     }
     await db.meta.put({ key: 'eventsUploaded', value: uploaded });
@@ -91,7 +106,7 @@ async function run(db: NavillDB) {
     for (const f of files) {
       if (!f.name.startsWith('events/') || f.name.startsWith(`events/${dev}-`)) continue;
       if (seen[f.name] === f.modifiedTime) continue;
-      const lines = (await gunzip(await download(f.id))).split('\n').filter(Boolean);
+      const lines = (await gunzip(await download(f))).split('\n').filter(Boolean);
       await db.openEvents.bulkPut(lines.map((l) => JSON.parse(l) as OpenEvent));
       seen[f.name] = f.modifiedTime;
       pulled = true;
@@ -99,24 +114,24 @@ async function run(db: NavillDB) {
     await db.meta.put({ key: 'eventsSeen', value: seen });
     if (pulled) await recount(db);
     // 3. 日志（可选）：与使用统计相同，每台设备只追加自己的月度文件，下载时按 id 合并
-    if ((await getSettings()).sync.logs) await syncLogs(db, dev, files, byName);
+    if ((await getSettings()).sync.logs) await syncLogs(db, be, dev, files, byName);
 
     await syncStatusItem.setValue({ state: 'ok', lastSyncAt: Date.now() });
     await db.meta.put({ key: 'syncFailures', value: 0 });
   } catch (e) {
     const failures = Number((await db.meta.get('syncFailures'))?.value ?? 0) + 1;
     await db.meta.put({ key: 'syncFailures', value: failures });
-    await syncStatusItem.setValue({ ...prev, state: 'error', message: e instanceof Error ? e.message : String(e) });
+    if (!(e instanceof HttpError && e.status === 412 && failures === 1)) await syncStatusItem.setValue({ ...prev, state: 'error', message: e instanceof Error ? e.message : String(e) });
     throw e;
   }
 }
 
-async function syncSettings(db: NavillDB, file: DriveFile | undefined) {
+async function syncSettings(db: NavillDB, { download, upload }: Backend, file: RemoteFile | undefined) {
   const localAt = await settingsModifiedItem.getValue();
   const lastSeen = (await db.meta.get('settingsRemoteModified'))?.value as string | undefined;
   let remoteAt = ((await db.meta.get('settingsRemoteSavedAt'))?.value as number | undefined) ?? 0;
   if (file && file.modifiedTime !== lastSeen) {
-    const remote = JSON.parse(await gunzip(await download(file.id))) as { savedAt: number; settings: Record<string, unknown> };
+    const remote = JSON.parse(await gunzip(await download(file))) as { savedAt: number; settings: Record<string, unknown> };
     remoteAt = remote.savedAt;
     await db.meta.put({ key: 'settingsRemoteModified', value: file.modifiedTime });
     await db.meta.put({ key: 'settingsRemoteSavedAt', value: remoteAt });
@@ -128,19 +143,19 @@ async function syncSettings(db: NavillDB, file: DriveFile | undefined) {
   if (file && localAt <= remoteAt) return;
   const savedAt = localAt || Date.now();
   const body = { format: 'navill-settings', version: 1, savedAt, settings: syncedPart(await getSettings()) };
-  const saved = await upload(SETTINGS_FILE, await gzip(JSON.stringify(body)), file?.id);
+  const saved = await upload(SETTINGS_FILE, await gzip(JSON.stringify(body)), file);
   await db.meta.put({ key: 'settingsRemoteModified', value: saved.modifiedTime });
   await db.meta.put({ key: 'settingsRemoteSavedAt', value: savedAt });
 }
 
-async function syncLogs(db: NavillDB, dev: string, files: DriveFile[], byName: Map<string, DriveFile>) {
+async function syncLogs(db: NavillDB, { download, upload }: Backend, dev: string, files: RemoteFile[], byName: Map<string, RemoteFile>) {
   const mine = await db.logs.where('deviceId').equals(dev).toArray();
   const months = groupByMonth(mine);
   const uploaded = ((await db.meta.get('logsUploaded'))?.value ?? {}) as Record<string, number>;
   for (const [month, logs] of months) {
     if (uploaded[month] === logs.length) continue;
     const name = logsFile(dev, month);
-    await upload(name, await gzip(logs.map((e) => JSON.stringify(e)).join('\n')), byName.get(name)?.id);
+    await upload(name, await gzip(logs.map((e) => JSON.stringify(e)).join('\n')), byName.get(name));
     uploaded[month] = logs.length;
   }
   await db.meta.put({ key: 'logsUploaded', value: uploaded });
@@ -148,7 +163,7 @@ async function syncLogs(db: NavillDB, dev: string, files: DriveFile[], byName: M
   for (const f of files) {
     if (!f.name.startsWith('logs/') || f.name.startsWith(`logs/${dev}-`)) continue;
     if (seen[f.name] === f.modifiedTime) continue;
-    const lines = (await gunzip(await download(f.id))).split('\n').filter(Boolean);
+    const lines = (await gunzip(await download(f))).split('\n').filter(Boolean);
     await db.logs.bulkPut(lines.map((l) => JSON.parse(l) as LogEntry));
     seen[f.name] = f.modifiedTime;
   }
@@ -173,17 +188,39 @@ export async function backoffMinutes(db: NavillDB): Promise<number> {
   return f <= 0 ? 0 : f === 1 ? 1 : f === 2 ? 5 : 15;
 }
 
+/** 连接 WebDAV 并记一条日志（会先断开 Google） */
+export async function connectWebdavAndLog(db: NavillDB, cfg: WebdavConfig) {
+  if ((await syncProviderItem.getValue()) !== 'webdav') await disconnectSync(db);
+  await connectWebdav(cfg);
+  await addLog(db, { kind: 'signin', targetType: 'sync', summary: `连接 WebDAV 同步：${new URL(cfg.url).host}` });
+}
+
 /** 设置页：删除云端全部 Navill 数据 */
 export async function deleteRemoteData(db: NavillDB) {
-  const files: DriveFile[] = await listFiles();
-  for (const f of files) await remove(f.id);
+  const be = await backend();
+  for (const f of await be.listFiles()) await be.remove(f);
+  await resetRemoteMeta(db);
+}
+
+/** 清除「云端看到/上传到哪」的记录：删除云端数据或切换同步目标后，下次同步完整上传 */
+async function resetRemoteMeta(db: NavillDB) {
   for (const k of ['remoteStateModified', 'eventsUploaded', 'eventsSeen', 'logsUploaded', 'logsSeen', 'settingsRemoteModified', 'settingsRemoteSavedAt']) await db.meta.delete(k);
+}
+
+/** 断开同步目标（Google 退出 / 清除 WebDAV 凭据），并重置云端记录以便换目标 */
+export async function disconnectSync(db: NavillDB) {
+  await disconnect();
+  await resetRemoteMeta(db);
 }
 
 export type { SyncEntity };
 
 /** 登录 Google 并记一条日志 */
 export async function signInAndLog(db: NavillDB) {
+  if ((await syncProviderItem.getValue()) !== 'google') {
+    await disconnectSync(db);
+    await syncProviderItem.setValue('google');
+  }
   await signIn();
   await addLog(db, { kind: 'signin', targetType: 'sync', summary: '登录 Google Drive 同步' });
 }

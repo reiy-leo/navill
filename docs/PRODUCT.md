@@ -6,7 +6,7 @@
 给书签多、浏览器书签栏已经乱掉的人：把书签一次性导入，按「工作区 → 抽屉 → 书签」重新整理，打开新标签页就能用。
 
 ## 用户与权限
-- 公开扩展，无账号体系；Google 账号只用于把数据同步到用户自己的 Drive `appDataFolder`（`drive.appdata` scope）。
+- 公开扩展，无账号体系；Google 账号只用于把数据同步到用户自己的 Drive `appDataFolder`（`drive.appdata` scope）；也可改用自己的 WebDAV（数据在 `navill-bookmarks/`），二选一。
 - 不收集任何数据。
 
 ## MVP（M1–M5）

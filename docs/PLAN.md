@@ -108,6 +108,7 @@ Tag        { id, name, builtin: 'adult'|'favorite'|'todo'|null, order, createdAt
 
 ### 6.2 同步【已定：Google Drive】
 - 存储位置：用户 Google Drive 的 **appDataFolder**（隐藏应用目录，不出现在文件列表，计入配额但体积很小）。
+- 【已定】同步目标二选一：Google Drive 或通用 **WebDAV**（服务器地址 + 用户名 + 应用密码，凭据只存本机）。WebDAV 数据放在根目录 `navill-bookmarks/`（自动创建，文件布局同 Drive）；连接时申请该服务器的可选 host 权限；上传带 `If-Match`，412 前提条件失败时立即重新拉取合并一次。代码：`src/lib/sync/backend.ts`、`webdav.ts`。
 - 权限：仅 `https://www.googleapis.com/auth/drive.appdata`（官方列为非敏感 scope，只需基础 OAuth 验证）。
 - 授权：`chrome.identity.launchWebAuthFlow` + Google OAuth（Edge 不支持 `getAuthToken`，此法两端通用）；token 过期先 `prompt=none` 静默续期，失败再弹窗。
 - Google Cloud 建一个 Web 类型 OAuth 客户端，Chrome 与 Edge 扩展 ID 不同，各登记一个回调 `https://<extension-id>.chromiumapp.org/`。

@@ -3,7 +3,7 @@ import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } fr
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bell, CloudCog, Copy, Database, Keyboard, Layers, Palette, Settings2, Tag, type LucideIcon } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
 import { IconBox } from '@/src/ui/ColorPicker';
@@ -12,8 +12,10 @@ import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
 import { clearOpenEvents, clearVisits, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setModeLook, setShowAdult, setVisible, unmount } from '@/src/lib/store';
-import { isConfigured, redirectUri, signOut } from '@/src/lib/sync/auth';
-import { deleteRemoteData, signInAndLog } from '@/src/lib/sync/engine';
+import { isConfigured, redirectUri } from '@/src/lib/sync/auth';
+import { connectWebdavAndLog, deleteRemoteData, disconnectSync, signInAndLog } from '@/src/lib/sync/engine';
+import { syncProviderItem, type SyncProvider } from '@/src/lib/sync/backend';
+import { normalizeUrl, originPattern, webdavConfigItem, WEBDAV_DIR, type WebdavConfig } from '@/src/lib/sync/webdav';
 import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
 import { toast } from '@/src/ui/toast';
 import { useDialogs } from '@/src/ui/dialogs';
@@ -295,29 +297,65 @@ function Sync() {
       setBusy(false);
     }
   };
-  if (!isConfigured()) {
-    return (
-      <div className="flex flex-col gap-1">
-        <Banner variant="alert" title="未配置 Google OAuth 客户端 ID" description={`构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：${redirectUri()}`} />
-        <Row label="日志"><Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button></Row>
-        {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
-      </div>
-    );
-  }
+  const provider = useStored(syncProviderItem, 'google');
+  const webdav = useStored(webdavConfigItem, null);
+  const [form, setForm] = useState({ url: '', username: '', password: '' });
   const signedIn = status.state !== 'signed-out';
+  const googleMissing = provider === 'google' && !isConfigured();
+  const connectWebdav = () => {
+    let url: string;
+    try {
+      url = normalizeUrl(form.url);
+    } catch {
+      setErr('服务器地址不正确');
+      return;
+    }
+    // 授权请求必须在点击后立即发起
+    const granted = browser.permissions.request({ origins: [originPattern(url)] });
+    void run(async () => {
+      if (!(await granted)) throw new Error('需要授权 Navill 访问这个服务器');
+      const cfg: WebdavConfig = { url, username: form.username.trim(), password: form.password };
+      await connectWebdavAndLog(db, cfg);
+      setForm({ url: '', username: '', password: '' });
+      const next = await updateSettings({ sync: { ...settings.sync, enabled: true } });
+      await syncFromPage(db, next);
+    });
+  };
+  const disconnectBtn = (text: string) => (
+    <Button size="sm" icon={<SignOut />} onClick={() => void run(async () => { await disconnectSync(db); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>{text}</Button>
+  );
   return (
     <div className="flex flex-col gap-1">
-      <div><InfoTip text="数据存在哪">数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。</InfoTip></div>
+      <div><InfoTip text="数据存在哪">{provider === 'webdav'
+        ? `数据保存在你的 WebDAV 服务器根目录下的 ${WEBDAV_DIR} 文件夹里，账号和应用密码只保存在本机。`
+        : '数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。'}</InfoTip></div>
       {err && <Banner variant="error" description={err} />}
       {status.state === 'error' && status.message && <Banner variant="error" title="上次同步失败" description={status.message} />}
       <Section title="账号">
+      <Row label="同步方式" info={signedIn ? '断开当前账号后才能切换' : '二选一'}>
+        <Select aria-label="同步方式" className="w-44" value={provider} disabled={signedIn} items={{ google: 'Google Drive', webdav: 'WebDAV' }} onValueChange={(v) => v && void syncProviderItem.setValue(v as SyncProvider)} />
+      </Row>
+      {provider === 'google' && (googleMissing ? (
+        <Banner variant="alert" title="未配置 Google OAuth 客户端 ID" description={`构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：${redirectUri()}`} />
+      ) : (
       <Row label="Google 账号" hint={signedIn ? '已授权' : '未登录'}>
-        {signedIn ? (
-          <Button size="sm" icon={<SignOut />} onClick={() => void run(async () => { await signOut(); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>退出登录</Button>
-        ) : (
+        {signedIn ? disconnectBtn('退出登录') : (
           <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signInAndLog(db); const next = await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncFromPage(db, next); })}>登录 Google</Button>
         )}
       </Row>
+      ))}
+      {provider === 'webdav' && (webdav && signedIn ? (
+        <Row label="WebDAV" hint={`${webdav.username} · ${new URL(webdav.url).host}`}>{disconnectBtn('断开连接')}</Row>
+      ) : (
+        <form className="flex flex-col gap-2 py-2" onSubmit={(e) => { e.preventDefault(); connectWebdav(); }}>
+          <Input size="sm" placeholder="服务器地址，如 https://dav.jianguoyun.com/dav/" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} aria-label="服务器地址" />
+          <div className="flex gap-2">
+            <Input size="sm" className="flex-1" placeholder="用户名" autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} aria-label="用户名" />
+            <Input size="sm" className="flex-1" type="password" placeholder="应用密码" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} aria-label="应用密码" />
+          </div>
+          <div className="flex justify-end"><Button size="sm" variant="primary" type="submit" loading={busy} disabled={!form.url.trim() || !form.username.trim() || !form.password}>连接</Button></div>
+        </form>
+      ))}
       </Section>
       <Section title="同步">
       <Row label="自动同步"><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
@@ -333,7 +371,7 @@ function Sync() {
       </Section>
       {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
       <Section title="云端数据">
-      <Row label="删除云端数据" info="只删除 Drive 中的 Navill 数据，本地不受影响">
+      <Row label="删除云端数据" info="只删除云端的 Navill 数据，本地不受影响">
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} disabled={!signedIn} onClick={async () => {
           if (await dialogs.confirm({ title: '删除云端的 Navill 数据？', okText: '删除', danger: true })) await run(() => deleteRemoteData(db));
         }}>删除</Button>
@@ -341,6 +379,16 @@ function Sync() {
       </Section>
     </div>
   );
+}
+
+/** 读取并订阅一个 storage 项 */
+function useStored<T>(item: { getValue(): Promise<T>; watch(cb: (v: T | null) => void): () => void }, fallback: T): T {
+  const [v, setV] = useState<T>(fallback);
+  useEffect(() => {
+    void item.getValue().then(setV);
+    return item.watch((n) => setV((n ?? fallback) as T));
+  }, [item]);
+  return v;
 }
 
 function LogViewer({ onClose }: { onClose: () => void }) {

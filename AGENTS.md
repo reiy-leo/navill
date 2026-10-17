@@ -3,7 +3,7 @@
 给 AI 编程代理与协作者的项目说明。产品细节见 [docs/PRODUCT.md](docs/PRODUCT.md)，完整计划与决策记录见 [docs/PLAN.md](docs/PLAN.md)。
 
 ## 目标
-Chrome / Edge MV3 扩展：一次性导入浏览器书签，重组为「工作区 → 抽屉 → 书签」，替换新标签页 + 工具栏弹窗；Navill 数据本地优先，经 Google Drive `appDataFolder` 同步。
+Chrome / Edge MV3 扩展：一次性导入浏览器书签，重组为「工作区 → 抽屉 → 书签」，替换新标签页 + 工具栏弹窗；Navill 数据本地优先，经 Google Drive `appDataFolder` 或 WebDAV `navill-bookmarks/` 同步（二选一，`src/lib/sync/backend.ts`）。
 
 ## 边界（不做）
 - 与浏览器书签持续双向同步
