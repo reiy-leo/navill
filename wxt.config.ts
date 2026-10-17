@@ -13,8 +13,9 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({ plugins: [tailwindcss()] }),
   manifest: {
-    name: 'Navill',
-    description: '把浏览器书签重组为「工作区 → 抽屉 → 书签」的新标签页导航',
+    name: '__MSG_extName__',
+    description: '__MSG_extDescription__',
+    default_locale: 'zh_CN',
     permissions: ['bookmarks', 'storage', 'unlimitedStorage', 'favicon', 'identity', 'alarms'],
     host_permissions: ['https://www.googleapis.com/*', 'https://icon.horse/*', 'https://www.google.com/s2/*', 'https://*.gstatic.com/*', 'https://navill.rei8t.dev/*'],
     // 可选：读取网页自身的高清图标（apple-touch-icon / manifest），在 设置 → 通用 里授权

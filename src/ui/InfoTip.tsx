@@ -2,8 +2,9 @@ import { Popover } from '@cloudflare/kumo';
 import { Info } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 
+import { tr } from '@/src/i18n';
 /** 说明性文字收进 ⓘ 图标：悬停或点击显示，不占版面 */
-export function InfoTip({ children, label = '说明', text }: { children: ReactNode; label?: string; /** 图标旁显示的短文字，如「说明」 */ text?: string }) {
+export function InfoTip({ children, label = tr('说明'), text }: { children: ReactNode; label?: string; /** 图标旁显示的短文字，如「说明」 */ text?: string }) {
   return (
     <Popover>
       <Popover.Trigger

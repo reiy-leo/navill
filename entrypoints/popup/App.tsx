@@ -10,6 +10,7 @@ import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
 import { openItem } from '@/src/ui/open';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 
+import { tr } from '@/src/i18n';
 export default function App() {
   return (
     <AppStateProvider>
@@ -37,9 +38,9 @@ function Popup() {
     const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.filter((d) => !d.archivedAt).toArray()]);
     const inbox = ws.find((w) => w.source === 'inbox');
     const items: Record<string, string> = {};
-    if (inbox) items[`${inbox.id}|`] = '待整理';
+    if (inbox) items[`${inbox.id}|`] = tr('待整理');
     for (const w of ws) {
-      if (w.source !== 'inbox') items[`${w.id}|`] = `${w.name} · 顶层`;
+      if (w.source !== 'inbox') items[`${w.id}|`] = tr('{0} · 顶层', w.name);
       for (const d of ds.filter((x) => x.workspaceId === w.id).sort((a, b) => a.order - b.order)) items[`${w.id}|${d.id}`] = `${w.name} / ${d.name}`;
     }
     return items;
@@ -79,10 +80,10 @@ function Popup() {
             <span className="min-w-0 flex-1 truncate text-sm">{tab.title}</span>
           </div>
           {targets && (
-            <Select aria-label="收藏到" size="sm" className="w-full" value={target} items={targets} onValueChange={(v) => v && setTarget(v as string)} />
+            <Select aria-label={tr('收藏到')} size="sm" className="w-full" value={target} items={targets} onValueChange={(v) => v && setTarget(v as string)} />
           )}
           <Button size="sm" variant="primary" icon={saved ? <Check /> : <BookmarkSimple />} disabled={saved} onClick={() => void save()}>
-            {saved ? '已收藏' : already ? '再收藏一份' : '收藏当前页'}
+            {saved ? tr('已收藏') : already ? tr('再收藏一份') : tr('收藏当前页')}
           </Button>
         </section>
       )}
@@ -93,7 +94,7 @@ function Popup() {
           autoFocus
           size="sm"
           className="w-full rounded-lg pl-7"
-          placeholder="搜索书签，#标签 筛选"
+          placeholder={tr('搜索书签，#标签 筛选')}
           value={q}
           onChange={(e) => { setQ(e.target.value); setActive(0); }}
           onKeyDown={(e) => {
@@ -102,11 +103,11 @@ function Popup() {
             if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
             if (e.key === 'Enter') void openItem(results[active]!, settings, e, 'popup');
           }}
-          aria-label="搜索"
+          aria-label={tr('搜索')}
         />
       </div>
       <ul className="flex max-h-72 flex-col overflow-y-auto">
-        {!q && results && results.length > 0 && <li className="px-2 pb-1 text-xs text-kumo-subtle">常用</li>}
+        {!q && results && results.length > 0 && <li className="px-2 pb-1 text-xs text-kumo-subtle">{tr('常用')}</li>}
         {results?.map((it, i) => (
           <li key={it.placement.id}>
             <button
@@ -121,7 +122,7 @@ function Popup() {
             </button>
           </li>
         ))}
-        {q && results?.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">没有找到</li>}
+        {q && results?.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">{tr('没有找到')}</li>}
       </ul>
       <footer className="-mb-1 flex justify-end">
         <ModeSwitcher side="top" />

@@ -7,11 +7,12 @@ import { pendingChanges, syncNow } from '@/src/lib/sync/engine';
 import { SHORTCUT_SYNC_TEXT, shortcutSyncDecision } from '@/src/lib/sync/shortcut';
 import { toast } from './toast';
 
+import { tr } from '@/src/i18n';
 export const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 /** 快捷键修饰键的显示名 */
 export const modKey = () => (isMac() ? '⌘' : 'Ctrl+');
 
-const VERB: Partial<Record<string, string>> = { create: '新建', edit: '修改', delete: '删除', move: '移动' };
+const VERB: Partial<Record<string, string>> = { create: tr('新建'), edit: tr('修改'), delete: tr('删除'), move: tr('移动') };
 
 /** 书签的新建 / 修改 / 删除 / 移动：按设置弹提醒；批量操作合并成一条 */
 export function useLogToasts(settings: Settings) {
@@ -20,14 +21,14 @@ export function useLogToasts(settings: Settings) {
   useEffect(() => onLogged((e) => {
     const verb = VERB[e.kind];
     if (e.targetType !== 'bookmark' || !verb || !ref.current.toast.show[e.kind as ToastEvent]) return;
-    toast(e.summary, { group: `bm-${e.kind}`, format: (n) => `已${verb} ${n} 个书签` });
+    toast(e.summary, { group: `bm-${e.kind}`, format: (n) => tr('已{0} {1} 个书签', verb, n) });
   }), []);
 }
 
 /** 从页面发起的同步：成功按设置提醒，失败抛出给调用方 */
 export async function syncFromPage(db: NavillDB, settings: Settings) {
   await syncNow(db);
-  if ((await syncStatusItem.getValue()).state === 'ok' && settings.toast.show.sync) toast('同步完成', { group: 'sync' });
+  if ((await syncStatusItem.getValue()).state === 'ok' && settings.toast.show.sync) toast(tr('同步完成'), { group: 'sync' });
 }
 
 /** ⌘S / Ctrl+S：3 分钟内同步过或没有改动时跳过并提醒 */
@@ -43,11 +44,11 @@ export async function shortcutSync(db: NavillDB, settings: Settings) {
     toast(SHORTCUT_SYNC_TEXT[decision], { type: 'info', group: 'sync-skip' });
     return;
   }
-  toast('正在同步…', { type: 'info', group: 'sync' });
+  toast(tr('正在同步…'), { type: 'info', group: 'sync' });
   try {
     await syncFromPage(db, settings);
   } catch (e) {
-    toast(`同步失败：${e instanceof Error ? e.message : String(e)}`, { type: 'error', group: 'sync' });
+    toast(tr('同步失败：{0}', e instanceof Error ? e.message : String(e)), { type: 'error', group: 'sync' });
   }
 }
 

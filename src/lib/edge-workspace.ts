@@ -1,5 +1,6 @@
 import type { Browser } from 'wxt/browser';
 
+import { tr } from '@/src/i18n';
 /**
  * 浏览器书签树根节点的分类。
  * Edge 工作区节点：chrome.bookmarks.getTree() 根节点下，与 bookmark_bar / other / mobile
@@ -31,5 +32,5 @@ export function findEdgeWorkspaceNodes(root: BookmarkNode): BookmarkNode[] {
 /** 名称取第一个子节点标题；为空回退为「Edge 工作区 N」（N 从 1 开始） */
 export function edgeWorkspaceName(node: BookmarkNode, index: number): string {
   const first = node.children?.[0]?.title?.trim();
-  return first ? first : `Edge 工作区 ${index + 1}`;
+  return first ? first : tr('Edge 工作区 {0}', index + 1);
 }

@@ -2,6 +2,7 @@ import { storage } from 'wxt/utils/storage';
 import { HttpError } from './http';
 import type { RemoteFile } from './backend';
 
+import { tr } from '@/src/i18n';
 /**
  * 通用 WebDAV 客户端（坚果云、Nextcloud、群晖、Alist 等）。
  * 所有数据放在服务器根目录下的 navill-bookmarks/ 中，目录自动创建。
@@ -34,7 +35,7 @@ async function req(cfg: WebdavConfig, path: string, init: RequestInit & { ok?: n
     headers: { Authorization: `Basic ${utf8b64(`${cfg.username}:${cfg.password}`)}`, ...(init.headers ?? {}) },
   });
   if (!res.ok && !init.ok?.includes(res.status)) {
-    if (res.status === 401) throw new HttpError(401, '用户名或应用密码不对');
+    if (res.status === 401) throw new HttpError(401, tr('用户名或应用密码不对'));
     throw new HttpError(res.status);
   }
   return res;
@@ -69,7 +70,7 @@ async function propfind(cfg: WebdavConfig, path: string, depth: '0' | '1', ok: n
 
 export async function getConfig(): Promise<WebdavConfig> {
   const cfg = await webdavConfigItem.getValue();
-  if (!cfg) throw new Error('未连接 WebDAV');
+  if (!cfg) throw new Error(tr('未连接 WebDAV'));
   return cfg;
 }
 

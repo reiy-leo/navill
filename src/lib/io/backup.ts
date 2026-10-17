@@ -1,6 +1,7 @@
 import { SYNC_ENTITIES, type NavillDB, type OpenEvent, type SyncEntity } from '@/src/db';
 import { ensureSeed } from '../store/seed';
 
+import { tr } from '@/src/i18n';
 export const BACKUP_FORMAT = 'navill-backup';
 export const BACKUP_VERSION = 2;
 
@@ -35,11 +36,11 @@ export function parseBackup(text: string): Backup {
   try {
     obj = JSON.parse(text);
   } catch {
-    throw new Error('不是有效的 JSON 文件');
+    throw new Error(tr('不是有效的 JSON 文件'));
   }
   const b = obj as Partial<Backup>;
-  if (b.format !== BACKUP_FORMAT || typeof b.data !== 'object' || !b.data) throw new Error('不是 Navill 备份文件');
-  if ((b.version ?? 0) > BACKUP_VERSION) throw new Error('备份来自更新版本的 Navill，请先升级扩展');
+  if (b.format !== BACKUP_FORMAT || typeof b.data !== 'object' || !b.data) throw new Error(tr('不是 Navill 备份文件'));
+  if ((b.version ?? 0) > BACKUP_VERSION) throw new Error(tr('备份来自更新版本的 Navill，请先升级扩展'));
   return b as Backup;
 }
 

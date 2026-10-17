@@ -3,6 +3,7 @@ import { del, deviceId, patch, put, tx, uid } from './core';
 import { nextOrder, removePlacement } from './placement';
 import { logged, q } from '../log';
 
+import { tr } from '@/src/i18n';
 export function normalizeUrl(url: string): string {
   const u = url.trim();
   if (!u) return u;
@@ -28,7 +29,7 @@ export async function createBookmark(
   const links = cleanLinks(input.links ?? []);
   return logged(db, async (log) => {
     const url = normalizeUrl(input.url);
-    if (!url) throw new Error('URL 不能为空');
+    if (!url) throw new Error(tr('URL 不能为空'));
     const now = Date.now();
     const b = await put<Bookmark>(db, 'bookmarks', {
       id: uid(), url, title: input.title?.trim() || url, note: input.note || undefined, tagIds: input.tagIds ?? [],
@@ -39,7 +40,7 @@ export async function createBookmark(
       id: uid(), bookmarkId: b.id, workspaceId, drawerId, order: await nextOrder(db, workspaceId, drawerId),
       isAlias: false, updatedAt: 0,
     });
-    log({ kind: 'create', targetType: 'bookmark', targetId: b.id, summary: `新建书签${q(b.title)}` });
+    log({ kind: 'create', targetType: 'bookmark', targetId: b.id, summary: tr('新建书签{0}', q(b.title)) });
     return { bookmark: b, placement: p };
   });
 }
@@ -53,7 +54,7 @@ export async function updateBookmark(
     const b = await db.bookmarks.get(id);
     if (!b) return;
     await patch<Bookmark>(db, 'bookmarks', id, changes);
-    log({ kind: 'edit', targetType: 'bookmark', targetId: id, summary: `编辑书签${q(changes.title ?? b.title)}` });
+    log({ kind: 'edit', targetType: 'bookmark', targetId: id, summary: tr('编辑书签{0}', q(changes.title ?? b.title)) });
   });
 }
 
@@ -61,7 +62,7 @@ export async function updateBookmark(
 export async function deleteBookmarkEverywhere(db: NavillDB, bookmarkId: string) {
   await logged(db, async (log) => {
     const b = await db.bookmarks.get(bookmarkId);
-    if (b) log({ kind: 'delete', targetType: 'bookmark', targetId: bookmarkId, summary: `删除书签${q(b.title)}及全部分身` });
+    if (b) log({ kind: 'delete', targetType: 'bookmark', targetId: bookmarkId, summary: tr('删除书签{0}及全部分身', q(b.title)) });
     const ps = await db.placements.where('bookmarkId').equals(bookmarkId).toArray();
     for (const p of ps) await del(db, 'placements', p.id);
     await del(db, 'bookmarks', bookmarkId);
@@ -76,7 +77,7 @@ export async function archiveBookmark(db: NavillDB, id: string, archived = true)
     const b = await db.bookmarks.get(id);
     if (!b) return;
     await patch<Bookmark>(db, 'bookmarks', id, { archivedAt: archived ? Date.now() : undefined });
-    log({ kind: archived ? 'archive' : 'restore', targetType: 'bookmark', targetId: id, summary: `${archived ? '归档' : '恢复'}书签${q(b.title)}` });
+    log({ kind: archived ? 'archive' : 'restore', targetType: 'bookmark', targetId: id, summary: tr('{0}书签{1}', archived ? '归档' : '恢复', q(b.title)) });
   });
 }
 

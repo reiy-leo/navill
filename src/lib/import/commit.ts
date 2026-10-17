@@ -4,6 +4,7 @@ import { ensureInbox, ensureSeed } from '../store/seed';
 import { uid } from '../store/core';
 import type { ImportPlan, PlannedBookmark, PlannedDrawer } from './plan';
 
+import { tr } from '@/src/i18n';
 export { ensureInbox };
 
 export interface CommitResult { workspaces: number; drawers: number; bookmarks: number; skipped: number }
@@ -117,5 +118,5 @@ export async function skipImport(db: NavillDB): Promise<void> {
 /** 名称不带 emoji；名称里残留的 emoji（用户在预览里改名时输入）优先作为图标的后备 */
 function wsName(w: { name: string; emoji?: string }) {
   const parsed = splitEmoji(w.name);
-  return { name: parsed.name || '未命名工作区', emoji: w.emoji || parsed.emoji };
+  return { name: parsed.name || tr('未命名工作区'), emoji: w.emoji || parsed.emoji };
 }

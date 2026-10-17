@@ -14,6 +14,7 @@ import { AppMenu } from './AppMenu';
 import type { Tab } from './Settings';
 import { DND_PLACEMENT, DND_WORKSPACE, hasType, insertAfter } from './dnd';
 
+import { tr } from '@/src/i18n';
 export function useVisibleWorkspaces() {
   const { visibility } = useApp();
   return useLiveQuery(async () => (await db.workspaces.orderBy('order').toArray()).filter((w) => workspaceVisible(w, visibility)), [visibility]);
@@ -34,12 +35,12 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const full = total >= MAX_WORKSPACES;
   const add = async () => {
     if (full) {
-      await dialogs.confirm({ title: '工作区已满', description: `最多 ${MAX_WORKSPACES} 个工作区。可以删除不用的，或把它们合并成抽屉。`, okText: '知道了' });
+      await dialogs.confirm({ title: tr('工作区已满'), description: tr('最多 {0} 个工作区。可以删除不用的，或把它们合并成抽屉。', MAX_WORKSPACES), okText: tr('知道了') });
       return;
     }
-    const res = await dialogs.create('工作区', PALETTE[(await db.workspaces.filter((w) => w.source !== 'inbox').count()) % PALETTE.length]!);
+    const res = await dialogs.create(tr('工作区'), PALETTE[(await db.workspaces.filter((w) => w.source !== 'inbox').count()) % PALETTE.length]!);
     if (!res) return;
-    const vis = await dialogs.askVisibility(settings.currentModeId, '工作区');
+    const vis = await dialogs.askVisibility(settings.currentModeId, tr('工作区'));
     if (!vis) return;
     const ws = await createWorkspace(db, { name: res.name, color: res.color, description: res.description.trim() || undefined, emoji: res.emoji || undefined, lucide: res.lucide, glyph: res.glyph || undefined }, vis === 'current' ? settings.currentModeId : undefined);
     selectWorkspace(ws.id);
@@ -47,15 +48,15 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   const ctx = (e: React.MouseEvent, w: Workspace) =>
     menu(e, [
-      { label: '编辑', icon: PencilSimple, onSelect: () => dialogs.editWorkspace(w.id) },
-      { label: '分享…', icon: ShareNetwork, onSelect: () => dialogs.share('workspace', w.id, w.name) },
+      { label: tr('编辑'), icon: PencilSimple, onSelect: () => dialogs.editWorkspace(w.id) },
+      { label: tr('分享…'), icon: ShareNetwork, onSelect: () => dialogs.share('workspace', w.id, w.name) },
       { divider: true },
-      { label: w.adult ? '取消 18+' : '标记为 18+', icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
+      { label: w.adult ? tr('取消 18+') : tr('标记为 18+'), icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
       { divider: true },
       {
-        label: '删除', icon: Trash, danger: true, disabled: w.source === 'inbox',
+        label: tr('删除'), icon: Trash, danger: true, disabled: w.source === 'inbox',
         onSelect: async () => {
-          if (await dialogs.confirm({ title: `删除工作区「${w.name}」？`, description: '其中的全部抽屉与书签都会删除（有分身的书签由分身接任）。', okText: '删除', danger: true })) {
+          if (await dialogs.confirm({ title: tr('删除工作区「{0}」？', w.name), description: tr('其中的全部抽屉与书签都会删除（有分身的书签由分身接任）。'), okText: tr('删除'), danger: true })) {
             await deleteWorkspace(db, w.id);
           }
         },
@@ -173,12 +174,12 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
         {children}
       </div>
       {edge.left && (
-        <button type="button" aria-label="向左滚动" className={`${arrow} left-0.5 -translate-x-1 group-hover:translate-x-0`} onClick={() => by(-1)}>
+        <button type="button" aria-label={tr('向左滚动')} className={`${arrow} left-0.5 -translate-x-1 group-hover:translate-x-0`} onClick={() => by(-1)}>
           <CaretLeft size={14} weight="bold" />
         </button>
       )}
       {edge.right && (
-        <button type="button" aria-label="向右滚动" className={`${arrow} right-0.5 translate-x-1 group-hover:translate-x-0`} onClick={() => by(1)}>
+        <button type="button" aria-label={tr('向右滚动')} className={`${arrow} right-0.5 translate-x-1 group-hover:translate-x-0`} onClick={() => by(1)}>
           <CaretRight size={14} weight="bold" />
         </button>
       )}
@@ -256,12 +257,12 @@ function NavItem({
 /** 导航最前面的「主页」入口 */
 function HomeItem({ active, label, horizontal, onClick }: { active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; onClick: () => void }) {
   const btn = (
-    <button type="button" onClick={onClick} aria-label="主页" data-active={active || undefined}
+    <button type="button" onClick={onClick} aria-label={tr('主页')} data-active={active || undefined}
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${horizontal ? '' : 'w-full'} ${
         active ? 'bg-kumo-tint font-medium text-kumo-default' : 'text-kumo-subtle hover:bg-kumo-tint hover:text-kumo-default'}`}>
       {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} weight={active ? 'fill' : 'regular'} /></span>}
-      {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>主页</span>}
+      {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>{tr('主页')}</span>}
     </button>
   );
-  return label === 'icon' ? <Tooltip content="主页" side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip> : btn;
+  return label === 'icon' ? <Tooltip content={tr('主页')} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip> : btn;
 }

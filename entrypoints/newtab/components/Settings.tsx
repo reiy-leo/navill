@@ -26,21 +26,24 @@ import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
 import { hasHistory, removeHistory, requestHistory } from '@/src/lib/suggest';
 
+import { dateLocale, getLangSetting, setLanguage, tr } from '@/src/i18n';
 export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
 
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
   return (
-    <Modal open={open} onClose={onClose} title="设置" size="xl">
+    <Modal open={open} onClose={onClose} title={tr('设置')} size="xl">
+      <div className="overflow-x-auto [scrollbar-width:none]">
       <Tabs
         variant="underline"
         value={tab}
         onValueChange={(v) => setTab(v as Tab)}
         tabs={[
-          ['general', '通用', Settings2], ['look', '外观', Palette], ['modes', '场景', Layers], ['tags', '标签', Tag],
-          ['sync', '同步', CloudCog], ['alias', '分身', Copy], ['toast', '提醒', Bell], ['keys', '快捷键', Keyboard], ['data', '数据', Database],
+          ['general', tr('通用'), Settings2], ['look', tr('外观'), Palette], ['modes', tr('场景'), Layers], ['tags', tr('标签'), Tag],
+          ['sync', tr('同步'), CloudCog], ['alias', tr('分身'), Copy], ['toast', tr('提醒'), Bell], ['keys', tr('快捷键'), Keyboard], ['data', tr('数据'), Database],
         ].map(([value, label, Icon]) => ({ value: value as string, label: <TabLabel icon={Icon as LucideIcon} text={label as string} /> }))}
       />
+      </div>
       <div className="mt-4 min-h-[50vh]">
         {tab === 'general' && <General />}
         {tab === 'look' && <Look />}
@@ -65,7 +68,7 @@ function Row({ label, children, hint, info }: { label: string; children: ReactNo
   return (
     <div className="flex items-center justify-between gap-6 border-b border-kumo-line py-3 last:border-0">
       <div>
-        <div className="flex items-center gap-1 text-sm font-medium">{label}{info && <InfoTip label={`${label}说明`}>{info}</InfoTip>}</div>
+        <div className="flex items-center gap-1 text-sm font-medium">{label}{info && <InfoTip label={tr('{0}说明', label)}>{info}</InfoTip>}</div>
         {hint && <div className="text-xs text-kumo-subtle">{hint}</div>}
       </div>
       <div className="shrink-0">{children}</div>
@@ -95,15 +98,15 @@ function IconRows() {
   const [msg, setMsg] = useState('');
   return (
     <>
-      <Row label="读取网页自带的高清图标" info="授权后优先用网站自己的 apple-touch-icon / manifest 图标，最清晰；不授权则用 icon.horse 与 Google 图标服务">
+      <Row label={tr('读取网页自带的高清图标')} info={tr('授权后优先用网站自己的 apple-touch-icon / manifest 图标，最清晰；不授权则用 icon.horse 与 Google 图标服务')}>
         {has ? (
-          <Button size="sm" onClick={async () => { await browser.permissions.remove({ origins: ['<all_urls>'] }); setGranted(false); }}>撤销授权</Button>
+          <Button size="sm" onClick={async () => { await browser.permissions.remove({ origins: ['<all_urls>'] }); setGranted(false); }}>{tr('撤销授权')}</Button>
         ) : (
-          <Button size="sm" variant="primary" onClick={async () => { const ok = await browser.permissions.request({ origins: ['<all_urls>'] }); setGranted(ok); if (ok) { await clearIconCache(db); setMsg('已授权，图标将重新获取'); } }}>授权</Button>
+          <Button size="sm" variant="primary" onClick={async () => { const ok = await browser.permissions.request({ origins: ['<all_urls>'] }); setGranted(ok); if (ok) { await clearIconCache(db); setMsg(tr('已授权，图标将重新获取')); } }}>{tr('授权')}</Button>
         )}
       </Row>
-      <Row label="高清图标缓存" hint={msg || `已缓存 ${cached} 个网站，只存本机、不同步`}>
-        <Button size="sm" icon={<ArrowsClockwise />} onClick={async () => { const n = await clearIconCache(db); setMsg(`已清除 ${n} 条，打开页面时会重新获取`); }}>重新获取</Button>
+      <Row label={tr('高清图标缓存')} hint={msg || tr('已缓存 {0} 个网站，只存本机、不同步', cached)}>
+        <Button size="sm" icon={<ArrowsClockwise />} onClick={async () => { const n = await clearIconCache(db); setMsg(tr('已清除 {0} 条，打开页面时会重新获取', n)); }}>{tr('重新获取')}</Button>
       </Row>
     </>
   );
@@ -114,8 +117,8 @@ function HistoryRow() {
   const [granted, setGranted] = useState<boolean | undefined>(undefined);
   const on = granted ?? initial ?? false;
   return (
-    <Row label="读取浏览记录" info="新建或编辑书签时，输入名称或网址会从本机浏览记录里补全；书签的打开次数也会参考本机访问次数，让「最常用」和智能排序更准。浏览记录只在本机读取，不上传。关闭即撤销授权">
-      <Switch checked={on} aria-label="读取浏览记录" onClick={async () => {
+    <Row label={tr('读取浏览记录')} info={tr('新建或编辑书签时，输入名称或网址会从本机浏览记录里补全；书签的打开次数也会参考本机访问次数，让「最常用」和智能排序更准。浏览记录只在本机读取，不上传。关闭即撤销授权')}>
+      <Switch checked={on} aria-label={tr('读取浏览记录')} onClick={async () => {
         if (on) { const off = await removeHistory(); setGranted(!off); if (off) await clearVisits(db); }
         else { const ok = await requestHistory(); setGranted(ok); if (ok) await seedFromHistory(db, true); }
       }} />
@@ -127,21 +130,24 @@ function General() {
   const { settings, updateSettings } = useApp();
   const workspaces = useLiveQuery(() => db.workspaces.orderBy('order').toArray(), []) ?? [];
   const set = (p: Partial<S>) => void updateSettings(p);
-  const wsItems = Object.fromEntries([['last', '上次打开的'], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
+  const wsItems = Object.fromEntries([['last', tr('上次打开的')], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
   return (
     <div>
-      <Section title="打开">
-      <Row label="默认进入的工作区"><Pick label="默认工作区" value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
-      <Row label="书签打开方式" info="Ctrl/⌘ 或中键点击始终在后台新标签打开"><Pick label="打开方式" value={settings.openMode} items={{ current: '当前标签', new: '新标签', background: '后台新标签' }} onChange={(openMode) => set({ openMode })} /></Row>
+      <Section title={tr('语言')}>
+      <Row label={tr('界面语言')}><Pick label={tr('界面语言')} value={getLangSetting()} items={{ auto: tr('跟随浏览器'), zh: '中文', en: 'English' }} onChange={(v) => void setLanguage(v)} /></Row>
       </Section>
-      <Section title="书签编辑">
+      <Section title={tr('打开')}>
+      <Row label={tr('默认进入的工作区')}><Pick label={tr('默认工作区')} value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>
+      <Row label={tr('书签打开方式')} info={tr('Ctrl/⌘ 或中键点击始终在后台新标签打开')}><Pick label={tr('打开方式')} value={settings.openMode} items={{ current: tr('当前标签'), new: tr('新标签'), background: tr('后台新标签') }} onChange={(openMode) => set({ openMode })} /></Row>
+      </Section>
+      <Section title={tr('书签编辑')}>
       <HistoryRow />
       </Section>
-      <Section title="网站图标">
+      <Section title={tr('网站图标')}>
       <IconRows />
       </Section>
-      <Section title="新标签页">
-      <Row label="新标签页" info="Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗"><Badge variant="neutral">已接管</Badge></Row>
+      <Section title={tr('新标签页')}>
+      <Row label={tr('新标签页')} info={tr('Navill 接管新标签页；如需关闭，请在浏览器扩展管理中停用或改用弹窗')}><Badge variant="neutral">{tr('已接管')}</Badge></Row>
       </Section>
     </div>
   );
@@ -152,18 +158,18 @@ function Look() {
   const set = (p: Partial<S>) => void updateSettings(p);
   return (
     <div>
-      <Section title="主题">
-      <Row label="主题"><Pick label="主题" value={settings.theme} items={{ system: '跟随系统', light: '浅色', dark: '深色' }} onChange={(theme) => set({ theme })} /></Row>
-      <Row label="卡片风格"><Pick label="卡片风格" value={settings.surface} items={{ tint: '色调卡片', glass: '磨砂玻璃', bare: '无框漂浮' }} onChange={(surface) => set({ surface })} /></Row>
+      <Section title={tr('主题')}>
+      <Row label={tr('主题')}><Pick label={tr('主题')} value={settings.theme} items={{ system: tr('跟随系统'), light: tr('浅色'), dark: tr('深色') }} onChange={(theme) => set({ theme })} /></Row>
+      <Row label={tr('卡片风格')}><Pick label={tr('卡片风格')} value={settings.surface} items={{ tint: tr('色调卡片'), glass: tr('磨砂玻璃'), bare: tr('无框漂浮') }} onChange={(surface) => set({ surface })} /></Row>
       </Section>
-      <Section title="工作区导航">
-      <Row label="导航位置"><Pick label="导航位置" value={settings.navPosition} items={{ left: '左侧', right: '右侧', top: '顶部', bottom: '底部' }} onChange={(navPosition) => set({ navPosition })} /></Row>
-      <Row label="工作区显示" info="侧边栏收起时只显示图标"><Pick label="工作区显示" value={settings.navLabel} items={{ both: '图标 + 名称', icon: '只显示图标', name: '只显示名称' }} onChange={(navLabel) => set({ navLabel })} /></Row>
-      <Row label="工作区图标" info="Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置"><Pick label="工作区图标" value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: '线性图标', char: '字符' }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
+      <Section title={tr('工作区导航')}>
+      <Row label={tr('导航位置')}><Pick label={tr('导航位置')} value={settings.navPosition} items={{ left: tr('左侧'), right: tr('右侧'), top: tr('顶部'), bottom: tr('底部') }} onChange={(navPosition) => set({ navPosition })} /></Row>
+      <Row label={tr('工作区显示')} info={tr('侧边栏收起时只显示图标')}><Pick label={tr('工作区显示')} value={settings.navLabel} items={{ both: tr('图标 + 名称'), icon: tr('只显示图标'), name: tr('只显示名称') }} onChange={(navLabel) => set({ navLabel })} /></Row>
+      <Row label={tr('工作区图标')} info={tr('Emoji、线性图标、字符三种都会保存，在编辑工作区里分别设置')}><Pick label={tr('工作区图标')} value={settings.workspaceIconStyle} items={{ emoji: 'Emoji', lucide: tr('线性图标'), char: tr('字符') }} onChange={(workspaceIconStyle) => set({ workspaceIconStyle })} /></Row>
       </Section>
-      <Section title="抽屉">
-      <Row label="抽屉名显示"><Pick label="抽屉名显示" value={settings.drawerName} items={{ full: '完整路径', last: '仅末级' }} onChange={(drawerName) => set({ drawerName })} /></Row>
-      <Row label="抽屉标题栏"><Pick label="抽屉标题栏" value={settings.drawerHead} items={{ peek: '悬停显示', show: '始终显示' }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
+      <Section title={tr('抽屉')}>
+      <Row label={tr('抽屉名显示')}><Pick label={tr('抽屉名显示')} value={settings.drawerName} items={{ full: tr('完整路径'), last: tr('仅末级') }} onChange={(drawerName) => set({ drawerName })} /></Row>
+      <Row label={tr('抽屉标题栏')}><Pick label={tr('抽屉标题栏')} value={settings.drawerHead} items={{ peek: tr('悬停显示'), show: tr('始终显示') }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
       </Section>
     </div>
   );
@@ -182,7 +188,7 @@ function Modes() {
             <ModeIcon mode={m} />{m.name}
           </button>
         ))}
-        <Button size="sm" variant="ghost" icon={<Plus />} onClick={async () => { const m = await createMode(db, '新场景'); setFresh(m.id); setSel(m.id); }}>新建场景</Button>
+        <Button size="sm" variant="ghost" icon={<Plus />} onClick={async () => { const m = await createMode(db, tr('新场景')); setFresh(m.id); setSel(m.id); }}>{tr('新建场景')}</Button>
       </div>
       {mode && <ModeEditor key={mode.id} mode={mode} autoFocus={mode.id === fresh} onDeleted={() => setSel(MODE_DEFAULT)} />}
     </div>
@@ -200,26 +206,26 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <IconBox color={look.color} onColor={(color) => void setModeLook(db, mode.id, { color })} label="场景颜色">
+        <IconBox color={look.color} onColor={(color) => void setModeLook(db, mode.id, { color })} label={tr('场景颜色')}>
           <span className="inline-flex size-8 items-center justify-center rounded-md border border-kumo-line"><ModeIcon mode={mode} size={20} /></span>
         </IconBox>
-        <Input size="sm" className="flex-1" value={name} disabled={isDefault} autoFocus={autoFocus} onFocus={(e) => autoFocus && e.currentTarget.select()} onChange={(e) => { setName(e.target.value); void renameMode(db, mode.id, e.target.value); }} aria-label="场景名称" />
+        <Input size="sm" className="flex-1" value={name} disabled={isDefault} autoFocus={autoFocus} onFocus={(e) => autoFocus && e.currentTarget.select()} onChange={(e) => { setName(e.target.value); void renameMode(db, mode.id, e.target.value); }} aria-label={tr('场景名称')} />
         {!isDefault && (
           <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
-            if (await dialogs.confirm({ title: `删除场景「${mode.name}」？`, okText: '删除', danger: true })) {
+            if (await dialogs.confirm({ title: tr('删除场景「{0}」？', mode.name), okText: tr('删除'), danger: true })) {
               await deleteMode(db, mode.id);
               onDeleted();
             }
-          }}>删除</Button>
+          }}>{tr('删除')}</Button>
         )}
       </div>
       <LucidePicker allowNone={false} value={look.icon} onChange={(icon) => icon && void setModeLook(db, mode.id, { icon })} />
-      <Switch label="显示 18+ 内容" checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
+      <Switch label={tr('显示 18+ 内容')} checked={mode.showAdult} onClick={() => void setShowAdult(db, mode.id, !mode.showAdult)} />
       {isDefault ? (
-        <div><InfoTip text="可见性">「默认」场景显示全部工作区与抽屉，可见性不可编辑。</InfoTip></div>
+        <div><InfoTip text={tr('可见性')}>{tr('「默认」场景显示全部工作区与抽屉，可见性不可编辑。')}</InfoTip></div>
       ) : (
         <div>
-          <div className="mb-2 text-sm font-medium">在此场景中可见的工作区与抽屉</div>
+          <div className="mb-2 text-sm font-medium">{tr('在此场景中可见的工作区与抽屉')}</div>
           <div className="flex max-h-[45vh] flex-col gap-1 overflow-y-auto rounded-lg border border-kumo-line p-2">
             {data?.ws.map((w) => {
               const wVisible = !hiddenW.has(w.id);
@@ -257,23 +263,23 @@ function Tags() {
   const dialogs = useDialogs();
   return (
     <div className="flex flex-col gap-2">
-      <div><InfoTip text="说明">标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。</InfoTip></div>
+      <div><InfoTip text={tr('说明')}>{tr('标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。')}</InfoTip></div>
       {tags.map((t) => (
         <div key={t.id} className="flex items-center gap-2 rounded-md border border-kumo-line px-3 py-2">
-          {t.builtin ? <span className="flex-1 text-sm">#{t.name} <Badge variant="neutral">内置</Badge></span> : (
-            <Input size="sm" className="flex-1" value={t.name} onChange={(e) => void renameTag(db, t.id, e.target.value)} aria-label="标签名" />
+          {t.builtin ? <span className="flex-1 text-sm">#{t.name} <Badge variant="neutral">{tr('内置')}</Badge></span> : (
+            <Input size="sm" className="flex-1" value={t.name} onChange={(e) => void renameTag(db, t.id, e.target.value)} aria-label={tr('标签名')} />
           )}
-          <span className="w-16 text-right text-xs text-kumo-subtle">{counts?.get(t.id) ?? 0} 个书签</span>
+          <span className="w-16 text-right text-xs text-kumo-subtle">{counts?.get(t.id) ?? 0} {tr('个书签')}</span>
           {!t.builtin && (
-            <Button size="xs" variant="ghost" shape="square" icon={<Trash />} aria-label="删除标签" onClick={async () => {
-              if (await dialogs.confirm({ title: `删除标签「${t.name}」？`, description: '会从所有书签上移除。', okText: '删除', danger: true })) await deleteTag(db, t.id);
+            <Button size="xs" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除标签')} onClick={async () => {
+              if (await dialogs.confirm({ title: tr('删除标签「{0}」？', t.name), description: tr('会从所有书签上移除。'), okText: tr('删除'), danger: true })) await deleteTag(db, t.id);
             }} />
           )}
         </div>
       ))}
       <div className="mt-2 flex gap-2">
-        <Input size="sm" className="flex-1" placeholder="新标签名" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={async (e) => { if (e.key === 'Enter' && name.trim()) { await createTag(db, name); setName(''); } }} />
-        <Button size="sm" icon={<Plus />} onClick={async () => { if (name.trim()) { await createTag(db, name); setName(''); } }}>添加</Button>
+        <Input size="sm" className="flex-1" placeholder={tr('新标签名')} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={async (e) => { if (e.key === 'Enter' && name.trim()) { await createTag(db, name); setName(''); } }} />
+        <Button size="sm" icon={<Plus />} onClick={async () => { if (name.trim()) { await createTag(db, name); setName(''); } }}>{tr('添加')}</Button>
       </div>
     </div>
   );
@@ -307,13 +313,13 @@ function Sync() {
     try {
       url = normalizeUrl(form.url);
     } catch {
-      setErr('服务器地址不正确');
+      setErr(tr('服务器地址不正确'));
       return;
     }
     // 授权请求必须在点击后立即发起
     const granted = browser.permissions.request({ origins: [originPattern(url)] });
     void run(async () => {
-      if (!(await granted)) throw new Error('需要授权 Navill 访问这个服务器');
+      if (!(await granted)) throw new Error(tr('需要授权 Navill 访问这个服务器'));
       const cfg: WebdavConfig = { url, username: form.username.trim(), password: form.password };
       await connectWebdavAndLog(db, cfg);
       setForm({ url: '', username: '', password: '' });
@@ -326,55 +332,55 @@ function Sync() {
   );
   return (
     <div className="flex flex-col gap-1">
-      <div><InfoTip text="数据存在哪">{provider === 'webdav'
-        ? `数据保存在你的 WebDAV 服务器根目录下的 ${WEBDAV_DIR} 文件夹里，账号和应用密码只保存在本机。`
-        : '数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。'}</InfoTip></div>
+      <div><InfoTip text={tr('数据存在哪')}>{provider === 'webdav'
+        ? tr('数据保存在你的 WebDAV 服务器根目录下的 {0} 文件夹里，账号和应用密码只保存在本机。', WEBDAV_DIR)
+        : tr('数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。')}</InfoTip></div>
       {err && <Banner variant="error" description={err} />}
-      {status.state === 'error' && status.message && <Banner variant="error" title="上次同步失败" description={status.message} />}
-      <Section title="账号">
-      <Row label="同步方式" info={signedIn ? '断开当前账号后才能切换' : '二选一'}>
-        <Select aria-label="同步方式" className="w-44" value={provider} disabled={signedIn} items={{ google: 'Google Drive', webdav: 'WebDAV' }} onValueChange={(v) => v && void syncProviderItem.setValue(v as SyncProvider)} />
+      {status.state === 'error' && status.message && <Banner variant="error" title={tr('上次同步失败')} description={status.message} />}
+      <Section title={tr('账号')}>
+      <Row label={tr('同步方式')} info={signedIn ? tr('断开当前账号后才能切换') : tr('二选一')}>
+        <Select aria-label={tr('同步方式')} className="w-44" value={provider} disabled={signedIn} items={{ google: 'Google Drive', webdav: 'WebDAV' }} onValueChange={(v) => v && void syncProviderItem.setValue(v as SyncProvider)} />
       </Row>
       {provider === 'google' && (googleMissing ? (
-        <Banner variant="alert" title="未配置 Google OAuth 客户端 ID" description={`构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：${redirectUri()}`} />
+        <Banner variant="alert" title={tr('未配置 Google OAuth 客户端 ID')} description={tr('构建时在 .env 中设置 WXT_GOOGLE_CLIENT_ID。Google Cloud 中为本扩展登记回调地址：{0}', redirectUri())} />
       ) : (
-      <Row label="Google 账号" hint={signedIn ? '已授权' : '未登录'}>
-        {signedIn ? disconnectBtn('退出登录') : (
-          <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signInAndLog(db); const next = await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncFromPage(db, next); })}>登录 Google</Button>
+      <Row label={tr('Google 账号')} hint={signedIn ? tr('已授权') : tr('未登录')}>
+        {signedIn ? disconnectBtn(tr('退出登录')) : (
+          <Button size="sm" variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => void run(async () => { await signInAndLog(db); const next = await updateSettings({ sync: { ...settings.sync, enabled: true } }); await syncFromPage(db, next); })}>{tr('登录 Google')}</Button>
         )}
       </Row>
       ))}
       {provider === 'webdav' && (webdav && signedIn ? (
-        <Row label="WebDAV" hint={`${webdav.username} · ${new URL(webdav.url).host}`}>{disconnectBtn('断开连接')}</Row>
+        <Row label="WebDAV" hint={`${webdav.username} · ${new URL(webdav.url).host}`}>{disconnectBtn(tr('断开连接'))}</Row>
       ) : (
         <form className="flex flex-col gap-2 py-2" onSubmit={(e) => { e.preventDefault(); connectWebdav(); }}>
-          <Input size="sm" placeholder="服务器地址，如 https://dav.jianguoyun.com/dav/" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} aria-label="服务器地址" />
+          <Input size="sm" placeholder={tr('服务器地址，如 https://dav.jianguoyun.com/dav/')} value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} aria-label={tr('服务器地址')} />
           <div className="flex gap-2">
-            <Input size="sm" className="flex-1" placeholder="用户名" autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} aria-label="用户名" />
-            <Input size="sm" className="flex-1" type="password" placeholder="应用密码" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} aria-label="应用密码" />
+            <Input size="sm" className="flex-1" placeholder={tr('用户名')} autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} aria-label={tr('用户名')} />
+            <Input size="sm" className="flex-1" type="password" placeholder={tr('应用密码')} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} aria-label={tr('应用密码')} />
           </div>
-          <div className="flex justify-end"><Button size="sm" variant="primary" type="submit" loading={busy} disabled={!form.url.trim() || !form.username.trim() || !form.password}>连接</Button></div>
+          <div className="flex justify-end"><Button size="sm" variant="primary" type="submit" loading={busy} disabled={!form.url.trim() || !form.username.trim() || !form.password}>{tr('连接')}</Button></div>
         </form>
       ))}
       </Section>
-      <Section title="同步">
-      <Row label="自动同步"><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
-      <Row label="同步频率" info="只在有改动时上传"><Select aria-label="同步频率" className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': '每 5 分钟', '15': '每 15 分钟', '60': '每 60 分钟', '0': '仅手动' }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
-      <Row label="立即同步" hint={status.lastSyncAt ? `上次同步：${new Date(status.lastSyncAt).toLocaleString('zh-CN')}` : '尚未同步'}>
-        <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>立即同步</Button>
+      <Section title={tr('同步')}>
+      <Row label={tr('自动同步')}><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
+      <Row label={tr('同步频率')} info={tr('只在有改动时上传')}><Select aria-label={tr('同步频率')} className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': tr('每 5 分钟'), '15': tr('每 15 分钟'), '60': tr('每 60 分钟'), '0': tr('仅手动') }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
+      <Row label={tr('立即同步')} hint={status.lastSyncAt ? tr('上次同步：{0}', new Date(status.lastSyncAt).toLocaleString(dateLocale)) : tr('尚未同步')}>
+        <Button size="sm" icon={<ArrowsClockwise />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>{tr('立即同步')}</Button>
       </Row>
-      <Row label="核心数据" info="工作区、抽屉、书签、分身、场景、标签和删除记录始终同步"><Badge variant="neutral">始终同步</Badge></Row>
-      <Row label="冲突策略" info="按条目合并，修改时间新的一方胜出"><Badge variant="neutral">按条目合并</Badge></Row>
+      <Row label={tr('核心数据')} info={tr('工作区、抽屉、书签、分身、场景、标签和删除记录始终同步')}><Badge variant="neutral">{tr('始终同步')}</Badge></Row>
+      <Row label={tr('冲突策略')} info={tr('按条目合并，修改时间新的一方胜出')}><Badge variant="neutral">{tr('按条目合并')}</Badge></Row>
       </Section>
-      <Section title="日志">
-      <Row label="日志"><Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>查看日志</Button></Row>
+      <Section title={tr('日志')}>
+      <Row label={tr('日志')}><Button size="sm" icon={<ListBullets />} onClick={() => setLogsOpen(true)}>{tr('查看日志')}</Button></Row>
       </Section>
       {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
-      <Section title="云端数据">
-      <Row label="删除云端数据" info="只删除云端的 Navill 数据，本地不受影响">
+      <Section title={tr('云端数据')}>
+      <Row label={tr('删除云端数据')} info={tr('只删除云端的 Navill 数据，本地不受影响')}>
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} disabled={!signedIn} onClick={async () => {
-          if (await dialogs.confirm({ title: '删除云端的 Navill 数据？', okText: '删除', danger: true })) await run(() => deleteRemoteData(db));
-        }}>删除</Button>
+          if (await dialogs.confirm({ title: tr('删除云端的 Navill 数据？'), okText: tr('删除'), danger: true })) await run(() => deleteRemoteData(db));
+        }}>{tr('删除')}</Button>
       </Row>
       </Section>
     </div>
@@ -398,17 +404,17 @@ function LogViewer({ onClose }: { onClose: () => void }) {
     me: (await db.meta.get('deviceId'))?.value as string | undefined,
   }), []);
   return (
-    <Modal open size="lg" title="日志" onClose={onClose}>
-      {!data ? null : data.logs.length === 0 ? <p className="py-8 text-center text-sm text-kumo-subtle">还没有日志</p> : (
+    <Modal open size="lg" title={tr('日志')} onClose={onClose}>
+      {!data ? null : data.logs.length === 0 ? <p className="py-8 text-center text-sm text-kumo-subtle">{tr('还没有日志')}</p> : (
         <div className="flex flex-col">
           {data.logs.map((l) => (
             <div key={l.id} className="flex items-baseline gap-3 border-b border-kumo-line py-2 text-sm last:border-0">
-              <span className="w-32 shrink-0 tabular-nums text-kumo-subtle">{new Date(l.at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="w-28 shrink-0 truncate text-kumo-subtle">{l.deviceId === data.me ? '本机' : l.device ?? '其他设备'}</span>
+              <span className="w-32 shrink-0 tabular-nums text-kumo-subtle">{new Date(l.at).toLocaleString(dateLocale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="w-28 shrink-0 truncate text-kumo-subtle">{l.deviceId === data.me ? tr('本机') : l.device ?? tr('其他设备')}</span>
               <span className="min-w-0 flex-1 break-words">{l.summary}</span>
             </div>
           ))}
-          {data.total > data.logs.length && <p className="pt-3 text-center text-xs text-kumo-subtle">只显示最近 {data.logs.length} 条，共 {data.total} 条</p>}
+          {data.total > data.logs.length && <p className="pt-3 text-center text-xs text-kumo-subtle">{tr('只显示最近')} {data.logs.length} {tr('条，共')} {data.total} {tr('条')}</p>}
         </div>
       )}
     </Modal>
@@ -416,11 +422,11 @@ function LogViewer({ onClose }: { onClose: () => void }) {
 }
 
 const POSITIONS: Record<ToastPosition, string> = {
-  'top-center': '中顶', 'top-right': '右上', 'bottom-right': '右下', 'top-left': '左上', 'bottom-left': '左下', 'bottom-center': '中底',
+  'top-center': tr('中顶'), 'top-right': tr('右上'), 'bottom-right': tr('右下'), 'top-left': tr('左上'), 'bottom-left': tr('左下'), 'bottom-center': tr('中底'),
 };
-const STYLES: Record<ToastStyle, string> = { plain: '简洁', tinted: '彩色', dark: '深色', pill: '胶囊' };
+const STYLES: Record<ToastStyle, string> = { plain: tr('简洁'), tinted: tr('彩色'), dark: tr('深色'), pill: tr('胶囊') };
 const EVENTS: Array<[ToastEvent, string]> = [
-  ['sync', '同步完成'], ['create', '新建书签'], ['edit', '修改书签'], ['delete', '删除书签'], ['move', '移动书签'],
+  ['sync', tr('同步完成')], ['create', tr('新建书签')], ['edit', tr('修改书签')], ['delete', tr('删除书签')], ['move', tr('移动书签')],
 ];
 
 function Toasts() {
@@ -429,17 +435,17 @@ function Toasts() {
   const set = (p: Partial<S['toast']>) => void updateSettings({ toast: { ...t, ...p } });
   return (
     <div className="flex flex-col gap-1">
-      <div><InfoTip text="说明">提醒设置只对本机生效。按 {modKey()}S 时「已跳过」这类直接反馈总是显示。</InfoTip></div>
-      <Section title="外观">
-      <Row label="位置"><Pick label="位置" value={t.position} items={POSITIONS} onChange={(position) => set({ position })} /></Row>
-      <Row label="样式">
+      <div><InfoTip text={tr('说明')}>{tr('提醒设置只对本机生效。按')} {modKey()}{tr('S 时「已跳过」这类直接反馈总是显示。')}</InfoTip></div>
+      <Section title={tr('外观')}>
+      <Row label={tr('位置')}><Pick label={tr('位置')} value={t.position} items={POSITIONS} onChange={(position) => set({ position })} /></Row>
+      <Row label={tr('样式')}>
         <div className="flex items-center gap-2">
-          <Pick label="样式" value={t.style} items={STYLES} onChange={(style) => set({ style })} />
-          <Button size="sm" icon={<Play />} onClick={() => toast('新建书签「Navill 示例」')}>预览</Button>
+          <Pick label={tr('样式')} value={t.style} items={STYLES} onChange={(style) => set({ style })} />
+          <Button size="sm" icon={<Play />} onClick={() => toast(tr('新建书签「Navill 示例」'))}>{tr('预览')}</Button>
         </div>
       </Row>
       </Section>
-      <Section title="提醒内容">
+      <Section title={tr('提醒内容')}>
       {EVENTS.map(([k, label]) => (
         <Row key={k} label={label}>
           <Switch checked={t.show[k]} aria-label={label} onClick={() => set({ show: { ...t.show, [k]: !t.show[k] } })} />
@@ -459,12 +465,12 @@ function Shortcuts() {
   const combo = (k: string) => (isMac() ? `${mod}${k}` : `${mod}+${k}`);
   return (
     <div className="flex flex-col gap-1">
-      <Section title="同步">
-      <Row label="立即同步" info="3 分钟内同步过，或没有需要上传的改动时跳过并提醒；同步未开启或未登录时也会提醒"><Kbd>{combo('S')}</Kbd></Row>
+      <Section title={tr('同步')}>
+      <Row label={tr('立即同步')} info={tr('3 分钟内同步过，或没有需要上传的改动时跳过并提醒；同步未开启或未登录时也会提醒')}><Kbd>{combo('S')}</Kbd></Row>
       </Section>
-      <Section title="搜索">
-      <Row label="搜索" info={`焦点在地址栏时，浏览器会先处理 ${combo('L')}；在 Navill 页面里按才会打开搜索`}><Kbd>{combo('L')}</Kbd></Row>
-      <Row label="搜索"><Kbd>/</Kbd></Row>
+      <Section title={tr('搜索')}>
+      <Row label={tr('搜索')} info={tr('焦点在地址栏时，浏览器会先处理 {0}；在 Navill 页面里按才会打开搜索', combo('L'))}><Kbd>{combo('L')}</Kbd></Row>
+      <Row label={tr('搜索')}><Kbd>/</Kbd></Row>
       </Section>
     </div>
   );
@@ -491,21 +497,21 @@ function Aliases() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身书签组<span className="font-normal text-kumo-subtle">{data?.groups.length ?? 0}</span><InfoTip>在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。</InfoTip></h3>
+        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">{tr('分身书签组')}<span className="font-normal text-kumo-subtle">{data?.groups.length ?? 0}</span><InfoTip>{tr('在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。')}</InfoTip></h3>
         {data?.groups.map(({ g, from, to }) => (
           <div key={g.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
-            <span className="flex-1">{from} <span className="text-kumo-subtle">→ 挂载到 →</span> {to}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void unmount(db, g.id)}>解除挂载</Button>
+            <span className="flex-1">{from} <span className="text-kumo-subtle">{tr('→ 挂载到 →')}</span> {to}</span>
+            <Button size="xs" icon={<LinkBreak />} onClick={() => void unmount(db, g.id)}>{tr('解除挂载')}</Button>
           </div>
         ))}
       </section>
       <section>
-        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">分身<span className="font-normal text-kumo-subtle">{data?.aliases.length ?? 0}</span></h3>
+        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">{tr('分身')}<span className="font-normal text-kumo-subtle">{data?.aliases.length ?? 0}</span></h3>
         {data?.aliases.map(({ a, b, where }) => (
           <div key={a.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="min-w-0 flex-1 truncate">{b?.title}</span>
             <span className="text-xs text-kumo-subtle">{where}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void detachAlias(db, a.id)}>转为独立书签</Button>
+            <Button size="xs" icon={<LinkBreak />} onClick={() => void detachAlias(db, a.id)}>{tr('转为独立书签')}</Button>
           </div>
         ))}
       </section>
@@ -531,17 +537,17 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
     try {
       const backup = parseBackup(await f.text());
       const mode = await dialogs.choose({
-        title: '恢复 Navill 备份',
-        description: `备份时间：${new Date(backup.exportedAt).toLocaleString('zh-CN')}`,
+        title: tr('恢复 Navill 备份'),
+        description: tr('备份时间：{0}', new Date(backup.exportedAt).toLocaleString(dateLocale)),
         choices: [
-          { value: 'merge', label: '合并到现有数据' },
-          { value: 'replace', label: '覆盖现有数据，先自动下载当前备份', danger: true },
+          { value: 'merge', label: tr('合并到现有数据') },
+          { value: 'replace', label: tr('覆盖现有数据，先自动下载当前备份'), danger: true },
         ],
       });
       if (!mode) return;
-      if (mode === 'replace') download(`navill-自动备份-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json');
+      if (mode === 'replace') download(tr('navill-自动备份-{0}.json', stamp()), JSON.stringify(await exportBackup(db)), 'application/json');
       await restoreBackup(db, backup, mode as 'merge' | 'replace');
-      setMsg({ ok: true, text: '已恢复' });
+      setMsg({ ok: true, text: tr('已恢复') });
     } catch (e) {
       setMsg({ ok: false, text: e instanceof Error ? e.message : String(e) });
     }
@@ -549,33 +555,33 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
   return (
     <div className="flex flex-col gap-1">
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
-      <Section title="导入">
-      <Row label="重新导入浏览器书签" info="默认追加并按 URL 去重，不影响已整理的内容"><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>重新导入</Button></Row>
-      <Row label="导入书签 HTML 文件" info="浏览器导出的标准书签文件，规则同书签栏"><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>选择文件</Button></Row>
+      <Section title={tr('导入')}>
+      <Row label={tr('重新导入浏览器书签')} info={tr('默认追加并按 URL 去重，不影响已整理的内容')}><Button size="sm" icon={<ArrowsClockwise />} onClick={() => onReimport('browser')}>{tr('重新导入')}</Button></Row>
+      <Row label={tr('导入书签 HTML 文件')} info={tr('浏览器导出的标准书签文件，规则同书签栏')}><Button size="sm" icon={<FileArrowUp />} onClick={() => onReimport('html')}>{tr('选择文件')}</Button></Row>
       </Section>
-      <Section title="备份与导出">
-      <Row label="导出 Navill 备份" info="JSON 文件，包含工作区、抽屉、书签、分身、场景、标签和使用统计">
-        <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>导出</Button>
+      <Section title={tr('备份与导出')}>
+      <Row label={tr('导出 Navill 备份')} info={tr('JSON 文件，包含工作区、抽屉、书签、分身、场景、标签和使用统计')}>
+        <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>{tr('导出')}</Button>
       </Row>
-      <Row label="恢复 Navill 备份">
-        <Button size="sm" icon={<FileArrowUp />} onClick={() => file.current?.click()}>选择文件</Button>
+      <Row label={tr('恢复 Navill 备份')}>
+        <Button size="sm" icon={<FileArrowUp />} onClick={() => file.current?.click()}>{tr('选择文件')}</Button>
         <input ref={file} type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void restore(f); e.target.value = ''; }} />
       </Row>
-      <Row label="导出为浏览器书签 HTML" info="工作区 → 文件夹，抽屉 → 子文件夹">
-        <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>导出</Button>
+      <Row label={tr('导出为浏览器书签 HTML')} info={tr('工作区 → 文件夹，抽屉 → 子文件夹')}>
+        <Button size="sm" icon={<DownloadSimple />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>{tr('导出')}</Button>
       </Row>
       </Section>
-      <Section title="维护">
-      <Row label="从名称解析工作区图标" info="把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行">
+      <Section title={tr('维护')}>
+      <Row label={tr('从名称解析工作区图标')} info={tr('把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行')}>
         <Button size="sm" icon={<Smiley />} onClick={async () => {
           const n = await parseWorkspaceIcons(db);
-          setMsg({ ok: true, text: n ? `已处理 ${n} 个工作区` : '没有名称里带 emoji 的工作区' });
-        }}>解析</Button>
+          setMsg({ ok: true, text: n ? tr('已处理 {0} 个工作区', n) : tr('没有名称里带 emoji 的工作区') });
+        }}>{tr('解析')}</Button>
       </Row>
-      <Row label="清空使用统计" info="清除全部打开记录与次数">
+      <Row label={tr('清空使用统计')} info={tr('清除全部打开记录与次数')}>
         <Button size="sm" variant="secondary-destructive" icon={<Trash />} onClick={async () => {
-          if (await dialogs.confirm({ title: '清空使用统计？', okText: '清空', danger: true })) await clearOpenEvents(db);
-        }}>清空</Button>
+          if (await dialogs.confirm({ title: tr('清空使用统计？'), okText: tr('清空'), danger: true })) await clearOpenEvents(db);
+        }}>{tr('清空')}</Button>
       </Row>
       </Section>
     </div>

@@ -4,6 +4,7 @@ import { MODE_DEFAULT, PALETTE, type Mode } from '@/src/db';
 import { tone, useDarkMode, useTone } from './colors';
 import { useApp } from './state';
 
+import { tr } from '@/src/i18n';
 const PRESET: Record<string, { icon: IconName; color: string }> = {
   [MODE_DEFAULT]: { icon: 'layers', color: PALETTE[9]! },
   'mode-work': { icon: 'briefcase', color: PALETTE[4]! },
@@ -29,7 +30,7 @@ export function ModeSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }) {
   const { modes, mode, updateSettings } = useApp();
   const dark = useDarkMode();
   return (
-    <div role="radiogroup" aria-label="场景" className="nv-seg inline-flex gap-0.5 rounded-lg bg-kumo-tint/70 p-0.5">
+    <div role="radiogroup" aria-label={tr('场景')} className="nv-seg inline-flex gap-0.5 rounded-lg bg-kumo-tint/70 p-0.5">
       {modes.map((m) => {
         const on = m.id === mode?.id;
         const { icon, color: c } = modeLook(m);

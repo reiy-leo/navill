@@ -9,6 +9,7 @@ import { Confetti } from './Confetti';
 import { Modal } from './Modal';
 import { toast } from './toast';
 
+import { tr } from '@/src/i18n';
 const SITE_ICON = 'https://navill.rei8t.dev/icon-192.png';
 const authorItem = storage.defineItem<string>('local:shareAuthor', { fallback: '' });
 
@@ -19,7 +20,7 @@ export function StatusBadge({ status, className = '' }: { status: MyShare['statu
 
 export async function copyLink(url: string) {
   await navigator.clipboard.writeText(url);
-  toast('已复制分享链接');
+  toast(tr('已复制分享链接'));
 }
 
 /** 分享抽屉 / 工作区：每次分享或更新都是一份快照，审核通过后公开 */
@@ -59,7 +60,7 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
     try {
       await authorItem.setValue(author.trim());
       const { payload, count } = await buildPayload(db, kind, sourceId, { includeAdult: false, author, description });
-      if (!count) throw new Error('没有可以分享的书签');
+      if (!count) throw new Error(tr('没有可以分享的书签'));
       const s = await putShare(kind, sourceId, payload);
       setShare(s);
       setCelebrate(true);
@@ -70,39 +71,39 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
     }
   };
 
-  const what = kind === 'drawer' ? '抽屉' : '工作区';
+  const what = kind === 'drawer' ? tr('抽屉') : tr('工作区');
   return (
     <Modal
       open form size="base" onClose={onClose}
-      title={`分享${what}「${name}」`}
+      title={tr('分享{0}「{1}」', what, name)}
       footer={
-        share ? <Button variant="primary" onClick={onClose}>完成</Button> : <>
-          <Button onClick={onClose}>关闭</Button>
-          {share !== undefined && <Button variant="primary" loading={busy} onClick={() => void submit()}>分享</Button>}
+        share ? <Button variant="primary" onClick={onClose}>{tr('完成')}</Button> : <>
+          <Button onClick={onClose}>{tr('关闭')}</Button>
+          {share !== undefined && <Button variant="primary" loading={busy} onClick={() => void submit()}>{tr('分享')}</Button>}
         </>
       }
     >
       <div className="flex flex-col gap-3">
         {err && <Banner variant="error" description={err} />}
-        {!needLogin && share === undefined && !err && <p className="py-6 text-center text-xs text-kumo-subtle">正在确认登录…</p>}
+        {!needLogin && share === undefined && !err && <p className="py-6 text-center text-xs text-kumo-subtle">{tr('正在确认登录…')}</p>}
         {needLogin && share === undefined && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <p className="text-sm">要用谷歌登录</p>
-            <p className="text-xs text-kumo-subtle">分享用 Google 账号确认身份，只读取邮箱。</p>
-            <Button variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => { setBusy(true); void load(true).finally(() => setBusy(false)); }}>用谷歌登录</Button>
+            <p className="text-sm">{tr('要用谷歌登录')}</p>
+            <p className="text-xs text-kumo-subtle">{tr('分享用 Google 账号确认身份，只读取邮箱。')}</p>
+            <Button variant="primary" icon={<GoogleLogo />} loading={busy} onClick={() => { setBusy(true); void load(true).finally(() => setBusy(false)); }}>{tr('用谷歌登录')}</Button>
           </div>
         )}
         {share && (
           <div className="flex flex-col items-center gap-2 py-2">
             {celebrate && <Confetti />}
-            {share.rejectedNote && <p className="text-xs text-kumo-danger">未通过：{share.rejectedNote}</p>}
+            {share.rejectedNote && <p className="text-xs text-kumo-danger">{tr('未通过：')}{share.rejectedNote}</p>}
             <div className="relative flex aspect-square w-56 flex-col items-center justify-center gap-3 rounded-2xl border border-kumo-line bg-kumo-base p-4">
               <StatusBadge status={share.status} className="absolute right-2.5 top-2.5" />
               <img src={SITE_ICON} alt="" className="size-16 rounded-2xl" />
               <span className="w-full truncate text-center text-xs text-kumo-subtle" title={share.url}>{share.url.replace(/^https:\/\//, "")}</span>
               <div className="flex gap-1">
-                <Button size="sm" shape="square" icon={<Copy />} aria-label="复制链接" title="复制链接" onClick={() => void copyLink(share.url)} />
-                <Button size="sm" shape="square" icon={<ArrowSquareOut />} aria-label="打开分享页" title="打开分享页" onClick={() => void browser.tabs.create({ url: share.url })} />
+                <Button size="sm" shape="square" icon={<Copy />} aria-label={tr('复制链接')} title={tr('复制链接')} onClick={() => void copyLink(share.url)} />
+                <Button size="sm" shape="square" icon={<ArrowSquareOut />} aria-label={tr('打开分享页')} title={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: share.url })} />
               </div>
             </div>
           </div>
@@ -111,11 +112,11 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
         {user && (
           <div className="flex items-center gap-2 text-xs text-kumo-subtle">
             {user.picture ? <img src={user.picture} alt="" referrerPolicy="no-referrer" className="size-5 rounded-full" /> : <GoogleLogo size={16} />}
-            <span className="min-w-0 truncate">已用谷歌登录：{user.name ? `${user.name} · ` : ''}{user.email}</span>
+            <span className="min-w-0 truncate">{tr('已用谷歌登录：')}{user.name ? `${user.name} · ` : ''}{user.email}</span>
           </div>
         )}
-        <Input value={author} maxLength={40} placeholder="作者名，留空显示「Navill 用户」" aria-label="作者名" onChange={(e) => setAuthor(e.target.value)} />
-        <Input value={description} maxLength={300} placeholder="简介" aria-label="简介" onChange={(e) => setDescription(e.target.value)} />
+        <Input value={author} maxLength={40} placeholder={tr('作者名，留空显示「Navill 用户」')} aria-label={tr('作者名')} onChange={(e) => setAuthor(e.target.value)} />
+        <Input value={description} maxLength={300} placeholder={tr('简介')} aria-label={tr('简介')} onChange={(e) => setDescription(e.target.value)} />
         </>}
       </div>
     </Modal>

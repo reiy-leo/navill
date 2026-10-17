@@ -8,11 +8,12 @@ import type { BookmarkNode } from '@/src/lib/edge-workspace';
 import { commitImport } from '@/src/lib/import/commit';
 import { buildImportPlan, planStats, type ImportPlan, type PlanSource } from '@/src/lib/import/plan';
 
+import { tr } from '@/src/i18n';
 const SOURCE_LABEL: Record<PlanSource, string> = {
-  bookmark_bar: '书签栏',
-  other: '其他书签',
-  mobile: '移动设备书签',
-  edge_workspace: 'Edge 工作区',
+  bookmark_bar: tr('书签栏'),
+  other: tr('其他书签'),
+  mobile: tr('移动设备书签'),
+  edge_workspace: tr('Edge 工作区'),
 };
 
 export default function ImportPreview({
@@ -27,7 +28,7 @@ export default function ImportPreview({
 
   useEffect(() => {
     if (sourceTree) setTree([sourceTree]);
-    else browser.bookmarks.getTree().then(setTree, (e: unknown) => setError(`读取浏览器书签失败：${String(e)}`));
+    else browser.bookmarks.getTree().then(setTree, (e: unknown) => setError(tr('读取浏览器书签失败：{0}', String(e))));
   }, [sourceTree]);
 
   useEffect(() => {
@@ -73,10 +74,10 @@ export default function ImportPreview({
     setBusy(true);
     try {
       const res = await commitImport(db, plan, { dedupe });
-      if (dedupe) window.alert(`导入完成：新增 ${res.bookmarks} 个书签，跳过 ${res.skipped} 个重复`);
+      if (dedupe) window.alert(tr('导入完成：新增 {0} 个书签，跳过 {1} 个重复', res.bookmarks, res.skipped));
       onDone();
     } catch (e) {
-      setError(`写入本地数据失败：${String(e)}`);
+      setError(tr('写入本地数据失败：{0}', String(e)));
       setBusy(false);
     }
   };
@@ -86,7 +87,7 @@ export default function ImportPreview({
       <main className="mx-auto max-w-3xl p-8">
         <Banner variant="error" description={error} />
         <Button className="mt-4" icon={<ArrowLeft />} onClick={onCancel}>
-          返回
+          {tr('返回')}
         </Button>
       </main>
     );
@@ -102,28 +103,27 @@ export default function ImportPreview({
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" shape="square" icon={<ArrowLeft />} onClick={onCancel} aria-label="返回" />
+        <Button variant="ghost" shape="square" icon={<ArrowLeft />} onClick={onCancel} aria-label={tr('返回')} />
         <Text variant="heading" size="lg" as="h1">
-          {dedupe ? '重新导入预览' : '导入预览'}
+          {dedupe ? tr('重新导入预览') : tr('导入预览')}
         </Text>
       </div>
       <Text variant="secondary" as="p">
-        将导入 {stats.workspaces} 个工作区、{stats.drawers} 个抽屉、{stats.bookmarks} 个书签。子文件夹已全部拍平为抽屉；
-        书签栏根目录的散放书签放进「待整理」。可以在这里改工作区名称或取消勾选。{dedupe ? '已存在的 URL 会自动跳过。' : ''}
+        {tr('将导入')} {stats.workspaces} {tr('个工作区、')}{stats.drawers} {tr('个抽屉、')}{stats.bookmarks} {tr('个书签。子文件夹已全部拍平为抽屉； 书签栏根目录的散放书签放进「待整理」。可以在这里改工作区名称或取消勾选。')}{dedupe ? tr('已存在的 URL 会自动跳过。') : ''}
       </Text>
       {over && (
-        <Banner variant="alert" description={`最多 ${MAX_WORKSPACES} 个工作区，这次最多还能导入 ${room} 个，超出的已取消勾选。取消勾选别的，就能换成想要的。`} />
+        <Banner variant="alert" description={tr('最多 {0} 个工作区，这次最多还能导入 {1} 个，超出的已取消勾选。取消勾选别的，就能换成想要的。', MAX_WORKSPACES, room)} />
       )}
 
       {(plan.available.other > 0 || plan.available.mobile > 0 || includeOther || includeMobile) && (
         <Surface className="flex flex-col gap-2 rounded-lg p-4">
           {(includeOther || plan.available.other > 0) && <Checkbox
-            label={`同时导入「其他书签」${includeOther ? '' : ` · ${plan.available.other} 个`}`}
+            label={tr('同时导入「其他书签」{0}', includeOther ? '' : ` · ${plan.available.other} 个`)}
             checked={includeOther}
             onCheckedChange={(v) => setIncludeOther(Boolean(v))}
           />}
           {(includeMobile || plan.available.mobile > 0) && <Checkbox
-            label={`同时导入「移动设备书签」${includeMobile ? '' : ` · ${plan.available.mobile} 个`}`}
+            label={tr('同时导入「移动设备书签」{0}', includeMobile ? '' : ` · ${plan.available.mobile} 个`)}
             checked={includeMobile}
             onCheckedChange={(v) => setIncludeMobile(Boolean(v))}
           />}
@@ -139,19 +139,19 @@ export default function ImportPreview({
                 checked={w.include}
                 disabled={!w.include && stats.workspaces >= room}
                 onCheckedChange={(v) => update(w.key, { include: Boolean(v) })}
-                aria-label={`导入 ${w.name}`}
+                aria-label={tr('导入 {0}', w.name)}
               />
-              <span className="min-w-6 shrink-0 text-center text-lg" title="工作区图标，从名称中的 emoji 解析">{w.emoji ?? ''}</span>
+              <span className="min-w-6 shrink-0 text-center text-lg" title={tr('工作区图标，从名称中的 emoji 解析')}>{w.emoji ?? ''}</span>
               <Input
                 className="flex-1"
                 size="sm"
                 value={w.name}
                 onChange={(e) => update(w.key, { name: e.target.value })}
-                aria-label="工作区名称"
+                aria-label={tr('工作区名称')}
               />
               <Badge variant={w.source === 'edge_workspace' ? 'blue' : 'neutral'}>{SOURCE_LABEL[w.source]}</Badge>
               <div className="w-36 shrink-0 text-right"><Text variant="secondary" as="span">
-                {w.drawers.length} 个抽屉 · {count} 个书签
+                {w.drawers.length} {tr('个抽屉 ·')} {count} {tr('个书签')}
               </Text></div>
             </Surface>
           );
@@ -159,9 +159,9 @@ export default function ImportPreview({
         {plan.inbox.length > 0 && (
           <Surface className="flex items-center gap-3 rounded-lg p-3">
             <div className="flex-1"><Text as="span">
-              待整理
+              {tr('待整理')}
             </Text></div>
-            <Badge variant="orange">系统</Badge>
+            <Badge variant="orange">{tr('系统')}</Badge>
             <div className="text-right"><Text variant="secondary" as="span">
               {plan.inbox.map((d) => `${d.name} ${d.bookmarks.length}`).join(' · ')}
             </Text></div>
@@ -170,9 +170,9 @@ export default function ImportPreview({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button onClick={onCancel}>取消</Button>
+        <Button onClick={onCancel}>{tr('取消')}</Button>
         <Button variant="primary" icon={<Check />} loading={busy} onClick={() => void confirm()} disabled={stats.bookmarks === 0}>
-          确认导入
+          {tr('确认导入')}
         </Button>
       </div>
     </main>

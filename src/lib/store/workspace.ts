@@ -6,8 +6,9 @@ import { hideEverywhereExcept } from './mode';
 import { splitEmoji } from '../emoji';
 import { logged, q } from '../log';
 
+import { tr } from '@/src/i18n';
 export class WorkspaceLimitError extends Error {
-  constructor() { super(`最多只能有 ${MAX_WORKSPACES} 个工作区`); }
+  constructor() { super(tr('最多只能有 {0} 个工作区', MAX_WORKSPACES)); }
 }
 
 export async function createWorkspace(
@@ -19,7 +20,7 @@ export async function createWorkspace(
     const regular = all.filter((w) => w.source !== 'inbox');
     const ws = await put<Workspace>(db, 'workspaces', {
       id: uid(),
-      ...normalizeName(input.name, input.emoji, '新工作区'),
+      ...normalizeName(input.name, input.emoji, tr('新工作区')),
       lucide: input.lucide,
       glyph: input.glyph,
       color: input.color ?? PALETTE[regular.length % PALETTE.length],
@@ -31,7 +32,7 @@ export async function createWorkspace(
       updatedAt: 0,
     });
     if (onlyInMode && onlyInMode !== MODE_DEFAULT) await hideEverywhereExcept(db, 'workspace', ws.id, onlyInMode);
-    log({ kind: 'create', targetType: 'workspace', targetId: ws.id, summary: `新建工作区${q(ws.name)}` });
+    log({ kind: 'create', targetType: 'workspace', targetId: ws.id, summary: tr('新建工作区{0}', q(ws.name)) });
     return ws;
   });
 }
@@ -53,8 +54,8 @@ export async function updateWorkspace(
   await patch<Workspace>(db, 'workspaces', id, changes);
   const renamed = changes.name !== undefined && changes.name !== ws.name;
   log(renamed
-    ? { kind: 'rename', targetType: 'workspace', targetId: id, summary: `工作区${q(ws.name)}改名为${q(changes.name)}` }
-    : { kind: 'edit', targetType: 'workspace', targetId: id, summary: `编辑工作区${q(ws.name)}` });
+    ? { kind: 'rename', targetType: 'workspace', targetId: id, summary: tr('工作区{0}改名为{1}', q(ws.name), q(changes.name)) }
+    : { kind: 'edit', targetType: 'workspace', targetId: id, summary: tr('编辑工作区{0}', q(ws.name)) });
   });
 }
 
@@ -78,7 +79,7 @@ export async function deleteWorkspace(db: NavillDB, id: string) {
   await logged(db, async (log) => {
     const ws = await db.workspaces.get(id);
     if (!ws || ws.source === 'inbox') return;
-    log({ kind: 'delete', targetType: 'workspace', targetId: id, summary: `删除工作区${q(ws.name)}` });
+    log({ kind: 'delete', targetType: 'workspace', targetId: id, summary: tr('删除工作区{0}', q(ws.name)) });
     const drawers: Drawer[] = await db.drawers.where('workspaceId').equals(id).toArray();
     for (const d of drawers) await deleteDrawer(db, d.id);
     const rest = await db.placements.where('workspaceId').equals(id).toArray();

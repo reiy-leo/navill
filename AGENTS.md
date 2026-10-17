@@ -45,7 +45,7 @@ docs/                PLAN.md、PRODUCT.md
 | `pnpm test` | Vitest |
 
 ## 代码规范
-- 界面文案全部中文；HTTP 状态码出现时附中文说明（如「408 请求超时」）。
+- 界面支持中文 / English（`src/i18n`）：源文案写中文并包 `tr('中文')`，占位符 `{0}`；同时在 `src/i18n/en.json` 加英文（`i18n.test.ts` 会检查缺失）。语言是本机设置（设置 → 通用 → 界面语言，默认跟随浏览器），切换后刷新页面。HTTP 状态码出现时附说明（中文模式如「408 请求超时」）。
 - 术语固定：工作区 / 抽屉 / 书签 / 分身 / 分身书签组 / 待整理。代码中浏览器侧的 Edge 工作区一律叫 `edgeWorkspaceNode`，与 Navill 的 `Workspace` 严格区分。
 - 分身是引用（`Placement.isAlias`），标题与 URL 永远读原书签；打开次数合并计数。
 - 本地优先：UI 永不等待网络；结构改动写入 Outbox，由后台批量同步。

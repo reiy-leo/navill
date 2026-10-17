@@ -1,10 +1,11 @@
 import { MODE_DEFAULT, PALETTE, type Mode, type NavillDB } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
 
+import { tr } from '@/src/i18n';
 export async function createMode(db: NavillDB, name: string) {
   const all = await db.modes.toArray();
   return put<Mode>(db, 'modes', {
-    id: uid(), name: name.trim() || '新场景', builtin: null, order: all.reduce((m, x) => Math.max(m, x.order), -1) + 1,
+    id: uid(), name: name.trim() || tr('新场景'), builtin: null, order: all.reduce((m, x) => Math.max(m, x.order), -1) + 1,
     hiddenWorkspaceIds: [], hiddenDrawerIds: [], showAdult: false, createdAt: Date.now(), updatedAt: 0,
     color: PALETTE[all.length % PALETTE.length], icon: 'circle-dot',
   });

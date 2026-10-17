@@ -13,6 +13,7 @@ import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { DND_PLACEMENT, hasType, insertAfter } from './dnd';
 
+import { tr } from '@/src/i18n';
 interface Props {
   items: Item[];
   view: ViewMode;
@@ -85,11 +86,11 @@ function BookmarkItem({
   const fav = b.tagIds.includes(TAG_FAVORITE);
   const horizontal = strip || view !== 'row';
   const badge = mountedFrom ? (
-    <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label="挂载" />
+    <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('挂载')} />
   ) : p.isAlias ? (
-    <Copy size={14} className="shrink-0 text-kumo-subtle" aria-label="分身" />
+    <Copy size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('分身')} />
   ) : null;
-  const title = [b.title, b.url, b.note, mountedFrom ? `源自抽屉「${mountedFrom.drawer.name}」` : p.isAlias ? '分身' : '', b.openCount ? `打开 ${b.openCount} 次` : '']
+  const title = [b.title, b.url, b.note, mountedFrom ? tr('源自抽屉「{0}」', mountedFrom.drawer.name) : p.isAlias ? tr('分身') : '', b.openCount ? tr('打开 {0} 次', b.openCount) : '']
     .filter(Boolean)
     .join('\n');
 
@@ -184,7 +185,7 @@ function BookmarkItem({
     >
       {organize && !mountedFrom && (
         <span className="absolute left-1 top-1 z-10" onClick={(e) => e.stopPropagation()}>
-          <Checkbox checked={selected} onCheckedChange={(v) => toggleSelect(p.id, Boolean(v))} aria-label="选择" />
+          <Checkbox checked={selected} onCheckedChange={(v) => toggleSelect(p.id, Boolean(v))} aria-label={tr('选择')} />
         </span>
       )}
       <div className={organize && !mountedFrom ? 'pl-6' : ''}>{body}</div>
@@ -192,8 +193,8 @@ function BookmarkItem({
         <button
           type="button"
           draggable={false}
-          aria-label={fav ? '取消收藏' : '收藏'}
-          title={fav ? '取消收藏' : '收藏'}
+          aria-label={fav ? tr('取消收藏') : tr('收藏')}
+          title={fav ? tr('取消收藏') : tr('收藏')}
           className={`absolute right-0.5 z-10 flex size-5 ${view === 'row' ? 'top-1/2 -translate-y-1/2' : 'top-0.5'} items-center justify-center rounded transition-opacity ${fav ? 'text-[#f5b301]' : 'text-kumo-subtle opacity-0 hover:text-[#f5b301] group-hover:opacity-100 focus-visible:opacity-100'}`}
           onClick={(e) => {
             e.preventDefault();

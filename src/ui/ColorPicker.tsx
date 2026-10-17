@@ -2,8 +2,9 @@ import { Popover, Tooltip } from '@cloudflare/kumo';
 import { useRef, useState, type ReactNode } from 'react';
 import { COLOR_GROUPS, tone, useDarkMode, useTone } from './colors';
 
+import { tr } from '@/src/i18n';
 /** 颜色方块：整个方块就是按钮，点击弹出颜色选择（抽屉弹窗用） */
-export function ColorSwatch({ color, onColor, label = '颜色', size = 36 }: { color?: string; onColor: (hex: string) => void; label?: string; size?: number }) {
+export function ColorSwatch({ color, onColor, label = tr('颜色'), size = 36 }: { color?: string; onColor: (hex: string) => void; label?: string; size?: number }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLButtonElement>(null);
   const shown = useTone(color) ?? '#8d8d86';
@@ -27,7 +28,7 @@ export function ColorSwatch({ color, onColor, label = '颜色', size = 36 }: { c
 }
 
 /** 图标框：右上角颜色小圆点，点击弹出颜色选择 */
-export function IconBox({ color, onColor, children, label = '颜色' }: { color?: string; onColor: (hex: string) => void; children: ReactNode; label?: string }) {
+export function IconBox({ color, onColor, children, label = tr('颜色') }: { color?: string; onColor: (hex: string) => void; children: ReactNode; label?: string }) {
   const [open, setOpen] = useState(false);
   const dot = useRef<HTMLButtonElement>(null);
   const shown = useTone(color) ?? '#8d8d86';
@@ -52,7 +53,7 @@ export function IconBox({ color, onColor, children, label = '颜色' }: { color?
 }
 
 /** 统一的颜色选择：64 种预置色按类分行，色块按当前主题显示，悬停显示名称 */
-export function ColorPicker({ value, onChange, label = '颜色' }: { value?: string; onChange: (hex: string) => void; label?: string }) {
+export function ColorPicker({ value, onChange, label = tr('颜色') }: { value?: string; onChange: (hex: string) => void; label?: string }) {
   const dark = useDarkMode();
   const cur = value?.toLowerCase();
   return (

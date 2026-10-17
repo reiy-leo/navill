@@ -1,6 +1,7 @@
 import { splitEmoji } from '../emoji';
 import { classifyRoot, edgeWorkspaceName, type BookmarkNode } from '../edge-workspace';
 
+import { tr } from '@/src/i18n';
 /**
  * 首次导入：把浏览器书签树转成导入计划（纯函数，便于单测）。规则见 docs/PLAN.md §3：
  * - 每个 Edge 工作区节点 → 一个工作区，名称取第一个子节点标题，空则「Edge 工作区 N」
@@ -53,13 +54,13 @@ export interface PlanOptions {
 }
 
 const ROOT_LABEL: Record<'bookmark_bar' | 'other' | 'mobile', string> = {
-  bookmark_bar: '书签栏',
-  other: '其他书签',
-  mobile: '移动设备书签',
+  bookmark_bar: tr('书签栏'),
+  other: tr('其他书签'),
+  mobile: tr('移动设备书签'),
 };
 
 export const PATH_SEPARATOR = ' / ';
-const UNTITLED_FOLDER = '未命名文件夹';
+const UNTITLED_FOLDER = tr('未命名文件夹');
 
 const isFolder = (n: BookmarkNode) => !n.url;
 

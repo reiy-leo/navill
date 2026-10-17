@@ -1,9 +1,10 @@
 import type { Bookmark, NavillDB, Tag } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
 
+import { tr } from '@/src/i18n';
 export async function createTag(db: NavillDB, name: string) {
   const n = name.trim().replace(/^#/, '');
-  if (!n) throw new Error('标签名不能为空');
+  if (!n) throw new Error(tr('标签名不能为空'));
   const all = await db.tags.toArray();
   const dup = all.find((t) => t.name === n);
   if (dup) return dup;

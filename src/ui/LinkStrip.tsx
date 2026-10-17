@@ -8,6 +8,7 @@ import { BookmarkIcon, hostOf } from './icons';
 import { openItem } from './open';
 import { useApp } from './state';
 
+import { tr } from '@/src/i18n';
 /** 「更多」弹层里一列最多几条，更多时分多列 */
 const PER_COLUMN = 6;
 
@@ -70,7 +71,7 @@ export function LinkStrip({ item, children, placement = 'replace', max = 5, alig
             content={<span className="block max-w-72">{l.title && <span className="block truncate font-medium">{l.title}</span>}<span className="block truncate opacity-75">{l.url}</span></span>}
             render={<button
             type="button"
-            aria-label={`打开关联链接：${l.title || hostOf(l.url)}`}
+            aria-label={tr('打开关联链接：{0}', l.title || hostOf(l.url))}
             draggable={false}
             className={`${s.className} flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded hover:bg-kumo-line`}
             style={s.style}
@@ -88,7 +89,7 @@ export function LinkStrip({ item, children, placement = 'replace', max = 5, alig
           <button
             ref={more}
             type="button"
-            aria-label={`还有 ${rest} 个关联链接`}
+            aria-label={tr('还有 {0} 个关联链接', rest)}
             aria-expanded={open}
             draggable={false}
             className={`${s.className} flex h-5 shrink-0 cursor-pointer items-center rounded px-1 text-xs text-kumo-subtle hover:bg-kumo-line hover:text-kumo-default ${open ? '!opacity-100 !translate-x-0' : ''}`}
@@ -144,7 +145,7 @@ function LinkList({ item, context, onOpened }: { item: Item; context: 'newtab' |
             {context === 'newtab' && (
               <button
                 type="button"
-                aria-label="删除这条关联链接"
+                aria-label={tr('删除这条关联链接')}
                 className="absolute right-1 top-1/2 hidden h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-kumo-subtle hover:bg-kumo-line hover:text-kumo-default group-hover/link:flex"
                 onClick={() => void updateBookmark(db, b.id, { links: links.filter((_, j) => j !== i) })}
               >

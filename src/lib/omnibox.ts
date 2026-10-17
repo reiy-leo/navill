@@ -3,6 +3,7 @@ import { getSettings } from './settings';
 import { recordOpen } from './store';
 import { search, visibilityOf } from './view';
 
+import { tr } from '@/src/i18n';
 /** 地址栏输入 nv + 空格，搜索 Navill 里的书签和关联链接 */
 const MAX = 8;
 
@@ -32,7 +33,7 @@ async function find(text: string): Promise<{ t: Target; title: string; where: st
 
 export function setupOmnibox() {
   if (!browser.omnibox) return;
-  browser.omnibox.setDefaultSuggestion({ description: '在 Navill 中搜索：<match>%s</match>' });
+  browser.omnibox.setDefaultSuggestion({ description: tr('在 Navill 中搜索：<match>%s</match>') });
   browser.omnibox.onInputChanged.addListener((text, suggest) => {
     void find(text).then((rs) => {
       last = rs.map((r) => r.t);

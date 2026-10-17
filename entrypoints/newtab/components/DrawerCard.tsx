@@ -16,6 +16,7 @@ import { DND_DRAWER, hasType, insertAfter } from './dnd';
 import { Items } from './Items';
 import { SortMenu, ViewMenu } from './menus';
 
+import { tr } from '@/src/i18n';
 export function DrawerCard({
   data, workspace, arrange, onDropDrawer, onReveal,
 }: { data: DrawerData; workspace: Workspace; arrange: Arrange; onDropDrawer: (drawerId: string, after: boolean) => void; onReveal: (i: Item) => void }) {
@@ -52,12 +53,12 @@ export function DrawerCard({
   };
 
   const mount = async () => {
-    const t = await dialogs.pickTarget({ title: `把「${drawer.name}」挂载到…`, drawersOnly: true, excludeDrawerIds: [drawer.id] });
+    const t = await dialogs.pickTarget({ title: tr('把「{0}」挂载到…', drawer.name), drawersOnly: true, excludeDrawerIds: [drawer.id] });
     if (!t?.drawerId) return;
     try {
       await mountDrawer(db, drawer.id, t.drawerId);
     } catch (e) {
-      if (e instanceof AliasCycleError) await dialogs.confirm({ title: '不能这样挂载', description: '目标抽屉已经直接或间接挂载了这个抽屉，会形成循环。', okText: '知道了' });
+      if (e instanceof AliasCycleError) await dialogs.confirm({ title: tr('不能这样挂载'), description: tr('目标抽屉已经直接或间接挂载了这个抽屉，会形成循环。'), okText: tr('知道了') });
       else throw e;
     }
   };
@@ -109,17 +110,17 @@ export function DrawerCard({
                 setEditing(false);
               }
             }}
-            aria-label="抽屉名称"
+            aria-label={tr('抽屉名称')}
           />
         ) : (
           drawer.description ? <Tooltip content={drawer.description} side="top" asChild>
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : `${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : tr('{0}，双击改名', drawer.name)} onDoubleClick={() => setEditing(true)}>
             {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
             {display}
             <span className="ml-1.5 opacity-70">{all.length}</span>
           </h2>
           </Tooltip> : <>
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : `${drawer.name}，双击改名`} onDoubleClick={() => setEditing(true)}>
+          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : tr('{0}，双击改名', drawer.name)} onDoubleClick={() => setEditing(true)}>
             {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
             {display}
             <span className="ml-1.5 opacity-70">{all.length}</span>
@@ -129,35 +130,35 @@ export function DrawerCard({
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
         <DropdownMenu onOpenChange={setMenuOpen}>
-          <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label="更多" />} />
+          <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (
-              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>全部打开</DropdownMenu.Item>
+              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>{tr('全部打开')}</DropdownMenu.Item>
             )}
-            <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>新建书签</DropdownMenu.Item>
-            <DropdownMenu.Item icon={PencilSimple} onClick={() => dialogs.editDrawer(drawer.id)}>编辑…</DropdownMenu.Item>
-            <DropdownMenu.Item icon={ShareNetwork} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>分享…</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>{tr('新建书签')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={PencilSimple} onClick={() => dialogs.editDrawer(drawer.id)}>{tr('编辑…')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={ShareNetwork} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>{tr('分享…')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>创建分身</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>{tr('创建分身')}</DropdownMenu.Item>
             {groups.map((g) => (
-              <DropdownMenu.Item key={g.group.id} icon={LinkBreak} onClick={() => void unmount(db, g.group.id)}>解除挂载「{g.drawer.name}」</DropdownMenu.Item>
+              <DropdownMenu.Item key={g.group.id} icon={LinkBreak} onClick={() => void unmount(db, g.group.id)}>{tr('解除挂载「')}{g.drawer.name}」</DropdownMenu.Item>
             ))}
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={ArrowsOutCardinal} onClick={async () => {
-              const t = await dialogs.pickTarget({ title: '移动抽屉到工作区…', workspacesOnly: true });
+              const t = await dialogs.pickTarget({ title: tr('移动抽屉到工作区…'), workspacesOnly: true });
               if (t) await moveDrawer(db, drawer.id, t.workspaceId);
-            }}>移动到…</DropdownMenu.Item>
-            <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? '取消 18+' : '标记为 18+'}</DropdownMenu.Item>
-            <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>打乱</DropdownMenu.Item>
+            }}>{tr('移动到…')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? tr('取消 18+') : tr('标记为 18+')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>{tr('打乱')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item icon={Archive} onClick={() => void archiveDrawer(db, drawer.id)}>归档</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Archive} onClick={() => void archiveDrawer(db, drawer.id)}>{tr('归档')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Package} onClick={async () => {
-              if (await dialogs.confirm({ title: `解散「${drawer.name}」？`, description: '抽屉会删除，其中的书签移到工作区顶层。', okText: '解散' })) await dissolveDrawer(db, drawer.id);
-            }}>解散</DropdownMenu.Item>
+              if (await dialogs.confirm({ title: tr('解散「{0}」？', drawer.name), description: tr('抽屉会删除，其中的书签移到工作区顶层。'), okText: tr('解散') })) await dissolveDrawer(db, drawer.id);
+            }}>{tr('解散')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Trash} variant="danger" onClick={async () => {
-              if (await dialogs.confirm({ title: `删除「${drawer.name}」？`, description: `抽屉连同其中 ${items.length} 个书签一起删除。原书签有分身时，由分身接任。`, okText: '删除', danger: true })) await deleteDrawer(db, drawer.id);
-            }}>删除</DropdownMenu.Item>
+              if (await dialogs.confirm({ title: tr('删除「{0}」？', drawer.name), description: tr('抽屉连同其中 {0} 个书签一起删除。原书签有分身时，由分身接任。', items.length), okText: tr('删除'), danger: true })) await deleteDrawer(db, drawer.id);
+            }}>{tr('删除')}</DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu>
       </LayerCard.Secondary>
@@ -171,7 +172,7 @@ export function DrawerCard({
           items={all}
           view={view}
           strip={arrange === 'strip'}
-          emptyHint="拖书签到这里"
+          emptyHint={tr('拖书签到这里')}
           onReveal={onReveal}
           onDrop={(placementId, index) => {
             void (async () => {
@@ -221,7 +222,7 @@ function ResizeHandle({ bodyRef, onLive, onCommit }: { bodyRef: React.RefObject<
   const drag = useRef<{ y: number; h: number; max: number; last: number } | null>(null);
   return (
     <div
-      role="separator" aria-orientation="horizontal" aria-label="拖动调整抽屉高度，双击恢复"
+      role="separator" aria-orientation="horizontal" aria-label={tr('拖动调整抽屉高度，双击恢复')}
       className="group/handle -mb-2 -mt-1 flex h-3 w-1/2 cursor-ns-resize touch-none items-center self-center"
       onPointerDown={(e) => {
         const el = bodyRef.current;

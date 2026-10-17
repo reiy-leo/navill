@@ -14,6 +14,7 @@ import { ArrangeMenu, ViewMenu } from './menus';
 import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
 
+import { tr } from '@/src/i18n';
 export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const { visibility, settings, selectWorkspace, updateSettings } = useApp();
   const dialogs = useDialogs();
@@ -25,9 +26,9 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 
   const newDrawer = async () => {
     const base = workspace.color ?? PALETTE[0]!;
-    const res = await dialogs.create('抽屉', base);
+    const res = await dialogs.create(tr('抽屉'), base);
     if (!res) return;
-    const vis = await dialogs.askVisibility(settings.currentModeId, '抽屉');
+    const vis = await dialogs.askVisibility(settings.currentModeId, tr('抽屉'));
     if (!vis) return;
     await createDrawer(db, workspace.id, res.name, vis === 'current' ? settings.currentModeId : undefined, res.color !== base ? res.color : undefined, res.description);
   };
@@ -63,15 +64,15 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         </div>
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Tooltip content="新建书签" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label="新建书签" onClick={() => void newBookmark()} /></Tooltip>
-        <Tooltip content="新建抽屉" side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<FolderPlus />} aria-label="新建抽屉" onClick={() => void newDrawer()} /></Tooltip>
+        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
+        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<FolderPlus />} aria-label={tr('新建抽屉')} onClick={() => void newDrawer()} /></Tooltip>
       </div>
 
       {top.length === 0 && drawers.length === 0 ? (
         <Empty
           icon={<Tray size={40} />}
-          title={workspace.source === 'inbox' ? '都整理好了' : '这个工作区还是空的'}
-          description={workspace.source === 'inbox' ? '没有待整理的书签。' : '添加书签、新建抽屉，或从其他工作区「整理」过来。'}
+          title={workspace.source === 'inbox' ? tr('都整理好了') : tr('这个工作区还是空的')}
+          description={workspace.source === 'inbox' ? tr('没有待整理的书签。') : tr('添加书签、新建抽屉，或从其他工作区「整理」过来。')}
         />
       ) : (
         <>
@@ -109,7 +110,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
                 if (id) void movePlacement(db, id, workspace.id, null);
               }}
             >
-              拖到这里放到工作区顶层
+              {tr('拖到这里放到工作区顶层')}
             </div>
           )}
         </>

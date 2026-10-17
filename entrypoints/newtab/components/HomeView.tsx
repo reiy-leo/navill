@@ -8,6 +8,7 @@ import { mostOpened, search, visibilityOf } from '@/src/lib/view';
 import { useApp } from '@/src/ui/state';
 import { Items } from './Items';
 
+import { tr } from '@/src/i18n';
 /** 市场最新分享在主页最多显示几个 */
 const LATEST = 6;
 
@@ -15,7 +16,7 @@ const LATEST = 6;
 export function HomeView() {
   const { mode, setView } = useApp();
   const favs = useLiveQuery(async () => {
-    const hits = await search(db, '#收藏', visibilityOf(mode), 500);
+    const hits = await search(db, tr('#收藏'), visibilityOf(mode), 500);
     return hits.map((h) => h.item).filter((it) => it.bookmark.tagIds.includes(TAG_FAVORITE));
   }, [mode]);
   const top = useLiveQuery(() => mostOpened(db, visibilityOf(mode), 20), [mode]);
@@ -31,9 +32,9 @@ export function HomeView() {
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-medium">收藏</h2>
+        <h2 className="text-base font-medium">{tr('收藏')}</h2>
         {!favs ? <div className="flex justify-center py-6"><Loader /></div> : favs.length === 0 ? (
-          <Empty icon={<Star size={36} />} title="还没有收藏" description="给书签加上「收藏」标签，就会出现在这里。" />
+          <Empty icon={<Star size={36} />} title={tr('还没有收藏')} description={tr('给书签加上「收藏」标签，就会出现在这里。')} />
         ) : (
           <Items items={favs} view="icon" />
         )}
@@ -41,19 +42,19 @@ export function HomeView() {
 
       {!!top?.length && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">最常用</h2>
+          <h2 className="text-base font-medium">{tr('最常用')}</h2>
           <Items items={top} view="icon" strip />
         </section>
       )}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-medium">市场最新分享</h2>
-          <Button size="sm" variant="ghost" onClick={() => setView('market')}>查看更多<ArrowRight size={14} /></Button>
+          <h2 className="text-base font-medium">{tr('市场最新分享')}</h2>
+          <Button size="sm" variant="ghost" onClick={() => setView('market')}>{tr('查看更多')}<ArrowRight size={14} /></Button>
         </div>
         {err && <p className="text-sm text-kumo-danger">{err}</p>}
         {latest === null && <div className="flex justify-center py-6"><Loader /></div>}
-        {latest?.length === 0 && !err && <p className="text-sm text-kumo-subtle">市场里还没有分享。</p>}
+        {latest?.length === 0 && !err && <p className="text-sm text-kumo-subtle">{tr('市场里还没有分享。')}</p>}
         {!!latest?.length && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
             {latest.map((s) => (
@@ -64,7 +65,7 @@ export function HomeView() {
                   {s.emoji && <span>{s.emoji}</span>}
                   <span className="truncate">{s.title}</span>
                 </div>
-                <div className="w-full truncate text-xs text-kumo-subtle">{s.author} · {s.kind === 'drawer' ? '抽屉' : `工作区 · ${s.drawerCount} 个抽屉`} · {s.bookmarkCount} 个书签</div>
+                <div className="w-full truncate text-xs text-kumo-subtle">{s.author} · {s.kind === 'drawer' ? tr('抽屉') : tr('工作区 · {0} 个抽屉', s.drawerCount)} · {s.bookmarkCount} {tr('个书签')}</div>
                 {s.description && <p className="line-clamp-2 text-xs text-kumo-subtle">{s.description}</p>}
               </button>
             ))}

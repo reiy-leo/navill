@@ -3,6 +3,7 @@ import type { LogEntry, LogKind, LogTarget, NavillDB } from '@/src/db';
 import { deviceId, tx, uid } from './store/core';
 import { monthKey } from './sync/merge';
 
+import { tr } from '@/src/i18n';
 /**
  * 日志：记录用户的写操作（工作区 / 抽屉 / 书签的新建、改名、编辑、删除、移动、归档、恢复、分身），
  * 以及新设备首次运行、登录同步。在 store 层记录，所有入口都覆盖；
@@ -33,7 +34,7 @@ export function browserName(ua: string): string {
   if (/Firefox\//.test(ua)) return 'Firefox';
   if (/Chrome\//.test(ua)) return 'Chrome';
   if (/Safari\//.test(ua)) return 'Safari';
-  return '浏览器';
+  return tr('浏览器');
 }
 
 export function osName(ua: string): string {
@@ -86,7 +87,7 @@ export async function logInstallOnce(db: NavillDB): Promise<void> {
   await tx(db, async () => {
     if (await db.meta.get('installLogged')) return;
     await db.meta.put({ key: 'installLogged', value: Date.now() });
-    await write(db, { kind: 'install', targetType: 'device', summary: `新设备：${deviceLabel()}` });
+    await write(db, { kind: 'install', targetType: 'device', summary: tr('新设备：{0}', deviceLabel()) });
   });
 }
 

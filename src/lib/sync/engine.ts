@@ -12,6 +12,7 @@ import type { WebdavConfig } from './webdav';
 import { mergeStates, monthKey, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
+import { tr } from '@/src/i18n';
 const STATE_FILE = 'state.json.gz';
 const SETTINGS_FILE = 'settings.json.gz';
 const eventsFile = (dev: string, month: string) => `events/${dev}-${month}.jsonl.gz`;
@@ -192,7 +193,7 @@ export async function backoffMinutes(db: NavillDB): Promise<number> {
 export async function connectWebdavAndLog(db: NavillDB, cfg: WebdavConfig) {
   if ((await syncProviderItem.getValue()) !== 'webdav') await disconnectSync(db);
   await connectWebdav(cfg);
-  await addLog(db, { kind: 'signin', targetType: 'sync', summary: `连接 WebDAV 同步：${new URL(cfg.url).host}` });
+  await addLog(db, { kind: 'signin', targetType: 'sync', summary: tr('连接 WebDAV 同步：{0}', new URL(cfg.url).host) });
 }
 
 /** 设置页：删除云端全部 Navill 数据 */
@@ -222,5 +223,5 @@ export async function signInAndLog(db: NavillDB) {
     await syncProviderItem.setValue('google');
   }
   await signIn();
-  await addLog(db, { kind: 'signin', targetType: 'sync', summary: '登录 Google Drive 同步' });
+  await addLog(db, { kind: 'signin', targetType: 'sync', summary: tr('登录 Google Drive 同步') });
 }

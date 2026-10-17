@@ -3,6 +3,7 @@ import { Button, Input } from '@cloudflare/kumo';
 import { DynamicIcon, iconNames, type IconName } from 'lucide-react/dynamic';
 import { useMemo, useState } from 'react';
 
+import { tr } from '@/src/i18n';
 /** 没输入关键词时显示的常用图标 */
 const COMMON: IconName[] = [
   'folder', 'briefcase', 'house', 'target', 'book-open', 'brain', 'lightbulb', 'wrench', 'flask-conical', 'palette',
@@ -25,7 +26,7 @@ export function LucidePicker({ value, onChange, allowNone = true, color }: { val
   }, [q]);
   return (
     <div className="grid gap-2">
-      <Input size="sm" placeholder="搜索图标，如 book、code、home" aria-label="搜索图标" value={q} onChange={(e) => setQ(e.target.value)} />
+      <Input size="sm" placeholder={tr('搜索图标，如 book、code、home')} aria-label={tr('搜索图标')} value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
         {list.map((n) => (
           <Button
@@ -37,7 +38,7 @@ export function LucidePicker({ value, onChange, allowNone = true, color }: { val
             <DynamicIcon name={n} size={18} />
           </Button>
         ))}
-        {list.length === 0 && <span className="px-2 py-1 text-sm text-kumo-subtle">没有匹配的图标</span>}
+        {list.length === 0 && <span className="px-2 py-1 text-sm text-kumo-subtle">{tr('没有匹配的图标')}</span>}
       </div>
     </div>
   );

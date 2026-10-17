@@ -1,17 +1,18 @@
 import { INBOX_ID, INBOX_NAME, INBOX_ORDER, MODE_DEFAULT, PALETTE, TAG_ADULT, TAG_FAVORITE, TAG_TODO, type AliasGroup, type Drawer, type Mode, type NavillDB, type Placement, type Tag, type Workspace } from '@/src/db';
 import { del, patch, put, tx } from './core';
 
+import { tr } from '@/src/i18n';
 export const PRESET_MODES: Array<[string, string, 'default' | null]> = [
-  [MODE_DEFAULT, '默认', 'default'],
-  ['mode-work', '工作', null],
-  ['mode-home', '居家', null],
-  ['mode-talk', '演讲', null],
-  ['mode-lend', '借用', null],
+  [MODE_DEFAULT, tr('默认'), 'default'],
+  ['mode-work', tr('工作'), null],
+  ['mode-home', tr('居家'), null],
+  ['mode-talk', tr('演讲'), null],
+  ['mode-lend', tr('借用'), null],
 ];
 export const BUILTIN_TAGS: Array<[string, string, Tag['builtin']]> = [
   [TAG_ADULT, '18+', 'adult'],
-  [TAG_FAVORITE, '收藏', 'favorite'],
-  [TAG_TODO, '待办', 'todo'],
+  [TAG_FAVORITE, tr('收藏'), 'favorite'],
+  [TAG_TODO, tr('待办'), 'todo'],
 ];
 
 /** 确保系统工作区「待整理」存在（始终存在、不可删除） */
@@ -79,7 +80,7 @@ export async function ensureSeed(db: NavillDB): Promise<void> {
       await db.meta.put({ key: 'modesSeeded', value: now });
     } else if (!(await db.modes.get(MODE_DEFAULT))) {
       await put(db, 'modes', {
-        id: MODE_DEFAULT, name: '默认', builtin: 'default', order: 0, hiddenWorkspaceIds: [], hiddenDrawerIds: [],
+        id: MODE_DEFAULT, name: tr('默认'), builtin: 'default', order: 0, hiddenWorkspaceIds: [], hiddenDrawerIds: [],
         showAdult: false, createdAt: now, updatedAt: 0,
       } as Mode);
     }

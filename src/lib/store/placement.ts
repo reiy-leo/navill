@@ -2,6 +2,7 @@ import type { NavillDB, Placement } from '@/src/db';
 import { del, patch, put, tx, uid } from './core';
 import { logged, q } from '../log';
 
+import { tr } from '@/src/i18n';
 async function where(db: NavillDB, workspaceId: string, drawerId: string | null) {
   const ws = await db.workspaces.get(workspaceId);
   const d = drawerId ? await db.drawers.get(drawerId) : undefined;
@@ -36,7 +37,7 @@ export async function removePlacement(db: NavillDB, placementId: string) {
     const p = await db.placements.get(placementId);
     if (!p) return;
     const b = await db.bookmarks.get(p.bookmarkId);
-    log({ kind: 'delete', targetType: 'bookmark', targetId: p.bookmarkId, summary: `删除${p.isAlias ? '分身' : '书签'}${q(b?.title)}` });
+    log({ kind: 'delete', targetType: 'bookmark', targetId: p.bookmarkId, summary: tr('删除{0}{1}', p.isAlias ? '分身' : '书签', q(b?.title)) });
     await del(db, 'placements', p.id);
     const rest = await db.placements.where('bookmarkId').equals(p.bookmarkId).toArray();
     if (rest.length === 0) {
@@ -59,7 +60,7 @@ export async function movePlacement(
     if (!p) return;
     if (p.workspaceId !== workspaceId || p.drawerId !== drawerId) {
       const b = await db.bookmarks.get(p.bookmarkId);
-      log({ kind: 'move', targetType: 'bookmark', targetId: p.bookmarkId, summary: `书签${q(b?.title)}移动到${await where(db, workspaceId, drawerId)}` });
+      log({ kind: 'move', targetType: 'bookmark', targetId: p.bookmarkId, summary: tr('书签{0}移动到{1}', q(b?.title), await where(db, workspaceId, drawerId)) });
     }
     const target = (await placementsAt(db, workspaceId, drawerId)).filter((x) => x.id !== p.id);
     // 同一位置已有该书签的另一个放置（分身）时，不重复
@@ -79,7 +80,7 @@ export async function createAlias(db: NavillDB, bookmarkId: string, workspaceId:
     const existing = await placementsAt(db, workspaceId, drawerId);
     if (existing.some((x) => x.bookmarkId === bookmarkId)) return null;
     const b = await db.bookmarks.get(bookmarkId);
-    log({ kind: 'alias', targetType: 'bookmark', targetId: bookmarkId, summary: `为书签${q(b?.title)}创建分身到${await where(db, workspaceId, drawerId)}` });
+    log({ kind: 'alias', targetType: 'bookmark', targetId: bookmarkId, summary: tr('为书签{0}创建分身到{1}', q(b?.title), await where(db, workspaceId, drawerId)) });
     const row = await put<Placement>(db, 'placements', {
       id: uid(), bookmarkId, workspaceId, drawerId, order: await nextOrder(db, workspaceId, drawerId),
       isAlias: true, updatedAt: 0,

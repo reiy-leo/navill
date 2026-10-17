@@ -12,6 +12,7 @@ import { openItem } from '@/src/ui/open';
 import { useApp } from '@/src/ui/state';
 import { search, visibilityOf } from '@/src/lib/view';
 
+import { tr } from '@/src/i18n';
 export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
   const { query, mode, settings, organize, selection, toggleSelect } = useApp();
   const [archived, setArchived] = useState(false);
@@ -36,11 +37,11 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-kumo-subtle">{hits.length} 个结果 · 场景「{mode?.name}」</span>
-        <Checkbox label="包含归档" checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
+        <span className="text-sm text-kumo-subtle">{hits.length} {tr('个结果 · 场景「')}{mode?.name}」</span>
+        <Checkbox label={tr('包含归档')} checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
       </div>
       {hits.length === 0 ? (
-        <Empty icon={<MagnifyingGlass size={40} />} title="没有找到" description="换个关键词，或切换到「默认」场景在全部工作区中搜索。" />
+        <Empty icon={<MagnifyingGlass size={40} />} title={tr('没有找到')} description={tr('换个关键词，或切换到「默认」场景在全部工作区中搜索。')} />
       ) : (
         <ul className="flex flex-col">
           {hits.map((h, i) => (
@@ -56,10 +57,10 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
                 }}
                 onContextMenu={(e) => menu(e, bookmarkMenu(h.item, dialogs, settings))}
               >
-                {organize && <Checkbox checked={selection.has(h.item.placement.id)} aria-label="选择" />}
+                {organize && <Checkbox checked={selection.has(h.item.placement.id)} aria-label={tr('选择')} />}
                 <BookmarkIcon url={h.item.bookmark.url} src={h.item.bookmark.faviconUrl} size={20} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? ' · 已归档' : ''}</div>
+                  <div className="truncate text-sm">{h.item.bookmark.title}{h.item.bookmark.archivedAt ? tr(' · 已归档') : ''}</div>
                   <LinkStrip item={h.item} max={6}><div className="truncate text-xs text-kumo-subtle">{hostOf(h.item.bookmark.url)}</div></LinkStrip>
                 </div>
                 <span className="shrink-0 text-xs text-kumo-subtle">{h.workspace.name}{h.drawer ? ` / ${h.drawer.name}` : ''}</span>

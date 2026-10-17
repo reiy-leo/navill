@@ -1,6 +1,7 @@
 import { storage } from 'wxt/utils/storage';
 import { syncStatusItem } from '../settings';
 
+import { tr } from '@/src/i18n';
 /**
  * Google OAuth：chrome.identity.launchWebAuthFlow（Chrome / Edge 通用），仅 drive.appdata scope。
  * 客户端 ID 默认用内置的正式 ID；自建 fork 可在 .env 中用 WXT_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com 覆盖
@@ -32,12 +33,12 @@ async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Pr
   url.searchParams.set('include_granted_scopes', 'true');
   if (!interactive) url.searchParams.set('prompt', 'none');
   const result = await browser.identity.launchWebAuthFlow({ url: url.toString(), interactive });
-  if (!result) throw new Error('授权已取消');
+  if (!result) throw new Error(tr('授权已取消'));
   const params = new URLSearchParams(new URL(result).hash.slice(1));
   const err = params.get('error');
-  if (err) throw new Error(`Google 授权失败：${err}`);
+  if (err) throw new Error(tr('Google 授权失败：{0}', err));
   const accessToken = params.get('access_token');
-  if (!accessToken) throw new Error('Google 授权失败：没有拿到令牌');
+  if (!accessToken) throw new Error(tr('Google 授权失败：没有拿到令牌'));
   const token = { accessToken, expiresAt: Date.now() + (Number(params.get('expires_in')) || 3600) * 1000 - 60_000 };
   await item.setValue(token);
   return token;
@@ -45,10 +46,10 @@ async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Pr
 
 /** 取可用令牌：缓存 → 静默续期（prompt=none）→ interactive 时弹窗 */
 export async function getToken(interactive = false): Promise<string> {
-  if (!isConfigured()) throw new Error('未配置 Google OAuth 客户端 ID');
+  if (!isConfigured()) throw new Error(tr('未配置 Google OAuth 客户端 ID'));
   const cached = await tokenItem.getValue();
   if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
-  if (!(await isSignedIn()) && !interactive) throw new Error('未登录 Google');
+  if (!(await isSignedIn()) && !interactive) throw new Error(tr('未登录 Google'));
   try {
     return (await launch(false)).accessToken;
   } catch (e) {
@@ -59,7 +60,7 @@ export async function getToken(interactive = false): Promise<string> {
 
 /** 分享用令牌（含 email scope）：缓存 → 静默 → 弹窗 */
 export async function getShareToken(interactive = true): Promise<string> {
-  if (!isConfigured()) throw new Error('未配置 Google OAuth 客户端 ID');
+  if (!isConfigured()) throw new Error(tr('未配置 Google OAuth 客户端 ID'));
   const cached = await shareTokenItem.getValue();
   if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
   try {

@@ -26,6 +26,7 @@ import { SettingsDialog } from './components/Settings';
 import Welcome from './components/Welcome';
 import { WorkspaceView } from './components/WorkspaceView';
 
+import { tr } from '@/src/i18n';
 export default function App() {
   return (
     <TooltipProvider delay={300}>
@@ -116,7 +117,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
         {pos === 'top' && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
           {view === 'home' ? <HomeView /> : view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : view === 'market' ? <MarketView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
-            <p className="p-8 text-center text-sm text-kumo-subtle">当前场景下没有可见的工作区，可以在设置 → 场景中调整。</p>
+            <p className="p-8 text-center text-sm text-kumo-subtle">{tr('当前场景下没有可见的工作区，可以在设置 → 场景中调整。')}</p>
           )}
         </main>
         {pos === 'bottom' && <Nav current={current?.id} {...menu} />}

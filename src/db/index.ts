@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 
+import { tr } from '@/src/i18n';
 // 数据模型见 docs/PLAN.md §4。IndexedDB 为本地事实来源，界面不等待网络。
 export type ViewMode = 'icon' | 'row' | 'tile' | 'bento';
 /** smart：智能（默认），点击多的在前，近期打开过的略靠前 */
@@ -133,7 +134,7 @@ export function createDB(name = 'navill'): NavillDB {
 
 export const db = createDB();
 
-export const INBOX_NAME = '待整理';
+export const INBOX_NAME = tr('待整理');
 /** 「待整理」固定 ID：多设备各自创建时同步后合并为同一个 */
 export const INBOX_ID = 'ws-inbox';
 /** 「待整理」固定排在末尾 */

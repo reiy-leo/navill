@@ -1,6 +1,7 @@
 import type { NavillDB } from '@/src/db';
 import type { BookmarkNode } from '../edge-workspace';
 
+import { tr } from '@/src/i18n';
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** 导出标准 Netscape 书签 HTML：工作区 → 文件夹，抽屉 → 子文件夹（按路径还原层级） */
@@ -56,7 +57,7 @@ export function parseNetscapeHtml(html: string): BookmarkNode {
   // 解析器会把 <p> 等标签挪动，DT 有时被包在 <p> 里：先把 DL 下的 P 展开
   doc.querySelectorAll('dl > p').forEach((p) => p.replaceWith(...Array.from(p.childNodes)));
   const children = top ? walk(top) : [];
-  const bar = { id: '1', title: '书签栏', children, syncing: false } as BookmarkNode;
+  const bar = { id: '1', title: tr('书签栏'), children, syncing: false } as BookmarkNode;
   return { id: '0', title: '', children: [bar], syncing: false } as BookmarkNode;
 }
 
