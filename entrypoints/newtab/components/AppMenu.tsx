@@ -1,19 +1,22 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, ShareNetwork, Storefront, GearSix, MagnifyingGlass } from '@phosphor-icons/react';
-import { useEffect, useRef } from 'react';
+import { Archive, Check, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, ShareNetwork, Storefront, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
+import { useEffect, useRef, useState } from 'react';
+import { AboutDialog } from '@/src/ui/AboutDialog';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
 import { dateLocale, tr } from '@/src/i18n';
-/** ⋯ 菜单：新建工作区 · 开始整理 · 管理归档 · 管理分享 · 搜索 | 同步 · 设置（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
+/** ⋯ 菜单：新建工作区 · 开始整理 · 管理归档 · 管理分享 · 搜索 | 同步 · 设置 · 关于本扩展（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end' }) {
   const { organize, setOrganize, settings, view, setView } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
   const syncLabel = !settings.sync.enabled ? tr('同步未开启') : sync.state === 'error' ? tr('同步失败') : sync.state === 'syncing' ? tr('正在同步…') : sync.lastSyncAt ? tr('已同步 {0}', new Date(sync.lastSyncAt).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })) : tr('同步');
+  const [about, setAbout] = useState(false);
   return (
+    <>
     <DropdownMenu>
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} title={tr('更多')} />} />
       <DropdownMenu.Content side={side} align={align ?? (side === 'bottom' ? 'end' : 'start')}>
@@ -26,8 +29,11 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于本扩展')}</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
+    <AboutDialog open={about} onClose={() => setAbout(false)} />
+    </>
   );
 }
 

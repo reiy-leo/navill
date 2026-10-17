@@ -15,6 +15,7 @@ export default defineConfig({
   manifest: {
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
+    homepage_url: 'https://navill.rei8t.dev',
     default_locale: 'zh_CN',
     permissions: ['bookmarks', 'storage', 'unlimitedStorage', 'favicon', 'identity', 'alarms'],
     host_permissions: ['https://www.googleapis.com/*', 'https://icon.horse/*', 'https://www.google.com/s2/*', 'https://*.gstatic.com/*', 'https://navill.rei8t.dev/*'],

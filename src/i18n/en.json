@@ -601,5 +601,9 @@
  "磨砂模糊": "Frosted blur",
  "不模糊": "None",
  "轻度": "Light",
- "强": "Strong"
+ "强": "Strong",
+ "关于本扩展": "About this extension",
+ "反馈问题": "Report an issue",
+ "版本 {0}": "Version {0}",
+ "把浏览器书签一次性导入，重新整理成「工作区 → 抽屉 → 书签」的新标签页导航，支持分身、场景、标签，并可通过 Google Drive 或 WebDAV 在多台设备间同步。": "Import your browser bookmarks once and reorganize them into a Workspace → Drawer → Bookmark new tab page, with aliases, modes and tags, synced across devices via Google Drive or WebDAV."
 }
