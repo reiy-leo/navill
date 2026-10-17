@@ -78,5 +78,5 @@ docs/                PLAN.md、PRODUCT.md
 
 ## 版本与发布
 - 版本号只写在 `package.json`。从 0.2.0 起开发中用预发布版本 `X.Y.Z-alpha.N`（WXT 会把清单 `version` 写成 `X.Y.Z`、`version_name` 写成完整版本）。
-- 发布 = 推送与 `package.json` 一致的 tag：`vX.Y.Z-alpha.N` 只构建，zip 留作 Actions 产物；`vX.Y.Z` 正式版由 `.github/workflows/release.yml` 自动创建 GitHub Release，附 Chrome/Edge zip 和自上个正式版以来的提交列表。
+- 发布 = 推送与 `package.json` 一致的 tag：`.github/workflows/release.yml` 自动创建 GitHub Release，附 Chrome/Edge zip：`vX.Y.Z-alpha.N` 标为 Pre-release，提交列表从上一个 tag 起算；`vX.Y.Z` 正式版的提交列表从上个正式版起算。
 - Google OAuth 客户端 ID 是公开信息，默认值写在 `src/lib/sync/auth.ts`，CI 打包无需任何 Secret；`.env` 的 `WXT_GOOGLE_CLIENT_ID` 只用于 fork 覆盖。
