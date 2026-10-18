@@ -1,11 +1,12 @@
 import { Button } from '@cloudflare/kumo';
-import { X } from '@phosphor-icons/react';
+import { ArrowClockwise, X } from '@phosphor-icons/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { tr } from '@/src/i18n';
 
 /** 右侧抽屉：桌面占半屏，窄屏全宽；点遮罩或 Esc 关闭 */
-export function SideDrawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode }) {
+export function SideDrawer({ open, onClose, onRefresh, title, children }: { open: boolean; onClose: () => void; onRefresh?: () => void; title: ReactNode; children: ReactNode }) {
+  const [spin, setSpin] = useState(0);
   const [mounted, setMounted] = useState(open);
   const [shown, setShown] = useState(false);
   const panel = useRef<HTMLElement>(null);
@@ -45,7 +46,13 @@ export function SideDrawer({ open, onClose, title, children }: { open: boolean; 
       >
         <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-6">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />
+          <div className="flex items-center gap-1">
+            {onRefresh && (
+              <Button variant="ghost" shape="square" size="sm" aria-label={tr('刷新')} title={tr('刷新')} onClick={() => { setSpin((n) => n + 1); onRefresh(); }}
+                icon={<ArrowClockwise key={spin} className={spin ? 'animate-[spin_0.5s_ease-out_1]' : ''} />} />
+            )}
+            <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">{children}</div>
       </aside>

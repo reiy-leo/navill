@@ -140,10 +140,19 @@ function PanelDrawer() {
   const last = useRef(panel);
   if (panel) last.current = panel; // 关闭动画期间保留内容
   const p = panel ?? last.current;
+  const [rev, setRev] = useState(0); // 刷新 = 重新挂载面板内容，重新拉取数据
   const title = p === 'archive' ? tr('管理归档') : p === 'aliases' ? tr('管理分身') : p === 'shares' ? tr('管理分享') : tr('市场');
   return (
-    <SideDrawer open={!!panel} onClose={() => setPanel(null)} title={title}>
-      {p === 'archive' ? <ArchiveView /> : p === 'aliases' ? <AliasesPanel /> : p === 'shares' ? <SharesView /> : p === 'market' ? <MarketView /> : null}
+    <SideDrawer open={!!panel} onClose={() => setPanel(null)} onRefresh={() => setRev((n) => n + 1)} title={title}>
+      <PanelBody key={`${p}-${rev}`} p={p} />
     </SideDrawer>
+  );
+}
+
+function PanelBody({ p }: { p: ReturnType<typeof useApp>['panel'] }) {
+  return (
+    <>
+      {p === 'archive' ? <ArchiveView /> : p === 'aliases' ? <AliasesPanel /> : p === 'shares' ? <SharesView /> : p === 'market' ? <MarketView /> : null}
+    </>
   );
 }
