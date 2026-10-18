@@ -1,5 +1,5 @@
 import { Autocomplete, Input } from '@cloudflare/kumo';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { hasHistory, suggest, type Suggestion } from '@/src/lib/suggest';
 import { BookmarkIcon, hostOf } from './icons';
 
@@ -8,24 +8,32 @@ import { BookmarkIcon, hostOf } from './icons';
  * 输入时按关键词搜历史记录，选中一条会同时回填 URL 和名称（onPick）。
  */
 export function HistoryAutocomplete({
-  label, value, onChange, onPick, enabled, placeholder, description,
+  label, value, onChange, onPick, enabled, placeholder, description, className, ariaLabel,
 }: {
-  label: ReactNode; value: string; onChange: (v: string) => void; onPick: (s: Suggestion) => void;
-  enabled: boolean; placeholder?: string; description?: ReactNode;
+  label?: ReactNode; value: string; onChange: (v: string) => void; onPick: (s: Suggestion) => void;
+  enabled: boolean; placeholder?: string; description?: ReactNode; className?: string; ariaLabel?: string;
 }) {
+  const box = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<Suggestion[]>([]);
   const [typed, setTyped] = useState(false); // 只在用户输入后才弹出，避免打开对话框就弹
   useEffect(() => {
     if (!enabled || !typed) { setItems([]); return; }
     let live = true;
-    const t = setTimeout(() => void suggest(value).then((r) => live && setItems(r)), 150);
+    const t = setTimeout(() => void suggest(value).then((r) => {
+      if (!live) return;
+      // 弹出列表最宽 = 所在弹窗宽度 × 1.1（列表在 portal 里，用根元素上的 CSS 变量传宽度）
+      const dlg = box.current?.closest('[role="dialog"]') as HTMLElement | null;
+      if (dlg) document.documentElement.style.setProperty('--nv-ac-max', `${Math.round(dlg.offsetWidth * 1.1)}px`);
+      setItems(r);
+    }), 150);
     return () => { live = false; clearTimeout(t); };
   }, [value, enabled, typed]);
 
   // 未开启补全时用普通输入框，避免 Autocomplete 的焦点管理影响对话框里其他输入框
-  if (!enabled) return <Input label={label} description={description} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />;
+  if (!enabled) return <Input label={label} description={description} placeholder={placeholder} aria-label={ariaLabel} className={className} value={value} onChange={(e) => onChange(e.target.value)} />;
 
   return (
+    <div ref={box} className="contents">
     <Autocomplete
       label={label}
       description={description}
@@ -41,9 +49,9 @@ export function HistoryAutocomplete({
         onChange(v);
       }}
     >
-      <Autocomplete.InputGroup placeholder={placeholder} className="w-full" />
+      <Autocomplete.InputGroup placeholder={placeholder} aria-label={ariaLabel} className={`w-full ${className ?? ''}`} />
       {items.length > 0 && (
-        <Autocomplete.Content>
+        <Autocomplete.Content className="nv-ac-pop">
           <Autocomplete.List>
             {(s: Suggestion) => (
               <Autocomplete.Item key={s.url} value={s} onClick={() => { onPick(s); setItems([]); setTyped(false); }}>
@@ -60,6 +68,7 @@ export function HistoryAutocomplete({
         </Autocomplete.Content>
       )}
     </Autocomplete>
+    </div>
   );
 }
 

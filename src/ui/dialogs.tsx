@@ -314,8 +314,8 @@ function BookmarkDialog({ title, okText, initial, onSubmit, onClose }: { title: 
             {form.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="flex min-w-0 flex-1">
-                  <Input className="w-32 rounded-r-none focus:z-10" placeholder={tr('名称')} aria-label={tr('关联链接名称')} value={l.title} onChange={(e) => setLink(i, { title: e.target.value })} />
-                  <div className="-ml-px min-w-0 flex-1"><Input className="w-full rounded-l-none focus:z-10" placeholder="https://" aria-label={tr('关联链接地址')} value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} /></div>
+                  <div className="w-32 shrink-0"><HistoryAutocomplete enabled={history.granted} className="rounded-r-none focus-within:z-10" placeholder={tr('名称')} ariaLabel={tr('关联链接名称')} value={l.title} onChange={(title) => setLink(i, { title })} onPick={(s) => setLink(i, { url: s.url, title: s.title || l.title })} /></div>
+                  <div className="-ml-px min-w-0 flex-1"><HistoryAutocomplete enabled={history.granted} className="rounded-l-none focus-within:z-10" placeholder="https://" ariaLabel={tr('关联链接地址')} value={l.url} onChange={(url) => setLink(i, { url })} onPick={(s) => setLink(i, { url: s.url, title: l.title.trim() ? l.title : s.title })} /></div>
                 </div>
                 <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除关联链接')} onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
               </div>

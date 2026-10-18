@@ -167,3 +167,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-drawer:hover .nv-handle-bar { opacity: 0.15; }
 .nv-drawer .group\/handle:hover .nv-handle-bar { opacity: 0.4; }
 .nv-drawer .group\/handle:active .nv-handle-bar { opacity: 0.6; }
+
+/* 浏览记录补全弹层：最宽为所在弹窗的 110%（--nv-ac-max 由 HistoryAutocomplete 设置），长标题/URL 截断 */
+.nv-ac-pop { max-width: min(var(--available-width), var(--nv-ac-max, 100vw)) !important; }
+.nv-ac-pop [data-kumo-part="item"] > *:first-child { min-width: 0; }
