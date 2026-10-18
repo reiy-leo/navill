@@ -606,5 +606,6 @@
  "把浏览器书签一次性导入，重新整理成「工作区 → 抽屉 → 书签」的新标签页导航，支持分身、场景、标签，并可通过 Google Drive 或 WebDAV 在多台设备间同步。": "Import your browser bookmarks once and reorganize them into a Workspace → Drawer → Bookmark new tab page, with aliases, modes and tags, synced across devices via Google Drive or WebDAV.",
  "反馈": "Feedback",
  "管理分身": "Manage aliases",
- "刷新": "Refresh"
+ "刷新": "Refresh",
+ "指定颜色": "Set color"
 }

@@ -13,7 +13,8 @@ import { Items } from './Items';
 import { ArrangeMenu, ViewMenu } from './menus';
 import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { NewDrawerPopover } from '@/src/ui/NewDrawerPopover';
 import { useFlip, useSortable } from './sortable';
 
 import { tr } from '@/src/i18n';
@@ -29,18 +30,19 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     onDrop: (_, keys) => void reorderDrawers(db, keys),
   });
   useFlip(area, sort.sig, '[data-flip-drawer]');
+  const newBtn = useRef<HTMLButtonElement>(null);
+  const [newOpen, setNewOpen] = useState(false);
 
   if (data === undefined) return <div className="flex justify-center p-12"><Loader /></div>;
   if (data === null) return null;
   const { workspace, top, drawers } = data;
 
-  const newDrawer = async () => {
-    const base = workspace.color ?? PALETTE[0]!;
-    const res = await dialogs.create(tr('抽屉'), base);
-    if (!res) return;
+  const base = workspace.color ?? PALETTE[0]!;
+  const newDrawer = () => setNewOpen(true);
+  const createNew = async (name: string, color: string) => {
     const vis = await dialogs.askVisibility(settings.currentModeId, tr('抽屉'));
     if (!vis) return;
-    await createDrawer(db, workspace.id, res.name, vis === 'current' ? settings.currentModeId : undefined, res.color !== base ? res.color : undefined, res.description);
+    await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, color !== base ? color : undefined);
   };
   const newBookmark = async () => {
     const nb = await dialogs.newBookmark();
@@ -68,7 +70,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
         <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
-        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<FolderPlus />} aria-label={tr('新建抽屉')} onClick={() => void newDrawer()} /></Tooltip>
+        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
+        <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} onCreate={(n, c) => void createNew(n, c)} />
       </div>
 
       {top.length === 0 && drawers.length === 0 ? (
