@@ -9,7 +9,7 @@ import { createTag, renameDrawer, setTags, toggleTagOn, updateBookmark, updateDr
 import { BookmarkIcon, WorkspaceIcon } from './icons';
 import { Modal } from './Modal';
 import { InfoTip } from './InfoTip';
-import { ColorPicker, IconBox } from './ColorPicker';
+import { IconBox } from './ColorPicker';
 import { useTone } from './colors';
 import { LucidePicker } from './LucidePicker';
 import { useIconStyle } from './iconStyle';
@@ -32,7 +32,6 @@ interface DialogsApi {
   pickTarget(o: PickOpts): Promise<Target | null>;
   /** 新建工作区：名称 + 图标框右上角小圆点选颜色（新建抽屉用 NewDrawerPopover） */
   create(what: string, color: string): Promise<CreateResult | null>;
-  drawerColor(drawerId: string): void;
   /** 当前处于非默认场景时，新建项询问可见范围；默认场景直接返回 'all' */
   askVisibility(currentModeId: string, what: string): Promise<'current' | 'all' | null>;
   /** 新建书签：与编辑书签同一个对话框 */
@@ -52,7 +51,6 @@ type Pending =
   | { kind: 'prompt'; title: string; initial: string; placeholder?: string; resolve: (v: string | null) => void }
   | { kind: 'pick'; o: PickOpts; resolve: (v: Target | null) => void }
   | { kind: 'create'; what: string; color: string; resolve: (v: CreateResult | null) => void }
-  | { kind: 'drawer'; id: string }
   | { kind: 'newBookmark'; resolve: (v: BookmarkForm | null) => void }
   | { kind: 'bookmark'; id: string }
   | { kind: 'workspace'; id: string }
@@ -92,7 +90,6 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       },
       editBookmark: (id) => setP({ kind: 'bookmark', id }),
       editWorkspace: (id) => setP({ kind: 'workspace', id }),
-      drawerColor: (id) => setP({ kind: 'drawer', id }),
       editTags: (ids) => setP({ kind: 'tags', ids }),
       share: (what, id, name) => setP({ kind: 'share', what, id, name }),
     }),
@@ -138,7 +135,6 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       {p?.kind === 'pick' && <PickDialog o={p.o} onDone={(v) => { p.resolve(v); close(); }} />}
       {p?.kind === 'newBookmark' && <BookmarkDialog title={tr('新建书签')} okText={tr('添加')} initial={EMPTY_BOOKMARK} onSubmit={(v) => { p.resolve(v); close(); }} onClose={() => { p.resolve(null); close(); }} />}
       {p?.kind === 'bookmark' && <EditBookmarkDialog id={p.id} onClose={close} />}
-      {p?.kind === 'drawer' && <DrawerColorDialog id={p.id} onClose={close} />}
       {p?.kind === 'workspace' && <EditWorkspaceDialog id={p.id} onClose={close} />}
       {p?.kind === 'tags' && <TagsDialog ids={p.ids} onClose={close} />}
     </Ctx.Provider>
@@ -177,20 +173,6 @@ function NameFields({ name, description, onName, onDescription, what, disabled, 
         onChange={(e) => onDescription(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()}
       />
     </div>
-  );
-}
-
-/** 抽屉菜单「指定颜色」：点一个颜色立即生效；「跟随工作区」清除抽屉自己的颜色 */
-function DrawerColorDialog({ id, onClose }: { id: string; onClose: () => void }) {
-  const d = useLiveQuery(() => db.drawers.get(id), [id]);
-  const set = async (color: string | undefined) => {
-    await updateDrawer(db, id, { color });
-    onClose();
-  };
-  return (
-    <Modal open size="sm" title={tr('指定颜色')} onClose={onClose} footer={<><Button disabled={!d?.color} onClick={() => void set(undefined)}>{tr('跟随工作区')}</Button><Button onClick={onClose}>{tr('取消')}</Button></>}>
-      {d && <ColorPicker label={tr('抽屉颜色')} value={d.color} onChange={(hex) => void set(hex)} />}
-    </Modal>
   );
 }
 

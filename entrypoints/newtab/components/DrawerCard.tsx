@@ -3,6 +3,7 @@ import {
   ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, ShareNetwork, Palette } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTone } from '@/src/ui/colors';
+import { DrawerColorPopover } from '@/src/ui/ColorPicker';
 import { db, type Workspace } from '@/src/db';
 import {
   AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, placeInOrder, renameDrawer,
@@ -31,6 +32,8 @@ export function DrawerCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [name, setName] = useState(drawer.name);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const moreBtn = useRef<HTMLButtonElement>(null);
+  const [colorOpen, setColorOpen] = useState(false);
   const [live, setLive] = useState<number>();
   // 松手后保持拖拽高度，等数据库里的新高度回来再撤掉，避免先闪回原大小
   useLayoutEffect(() => setLive(undefined), [drawer.height]);
@@ -123,14 +126,15 @@ export function DrawerCard({
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
+        <DrawerColorPopover anchor={moreBtn} open={colorOpen} onOpenChange={setColorOpen} value={drawer.color} onChange={(color) => void updateDrawer(db, drawer.id, { color })} />
         <DropdownMenu onOpenChange={setMenuOpen}>
-          <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
+          <DropdownMenu.Trigger render={<Button ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (
               <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>{tr('全部打开')}</DropdownMenu.Item>
             )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>{tr('新建书签')}</DropdownMenu.Item>
-            <DropdownMenu.Item icon={Palette} onClick={() => dialogs.drawerColor(drawer.id)}>{tr('指定颜色')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Palette} onClick={() => setTimeout(() => setColorOpen(true), 0)}>{tr('指定颜色')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={ShareNetwork} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>{tr('分享…')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>{tr('创建分身')}</DropdownMenu.Item>

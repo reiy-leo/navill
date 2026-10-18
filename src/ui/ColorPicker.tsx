@@ -1,5 +1,5 @@
-import { Popover, Tooltip } from '@cloudflare/kumo';
-import { useRef, useState, type ReactNode } from 'react';
+import { Button, Popover, Tooltip } from '@cloudflare/kumo';
+import { useRef, useState, type ReactNode, type RefObject } from 'react';
 import { COLOR_GROUPS, tone, useDarkMode, useTone } from './colors';
 
 import { tr } from '@/src/i18n';
@@ -80,5 +80,23 @@ export function ColorPicker({ value, onChange, label = tr('颜色') }: { value?:
         </div>
       ))}
     </div>
+  );
+}
+
+/** 抽屉菜单「指定颜色」：锚在触发按钮旁的浮层，点色立即生效；「跟随工作区」清除抽屉自己的颜色；点外面或 Esc 关闭 */
+export function DrawerColorPopover({ anchor, open, onOpenChange, value, onChange }: {
+  anchor: RefObject<HTMLElement | null>; open: boolean; onOpenChange: (o: boolean) => void;
+  value?: string; onChange: (hex: string | undefined) => void;
+}) {
+  const set = (hex: string | undefined) => { onChange(hex); onOpenChange(false); };
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <Popover.Content anchor={anchor} side="bottom" align="end" sideOffset={6} className="w-[37rem] max-w-[90vw] p-3">
+        <ColorPicker label={tr('抽屉颜色')} value={value} onChange={(hex) => set(hex)} />
+        <div className="mt-3 flex justify-end">
+          <Button size="sm" disabled={!value} onClick={() => set(undefined)}>{tr('跟随工作区')}</Button>
+        </div>
+      </Popover.Content>
+    </Popover>
   );
 }
