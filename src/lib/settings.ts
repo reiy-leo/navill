@@ -24,7 +24,7 @@ export interface Settings {
   background: 'plain' | 'gradient' | 'bing';
   /** 图片背景的模糊半径（px），0 为不模糊 */
   backgroundBlur: 0 | 8 | 24;
-  startWorkspace: 'last' | string;
+  startWorkspace: 'last' | 'home' | string;
   lastWorkspaceId?: string;
   currentModeId: string;
   sync: {

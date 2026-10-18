@@ -139,7 +139,7 @@ function General() {
   const { settings, updateSettings } = useApp();
   const workspaces = useLiveQuery(() => db.workspaces.orderBy('order').toArray(), []) ?? [];
   const set = (p: Partial<S>) => void updateSettings(p);
-  const wsItems = Object.fromEntries([['last', tr('上次打开的')], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
+  const wsItems = Object.fromEntries([['last', tr('上次打开的')], ['home', tr('主页')], ...workspaces.map((w) => [w.id, w.name])]) as Record<string, string>;
   return (
     <div>
       <Section title={tr('语言')}>

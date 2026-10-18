@@ -1,9 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import type { Settings } from '@/src/lib/settings';
 import { visibilityOf, type Visibility } from '@/src/lib/view';
 import { useSettings } from './useSettings';
+
+const LAST_VIEW_KEY = 'navill-last-view';
 
 export type MainView = 'home' | 'workspace' | 'archive' | 'shares' | 'market';
 
@@ -38,10 +40,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [organize, setOrganizeRaw] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
-  const [view, setView] = useState<MainView>('workspace');
+  // 「上次打开的」也记住主页：本机 localStorage，不参与同步（与 lastWorkspaceId 同为设备级）
+  const [view, setViewRaw] = useState<MainView>(() =>
+    settings.startWorkspace === 'home' || (settings.startWorkspace === 'last' && localStorage.getItem(LAST_VIEW_KEY) === 'home') ? 'home' : 'workspace',
+  );
+  const [viewTouched, setViewTouched] = useState(false);
+  const setView = useCallback((v: MainView) => {
+    setViewTouched(true);
+    setViewRaw(v);
+    if (v === 'home' || v === 'workspace') localStorage.setItem(LAST_VIEW_KEY, v);
+  }, []);
+  // 设置异步载入：首次就绪时按 startWorkspace 重新决定初始视图（用户已手动切换则不动）
+  useEffect(() => {
+    if (!ready || viewTouched) return;
+    const home = settings.startWorkspace === 'home' || (settings.startWorkspace === 'last' && localStorage.getItem(LAST_VIEW_KEY) === 'home');
+    setViewRaw(home ? 'home' : 'workspace');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
   const [picked, setPicked] = useState<string | undefined>();
 
-  const workspaceId = picked ?? (settings.startWorkspace === 'last' ? settings.lastWorkspaceId : settings.startWorkspace);
+  const workspaceId = picked ?? (settings.startWorkspace === 'last' || settings.startWorkspace === 'home' ? settings.lastWorkspaceId : settings.startWorkspace);
   const selectWorkspace = useCallback(
     (id: string) => {
       setPicked(id);
