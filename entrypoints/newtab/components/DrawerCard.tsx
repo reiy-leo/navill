@@ -243,7 +243,7 @@ function ResizeHandle({ bodyRef, onLive, onCommit }: { bodyRef: React.RefObject<
       onPointerCancel={() => { drag.current = null; }}
       onDoubleClick={() => onCommit(null)}
     >
-      <span className="h-1 w-full rounded-full bg-current opacity-15 transition-opacity group-hover/handle:opacity-40 group-active/handle:opacity-60" />
+      <span className="nv-handle-bar h-1 w-full rounded-full bg-current" />
     </div>
   );
 }

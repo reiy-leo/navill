@@ -161,3 +161,9 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-mode='dark'] .nv-plain { background: #000; }
 .nv-bg-veil { background: rgb(255 255 255 / 0.28); }
 [data-mode='dark'] .nv-bg-veil { background: rgb(0 0 0 / 0.42); }
+
+/* 抽屉底部拖拽手柄：平时透明，悬停抽屉时浮现，悬停/按住手柄再加深 */
+.nv-handle-bar { opacity: 0; transition: opacity 150ms ease; }
+.nv-drawer:hover .nv-handle-bar { opacity: 0.15; }
+.nv-drawer .group\/handle:hover .nv-handle-bar { opacity: 0.4; }
+.nv-drawer .group\/handle:active .nv-handle-bar { opacity: 0.6; }
