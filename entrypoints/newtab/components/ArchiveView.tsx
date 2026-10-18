@@ -2,7 +2,7 @@ import { Button, Empty } from '@cloudflare/kumo';
 import { Archive, ArrowCounterClockwise, Trash, Tray } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/db';
-import { archiveBookmark, archiveDrawer, deleteDrawer } from '@/src/lib/store';
+import { archiveBookmark, archiveDrawer, deleteBookmarkEverywhere, deleteDrawer } from '@/src/lib/store';
 import type { Item } from '@/src/lib/view';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
@@ -72,6 +72,9 @@ export function ArchiveView() {
                 <div className="truncate text-xs text-kumo-subtle">{hostOf(it.bookmark.url)} {tr('· 归档于')} {new Date(it.bookmark.archivedAt!).toLocaleDateString(dateLocale)}</div>
               </div>
               <Button size="sm" icon={<ArrowCounterClockwise />} onClick={() => void archiveBookmark(db, it.bookmark.id, false)}>{tr('恢复')}</Button>
+              <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除书签')} onClick={async () => {
+                if (await dialogs.confirm({ title: tr('彻底删除「{0}」？', it.bookmark.title), description: tr('原书签及全部分身都会删除，不可恢复。'), okText: tr('删除'), danger: true })) await deleteBookmarkEverywhere(db, it.bookmark.id);
+              }} />
             </li>
           ))}
         </ul>
