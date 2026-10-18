@@ -262,3 +262,18 @@ describe('多设备「待整理」合并', () => {
     expect(await db.placements.where('workspaceId').equals('other-inbox').count()).toBe(0);
   });
 });
+
+describe('收藏', () => {
+  it('按标签 id 取收藏，不受标签名影响', async () => {
+    const { toggleTagOn } = await import('./tag');
+    const { taggedItems } = await import('../view');
+    const { TAG_FAVORITE } = await import('@/src/db');
+    const { x } = await setup();
+    await db.tags.update(TAG_FAVORITE, { name: 'Favorites' });
+    await toggleTagOn(db, [x.bookmark.id], TAG_FAVORITE, true);
+    const v = visibilityOf(await db.modes.get(MODE_DEFAULT));
+    expect((await taggedItems(db, TAG_FAVORITE, v)).map((i) => i.bookmark.title)).toEqual(['X']);
+    await toggleTagOn(db, [x.bookmark.id], TAG_FAVORITE, false);
+    expect(await taggedItems(db, TAG_FAVORITE, v)).toEqual([]);
+  });
+});

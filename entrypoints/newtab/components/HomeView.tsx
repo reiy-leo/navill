@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { TAG_FAVORITE, db } from '@/src/db';
 import { listPublicShares, type PublicShare } from '@/src/lib/share';
-import { mostOpened, search, visibilityOf } from '@/src/lib/view';
+import { mostOpened, taggedItems, visibilityOf } from '@/src/lib/view';
 import { useApp } from '@/src/ui/state';
 import { Items } from './Items';
 
@@ -15,10 +15,8 @@ const LATEST = 6;
 /** 主页：#收藏 标签的书签、最常用的书签（图标一行），然后是市场里最新的分享（倒序，最多 6 个） */
 export function HomeView() {
   const { mode, setView } = useApp();
-  const favs = useLiveQuery(async () => {
-    const hits = await search(db, tr('#收藏'), visibilityOf(mode), 500);
-    return hits.map((h) => h.item).filter((it) => it.bookmark.tagIds.includes(TAG_FAVORITE));
-  }, [mode]);
+  // 按标签 id 取，不依赖标签名（界面语言或改名都不影响）
+  const favs = useLiveQuery(() => taggedItems(db, TAG_FAVORITE, visibilityOf(mode)), [mode]);
   const top = useLiveQuery(() => mostOpened(db, visibilityOf(mode), 20), [mode]);
   const [latest, setLatest] = useState<PublicShare[] | null>(null);
   const [err, setErr] = useState('');
