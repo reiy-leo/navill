@@ -2,7 +2,7 @@ import { InfoTip } from '@/src/ui/InfoTip';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Bell, CloudCog, Copy, Database, Keyboard, Layers, Palette, Settings2, Tag, type LucideIcon } from 'lucide-react';
+import { Bell, CloudCog, Database, Keyboard, Layers, Palette, Settings2, Tag, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
@@ -12,7 +12,7 @@ import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
-import { clearOpenEvents, clearVisits, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, detachAlias, renameMode, renameTag, setModeLook, setShowAdult, setVisible, unmount } from '@/src/lib/store';
+import { clearOpenEvents, clearVisits, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, renameMode, renameTag, setModeLook, setShowAdult, setVisible } from '@/src/lib/store';
 import { isConfigured, redirectUri } from '@/src/lib/sync/auth';
 import { connectWebdavAndLog, deleteRemoteData, disconnectSync, signInAndLog } from '@/src/lib/sync/engine';
 import { syncProviderItem, type SyncProvider } from '@/src/lib/sync/backend';
@@ -28,9 +28,9 @@ import { clearIconCache } from '@/src/lib/icons/fetcher';
 import { hasHistory, removeHistory, requestHistory } from '@/src/lib/suggest';
 
 import { dateLocale, getLangSetting, setLanguage, tr } from '@/src/i18n';
-export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
+export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'toast' | 'keys' | 'data';
 
-const TABS: Tab[] = ['general', 'look', 'modes', 'tags', 'sync', 'alias', 'toast', 'keys', 'data'];
+const TABS: Tab[] = ['general', 'look', 'modes', 'tags', 'sync', 'toast', 'keys', 'data'];
 const TAB_KEY = 'navill-settings-tab';
 /** 上次打开的设置页签（按设备，存 localStorage） */
 export function lastSettingsTab(): Tab {
@@ -49,7 +49,7 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
         onValueChange={(v) => { setTab(v as Tab); localStorage.setItem(TAB_KEY, v as string); }}
         tabs={[
           ['general', tr('通用'), Settings2], ['look', tr('外观'), Palette], ['modes', tr('场景'), Layers], ['tags', tr('标签'), Tag],
-          ['sync', tr('同步'), CloudCog], ['alias', tr('分身'), Copy], ['toast', tr('提醒'), Bell], ['keys', tr('快捷键'), Keyboard], ['data', tr('数据'), Database],
+          ['sync', tr('同步'), CloudCog], ['toast', tr('提醒'), Bell], ['keys', tr('快捷键'), Keyboard], ['data', tr('数据'), Database],
         ].map(([value, label, Icon]) => ({ value: value as string, label: <TabLabel icon={Icon as LucideIcon} text={label as string} /> }))}
       />
       </div>
@@ -59,7 +59,6 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
         {tab === 'modes' && <Modes />}
         {tab === 'tags' && <Tags />}
         {tab === 'sync' && <Sync />}
-        {tab === 'alias' && <Aliases />}
         {tab === 'toast' && <Toasts />}
         {tab === 'keys' && <Shortcuts />}
         {tab === 'data' && <Data onReimport={(s) => { onClose(); onReimport(s); }} />}
@@ -492,49 +491,6 @@ function Shortcuts() {
       <Row label={tr('搜索')} info={tr('焦点在地址栏时，浏览器会先处理 {0}；在 Navill 页面里按才会打开搜索', combo('L'))}><Kbd>{combo('L')}</Kbd></Row>
       <Row label={tr('搜索')}><Kbd>/</Kbd></Row>
       </Section>
-    </div>
-  );
-}
-
-function Aliases() {
-  const data = useLiveQuery(async () => {
-    const [aliases, groups, drawers, workspaces] = await Promise.all([
-      db.placements.filter((p) => p.isAlias).toArray(), db.aliasGroups.toArray(), db.drawers.toArray(), db.workspaces.toArray(),
-    ]);
-    const bookmarks = new Map((await db.bookmarks.bulkGet([...new Set(aliases.map((a) => a.bookmarkId))])).filter(Boolean).map((b) => [b!.id, b!]));
-    const dr = new Map(drawers.map((d) => [d.id, d]));
-    const ws = new Map(workspaces.map((w) => [w.id, w]));
-    const where = (wid: string, did: string | null) => `${ws.get(wid)?.name ?? '?'}${did ? ` / ${dr.get(did)?.name ?? '?'}` : ''}`;
-    return {
-      aliases: aliases.map((a) => ({ a, b: bookmarks.get(a.bookmarkId), where: where(a.workspaceId, a.drawerId) })),
-      groups: groups.map((g) => {
-        const s = dr.get(g.sourceDrawerId);
-        const t = dr.get(g.targetDrawerId);
-        return { g, from: s ? where(s.workspaceId, s.id) : '?', to: t ? where(t.workspaceId, t.id) : '?' };
-      }),
-    };
-  }, []);
-  return (
-    <div className="flex flex-col gap-6">
-      <section>
-        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">{tr('分身书签组')}<span className="font-normal text-kumo-subtle">{data?.groups.length ?? 0}</span><InfoTip>{tr('在抽屉 ⋯ 菜单里选「创建分身」，把整个抽屉挂载到另一个抽屉。')}</InfoTip></h3>
-        {data?.groups.map(({ g, from, to }) => (
-          <div key={g.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
-            <span className="flex-1">{from} <span className="text-kumo-subtle">{tr('→ 挂载到 →')}</span> {to}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void unmount(db, g.id)}>{tr('解除挂载')}</Button>
-          </div>
-        ))}
-      </section>
-      <section>
-        <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold">{tr('分身')}<span className="font-normal text-kumo-subtle">{data?.aliases.length ?? 0}</span></h3>
-        {data?.aliases.map(({ a, b, where }) => (
-          <div key={a.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
-            <span className="min-w-0 flex-1 truncate">{b?.title}</span>
-            <span className="text-xs text-kumo-subtle">{where}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void detachAlias(db, a.id)}>{tr('转为独立书签')}</Button>
-          </div>
-        ))}
-      </section>
     </div>
   );
 }

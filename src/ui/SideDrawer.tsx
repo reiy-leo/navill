@@ -1,0 +1,46 @@
+import { Button } from '@cloudflare/kumo';
+import { X } from '@phosphor-icons/react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { tr } from '@/src/i18n';
+
+/** 右侧抽屉：桌面占半屏，窄屏全宽；点遮罩或 Esc 关闭 */
+export function SideDrawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode }) {
+  const [mounted, setMounted] = useState(open);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      const r = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
+      return () => cancelAnimationFrame(r);
+    }
+    setShown(false);
+    const t = setTimeout(() => setMounted(false), 200);
+    return () => clearTimeout(t);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [open, onClose]);
+  if (!mounted) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-50">
+      <div className={`absolute inset-0 bg-kumo-overlay transition-opacity duration-200 ${shown ? 'opacity-80' : 'opacity-0'}`} onClick={onClose} />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={typeof title === 'string' ? title : undefined}
+        className={`absolute inset-y-0 right-0 flex w-full flex-col bg-kumo-base shadow-2xl ring-1 ring-kumo-line transition-transform duration-200 ease-out md:w-1/2 ${shown ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-6">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">{children}</div>
+      </aside>
+    </div>,
+    document.body,
+  );
+}
