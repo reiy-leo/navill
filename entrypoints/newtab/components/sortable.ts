@@ -20,6 +20,7 @@ const subscribe = (f: () => void) => { subs.add(f); return () => subs.delete(f);
 /** 开始拖：状态立即记下，界面晚一帧再变，免得浏览器把占位样式截进拖拽影像 */
 export function startDrag(d: Drag) {
   state = { drag: d, over: null };
+  lastMove = null;
   setTimeout(emit, 0);
 }
 export function endDrag() {
@@ -39,6 +40,19 @@ if (typeof document !== 'undefined') {
     if (!t?.closest?.(`[data-sort-kind="${d.kind}"]`)) set({ ...state, over: null });
   });
 }
+
+/**
+ * 防抖：每次重排后，指针要再移动 MOVE_PX 以上、且过了 SETTLE_MS（等 FLIP 动画走完）才允许下一次重排。
+ * 瀑布等大小不一的布局里，重排会把另一张卡片挪到静止的指针下，没有这道门槛就会两种排列来回闪。
+ */
+const MOVE_PX = 12;
+const SETTLE_MS = 240;
+let lastMove: { x: number; y: number; t: number } | null = null;
+function settled(e: React.DragEvent) {
+  if (!lastMove) return true;
+  return performance.now() - lastMove.t >= SETTLE_MS && Math.hypot(e.clientX - lastMove.x, e.clientY - lastMove.y) >= MOVE_PX;
+}
+const markMove = (e: React.DragEvent) => { lastMove = { x: e.clientX, y: e.clientY, t: performance.now() }; };
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -142,6 +156,7 @@ export function useSortable<T>({
       e.preventDefault();
       e.stopPropagation();
       if (key === d.id) { lastTarget.current = null; return; }
+      if (!settled(e)) return;
       const r = rest(rows);
       const at = r.findIndex((x) => x.key === key);
       if (at < 0) return;
@@ -156,7 +171,7 @@ export function useSortable<T>({
         index = insertAfter(e, horizontal) ? at + 1 : at;
       }
       lastTarget.current = key;
-      if (state.over?.list !== list || state.over.index !== index) set({ ...state, over: { list, index } });
+      if (state.over?.list !== list || state.over.index !== index) { markMove(e); set({ ...state, over: { list, index } }); }
     },
     onDrop: drop,
   });
@@ -169,7 +184,9 @@ export function useSortable<T>({
       if (!d || !accept(e)) return;
       e.preventDefault();
       if (state.over?.list !== list) {
+        if (!settled(e)) return;
         lastTarget.current = null;
+        markMove(e);
         set({ ...state, over: { list, index: rest(rows).length } });
       }
     },
