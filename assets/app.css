@@ -171,3 +171,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 /* 浏览记录补全弹层：最宽为所在弹窗的 110%（--nv-ac-max 由 HistoryAutocomplete 设置），长标题/URL 截断 */
 .nv-ac-pop { max-width: min(var(--available-width), var(--nv-ac-max, 100vw)) !important; }
 .nv-ac-pop [data-kumo-part="item"] > *:first-child { min-width: 0; }
+
+/* 几乎全白/全黑的单色透明网站图标：同色主题下反转颜色，保证看得见 */
+:root:not([data-mode='dark']) .nv-ico-light,
+[data-mode='dark'] .nv-ico-dark { filter: invert(1); }

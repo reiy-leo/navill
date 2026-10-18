@@ -1,4 +1,5 @@
 import { useTone } from './colors';
+import { iconToneOf, measureIconTone, type IconTone } from '@/src/lib/icons/tone';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { useIconStyle } from './iconStyle';
 import { iconCount } from '@/src/lib/emoji';
@@ -7,8 +8,12 @@ import { faviconUrl } from '@/src/lib/favicon';
 import { useState } from 'react';
 import { useHostIcon } from './useHostIcon';
 
+/** 几乎全白/全黑的透明图标：在同色主题下反转（见 app.css .nv-ico-*） */
+const toneClass = (t: IconTone | undefined) => (t === 'light' ? 'nv-ico-light' : t === 'dark' ? 'nv-ico-dark' : '');
+
 export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: number; src?: string }) {
   const [failed, setFailed] = useState(false);
+  const [tone, setTone] = useState<IconTone | undefined>();
   const hd = useHostIcon(url, !src);
   let letter = '•';
   try {
@@ -24,13 +29,15 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
       </span>
     );
   }
+  const imgSrc = src || hd || faviconUrl(url, size > 24 ? 64 : 32);
   return (
     <img
-      src={src || hd || faviconUrl(url, size > 24 ? 64 : 32)}
+      src={imgSrc}
       alt=""
       width={size}
       height={size}
-      className="shrink-0 rounded-sm"
+      className={`shrink-0 rounded-sm ${toneClass(tone ?? iconToneOf(imgSrc))}`}
+      onLoad={(e) => setTone(measureIconTone(e.currentTarget))}
       onError={() => setFailed(true)}
       draggable={false}
     />
