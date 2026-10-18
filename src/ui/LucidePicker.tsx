@@ -27,7 +27,7 @@ export function LucidePicker({ value, onChange, allowNone = true, color }: { val
   return (
     <div className="grid gap-2">
       <Input size="sm" placeholder={tr('搜索图标，如 book、code、home')} aria-label={tr('搜索图标')} value={q} onChange={(e) => setQ(e.target.value)} />
-      <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
+      <div className="-m-1 flex max-h-48 flex-wrap gap-1 overflow-y-auto p-1">
         {list.map((n) => (
           <Button
             key={n} size="sm" shape="square" title={n} aria-label={n}
