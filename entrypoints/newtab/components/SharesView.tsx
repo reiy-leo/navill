@@ -24,7 +24,6 @@ export function SharesView() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-base font-medium">{tr('管理分享')}</h1>
       {err && <Banner variant="error" description={err} />}
       {shares === null && <div className="flex justify-center py-10"><Loader /></div>}
       {needLogin && (

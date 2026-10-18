@@ -37,7 +37,6 @@ export function MarketView() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-base font-medium">{tr('市场')}</h1>
       {err && <Banner variant="error" description={err} />}
       {items === null && <div className="flex justify-center py-10"><Loader /></div>}
       {items?.length === 0 && !err && <Empty icon={<Storefront size={40} />} title={tr('市场里还没有分享')} description={tr('审核通过的分享会出现在这里。')} />}

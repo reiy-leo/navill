@@ -1,4 +1,6 @@
 import { PageBackground } from '@/src/ui/PageBackground';
+import { SideDrawer } from '@/src/ui/SideDrawer';
+import { AliasesPanel } from './components/AliasesPanel';
 import { Loader, TooltipProvider } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -116,7 +118,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {pos === 'top' && <Nav current={current?.id} {...menu} />}
         <main className="min-h-0 flex-1 overflow-y-auto px-6 pb-24 pt-4">
-          {view === 'home' ? <HomeView /> : view === 'archive' ? <ArchiveView /> : view === 'shares' ? <SharesView /> : view === 'market' ? <MarketView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
+          {view === 'home' ? <HomeView /> : current ? <WorkspaceView workspaceId={current.id} /> : (
             <p className="p-8 text-center text-sm text-kumo-subtle">{tr('当前场景下没有可见的工作区，可以在设置 → 场景中调整。')}</p>
           )}
         </main>
@@ -127,6 +129,21 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
       <div className={`fixed bottom-4 z-20 ${right ? 'left-4' : 'right-4'} ${pos === 'bottom' ? 'bottom-16' : ''}`}><ModeSwitcher side="top" /></div>
       {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <PanelDrawer />
     </div>
+  );
+}
+
+/** 管理归档 / 分身 / 分享 / 市场：右侧抽屉（桌面半屏，窄屏全宽） */
+function PanelDrawer() {
+  const { panel, setPanel } = useApp();
+  const last = useRef(panel);
+  if (panel) last.current = panel; // 关闭动画期间保留内容
+  const p = panel ?? last.current;
+  const title = p === 'archive' ? tr('管理归档') : p === 'aliases' ? tr('管理分身') : p === 'shares' ? tr('管理分享') : tr('市场');
+  return (
+    <SideDrawer open={!!panel} onClose={() => setPanel(null)} title={title}>
+      {p === 'archive' ? <ArchiveView /> : p === 'aliases' ? <AliasesPanel /> : p === 'shares' ? <SharesView /> : p === 'market' ? <MarketView /> : null}
+    </SideDrawer>
   );
 }

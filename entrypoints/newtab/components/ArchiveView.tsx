@@ -37,7 +37,6 @@ export function ArchiveView() {
   const empty = items?.length === 0 && drawers?.length === 0;
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-base font-medium">{tr('管理归档')}</h1>
       {empty && (
         <Empty icon={<Archive size={40} />} title={tr('归档是空的')} description={tr('在书签右键菜单或抽屉的 ⋯ 菜单中选择「归档」，它会从工作区里隐藏，集中放在这里。')} />
       )}

@@ -14,7 +14,7 @@ const LATEST = 6;
 
 /** 主页：#收藏 标签的书签、最常用的书签（图标一行），然后是市场里最新的分享（倒序，最多 6 个） */
 export function HomeView() {
-  const { mode, setView } = useApp();
+  const { mode, setPanel } = useApp();
   // 按标签 id 取，不依赖标签名（界面语言或改名都不影响）
   const favs = useLiveQuery(() => taggedItems(db, TAG_FAVORITE, visibilityOf(mode)), [mode]);
   const top = useLiveQuery(() => mostOpened(db, visibilityOf(mode), 20), [mode]);
@@ -48,7 +48,7 @@ export function HomeView() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-medium">{tr('市场最新分享')}</h2>
-          <Button size="sm" variant="ghost" onClick={() => setView('market')}>{tr('查看更多')}<ArrowRight size={14} /></Button>
+          <Button size="sm" variant="ghost" onClick={() => setPanel('market')}>{tr('查看更多')}<ArrowRight size={14} /></Button>
         </div>
         {err && <p className="text-sm text-kumo-danger">{err}</p>}
         {latest === null && <div className="flex justify-center py-6"><Loader /></div>}
@@ -56,7 +56,7 @@ export function HomeView() {
         {!!latest?.length && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
             {latest.map((s) => (
-              <button key={s.id} type="button" onClick={() => setView('market')}
+              <button key={s.id} type="button" onClick={() => setPanel('market')}
                 className="nv-drawer flex flex-col items-start gap-1 rounded-xl p-3 text-left transition hover:-translate-y-0.5"
                 style={s.color ? ({ '--ws-color': s.color } as React.CSSProperties) : undefined}>
                 <div className="flex w-full items-center gap-1.5 text-sm font-medium">

@@ -7,7 +7,9 @@ import { useSettings } from './useSettings';
 
 const LAST_VIEW_KEY = 'navill-last-view';
 
-export type MainView = 'home' | 'workspace' | 'archive' | 'shares' | 'market';
+export type MainView = 'home' | 'workspace';
+/** 右侧抽屉里打开的管理面板 */
+export type Panel = 'archive' | 'shares' | 'market' | 'aliases';
 
 interface AppState {
   settings: Settings;
@@ -25,6 +27,8 @@ interface AppState {
   setQuery: (q: string) => void;
   view: MainView;
   setView: (v: MainView) => void;
+  panel: Panel | null;
+  setPanel: (p: Panel | null) => void;
   workspaceId: string | undefined;
   selectWorkspace: (id: string) => void;
 }
@@ -48,7 +52,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const setView = useCallback((v: MainView) => {
     setViewTouched(true);
     setViewRaw(v);
-    if (v === 'home' || v === 'workspace') localStorage.setItem(LAST_VIEW_KEY, v);
+    localStorage.setItem(LAST_VIEW_KEY, v);
   }, []);
   // 设置异步载入：首次就绪时按 startWorkspace 重新决定初始视图（用户已手动切换则不动）
   useEffect(() => {
@@ -58,6 +62,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
   const [picked, setPicked] = useState<string | undefined>();
+  const [panel, setPanel] = useState<Panel | null>(null);
 
   const workspaceId = picked ?? (settings.startWorkspace === 'last' || settings.startWorkspace === 'home' ? settings.lastWorkspaceId : settings.startWorkspace);
   const selectWorkspace = useCallback(
@@ -87,7 +92,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider
       value={{
         settings, updateSettings, ready, modes, mode, visibility, organize, setOrganize, selection, toggleSelect,
-        clearSelection, query, setQuery, view, setView, workspaceId, selectWorkspace,
+        clearSelection, query, setQuery, view, setView, panel, setPanel, workspaceId, selectWorkspace,
       }}
     >
       {children}
