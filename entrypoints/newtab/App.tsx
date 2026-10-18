@@ -22,7 +22,7 @@ import ImportPreview from './components/ImportPreview';
 import { HomeView } from './components/HomeView';
 import { Nav, useVisibleWorkspaces } from './components/Nav';
 import { OrganizeBar } from './components/OrganizeBar';
-import { SettingsDialog } from './components/Settings';
+import { lastSettingsTab, SettingsDialog } from './components/Settings';
 import Welcome from './components/Welcome';
 import { WorkspaceView } from './components/WorkspaceView';
 
@@ -101,7 +101,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   latest.current = settings;
   const sync = useCallback(() => void shortcutSync(db, latest.current), []);
   useShortcuts({ onSearch: openSearch, onSync: sync });
-  const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? 'general') };
+  const menu = { onSearch: openSearch, onSettings: (tab?: Tab) => setSettingsOpen(tab ?? lastSettingsTab()) };
   const current = workspaces?.find((w) => w.id === workspaceId) ?? workspaces?.[0];
   const wsColor = useTone(current?.color);
   const pos = settings.navPosition;

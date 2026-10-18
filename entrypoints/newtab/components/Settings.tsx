@@ -30,6 +30,14 @@ import { hasHistory, removeHistory, requestHistory } from '@/src/lib/suggest';
 import { dateLocale, getLangSetting, setLanguage, tr } from '@/src/i18n';
 export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'alias' | 'toast' | 'keys' | 'data';
 
+const TABS: Tab[] = ['general', 'look', 'modes', 'tags', 'sync', 'alias', 'toast', 'keys', 'data'];
+const TAB_KEY = 'navill-settings-tab';
+/** 上次打开的设置页签（按设备，存 localStorage） */
+export function lastSettingsTab(): Tab {
+  const t = localStorage.getItem(TAB_KEY) as Tab | null;
+  return t && TABS.includes(t) ? t : 'general';
+}
+
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
   return (
@@ -38,7 +46,7 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
       <Tabs
         variant="underline"
         value={tab}
-        onValueChange={(v) => setTab(v as Tab)}
+        onValueChange={(v) => { setTab(v as Tab); localStorage.setItem(TAB_KEY, v as string); }}
         tabs={[
           ['general', tr('通用'), Settings2], ['look', tr('外观'), Palette], ['modes', tr('场景'), Layers], ['tags', tr('标签'), Tag],
           ['sync', tr('同步'), CloudCog], ['alias', tr('分身'), Copy], ['toast', tr('提醒'), Bell], ['keys', tr('快捷键'), Keyboard], ['data', tr('数据'), Database],
