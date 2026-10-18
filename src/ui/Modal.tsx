@@ -14,7 +14,7 @@ export function Modal({
 }) {
   return (
     <Dialog.Root open={open} disablePointerDismissal={form} onOpenChange={(o: boolean) => !o && onClose()}>
-      <Dialog size={size} className="relative flex max-h-[85vh] flex-col p-6">
+      <Dialog size={size} className="flex max-h-[85vh] flex-col p-6">
         <div className={hideTitle ? 'absolute right-3 top-3 z-10' : 'mb-4 flex items-center justify-between gap-4'}>
           <Dialog.Title className={hideTitle ? 'sr-only' : 'text-lg font-semibold'}>{title}</Dialog.Title>
           {!form && <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />}
