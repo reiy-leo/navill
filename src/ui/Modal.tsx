@@ -4,17 +4,19 @@ import type { ReactNode } from 'react';
 
 import { tr } from '@/src/i18n';
 export function Modal({
-  open, onClose, title, children, footer, size = 'base', form = false,
+  open, onClose, title, children, footer, size = 'base', form = false, hideTitle = false,
 }: {
   open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode; size?: 'sm' | 'base' | 'lg' | 'xl';
   /** 新建/编辑类表单：不显示右上角关闭按钮，点空白处不关闭，只能用底部按钮或 Esc */
   form?: boolean;
+  /** 标题只给读屏用，不显示；关闭按钮浮在右上角 */
+  hideTitle?: boolean;
 }) {
   return (
     <Dialog.Root open={open} disablePointerDismissal={form} onOpenChange={(o: boolean) => !o && onClose()}>
-      <Dialog size={size} className="flex max-h-[85vh] flex-col p-6">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+      <Dialog size={size} className="relative flex max-h-[85vh] flex-col p-6">
+        <div className={hideTitle ? 'absolute right-3 top-3 z-10' : 'mb-4 flex items-center justify-between gap-4'}>
+          <Dialog.Title className={hideTitle ? 'sr-only' : 'text-lg font-semibold'}>{title}</Dialog.Title>
           {!form && <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />}
         </div>
         {/* 负外边距 + 内边距：给输入框的 ring（box-shadow）留出空间，避免被 overflow 裁掉 */}
