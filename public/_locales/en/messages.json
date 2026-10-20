@@ -3,6 +3,6 @@
     "message": "Navill"
   },
   "extDescription": {
-    "message": "New tab navigation that reorganizes your browser bookmarks as Workspace → Drawer → Bookmark"
+    "message": "Reorganize bookmarks into workspaces and drawers, with modes and aliases, sync via Google Drive or WebDAV, and share with others."
   }
 }

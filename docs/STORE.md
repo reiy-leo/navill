@@ -2,7 +2,7 @@
 
 ## 简介（manifest description，≤132 字符，见 public/_locales）
 - 中文：把浏览器书签整理成工作区和抽屉，支持场景、分身，可同步到 Google Drive 或 WebDAV，还能把抽屉和工作区分享给他人安装。
-- English: Reorganize browser bookmarks into workspaces and drawers, with modes and aliases, sync via Google Drive or WebDAV, and share with others.
+- English: Reorganize bookmarks into workspaces and drawers, with modes and aliases, sync via Google Drive or WebDAV, and share with others.
 
 ## 详细说明（与扩展内介绍 src/ui/Intro.tsx 保持一致）
 

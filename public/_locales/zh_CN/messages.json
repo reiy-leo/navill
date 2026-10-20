@@ -3,6 +3,6 @@
     "message": "Navill"
   },
   "extDescription": {
-    "message": "把浏览器书签重组为「工作区 → 抽屉 → 书签」的新标签页导航"
+    "message": "把浏览器书签整理成工作区和抽屉，支持场景、分身，可同步到 Google Drive 或 WebDAV，还能把抽屉和工作区分享给他人安装。"
   }
 }
