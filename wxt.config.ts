@@ -12,6 +12,24 @@ const key = envKey === 'none' ? undefined : envKey || DEV_KEY;
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({ plugins: [tailwindcss()] }),
+  hooks: {
+    // 页面类入口（newtab / popup）拆分第三方依赖，避免单个 chunk 超过 500 kB 的构建警告；
+    // background 是单文件 IIFE，不能拆分，跳过
+    'vite:build:extendConfig': (entrypoints, config) => {
+      if (entrypoints.some((e) => e.type === 'background' || e.type === 'content-script')) return;
+      const out = (config.build ??= {}).rolldownOptions ??= {};
+      const output = Array.isArray(out.output) ? out.output[0] : (out.output ??= {});
+      output.codeSplitting = {
+        groups: [
+          { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 30 },
+          { name: 'ui-kit', test: /node_modules[\\/](@cloudflare[\\/]kumo|@base-ui)/, priority: 20 },
+          { name: 'icons', test: /node_modules[\\/]@phosphor-icons/, priority: 20 },
+          // lucide 图标保持按需单独加载，不并入 vendor
+          { name: 'vendor', test: (id: string) => /node_modules/.test(id) && !/lucide-react/.test(id), priority: 10 },
+        ],
+      };
+    },
+  },
   manifest: {
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
