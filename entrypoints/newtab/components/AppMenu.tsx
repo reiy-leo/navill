@@ -1,6 +1,7 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, DotsThree, ShareNetwork, Storefront, CopySimple, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
+import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, ShareNetwork, Storefront, CopySimple, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
+import { Cog, RectangleEllipsis } from 'lucide-react';
 import { AboutDialog } from '@/src/ui/AboutDialog';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -8,33 +9,41 @@ import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
 import { dateLocale, tr } from '@/src/i18n';
-/** ⋯ 菜单：新建工作区 · 开始整理 · 管理归档 · 管理分身 · 管理分享 · 搜索 | 同步 · 设置 · 关于本扩展（顶部横铺放在工作区条右端，侧边栏放在标题旁） */
-export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end' }) {
+/** 导航栏右端两个按钮：
+ * 「设置」(cog)：新建工作区 · 开始整理 · 管理归档 · 管理分身 · 管理分享 · 查看市场
+ * 「更多操作」(rectangle-ellipsis)：搜索 · 同步状态 · 设置 · 关于本扩展
+ * vertical：侧边栏图标模式下上下排列 */
+export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
   const { organize, setOrganize, settings, setPanel } = useApp();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
   const syncLabel = !settings.sync.enabled ? tr('同步未开启') : sync.state === 'error' ? tr('同步失败') : sync.state === 'syncing' ? tr('正在同步…') : sync.lastSyncAt ? tr('已同步 {0}', new Date(sync.lastSyncAt).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })) : tr('同步');
   const [about, setAbout] = useState(false);
+  const contentAlign = align ?? (side === 'bottom' ? 'end' : 'start');
   return (
-    <>
+    <div className={`flex items-center gap-1 ${vertical ? 'flex-col' : ''}`}>
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} title={tr('更多')} />} />
-      <DropdownMenu.Content side={side} align={align ?? (side === 'bottom' ? 'end' : 'start')}>
+      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Cog size={16} />} aria-label={tr('设置')} title={tr('设置')} />} />
+      <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>{tr('新建工作区')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={Archive} onClick={() => setPanel('archive')}>{tr('管理归档')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={CopySimple} onClick={() => setPanel('aliases')}>{tr('管理分身')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={ShareNetwork} onClick={() => setPanel('shares')}>{tr('管理分享')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={Storefront} onClick={() => setPanel('market')}>{tr('查看市场')}</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+    <DropdownMenu>
+      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<RectangleEllipsis size={16} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
+      <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>{tr('搜索')}<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
-        <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于本扩展')}</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
     <AboutDialog open={about} onClose={() => setAbout(false)} />
-    </>
+    </div>
   );
 }
 

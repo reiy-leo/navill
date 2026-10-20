@@ -82,7 +82,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   if (top) {
     return (
-      <nav ref={navRef} {...sort.container} className="relative flex items-center px-11 py-1">
+      <nav ref={navRef} {...sort.container} className="relative flex items-center pl-11 pr-20 py-1">
         <ScrollStrip activeKey={view === 'workspace' ? current : view}>{items}</ScrollStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
@@ -92,10 +92,10 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   }
 
   return (
-    <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 py-12 ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
+    <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 ${label === 'icon' ? 'pt-12 pb-20 w-16 items-center' : 'py-12'} ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
       <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
-        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} />
+        <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} vertical={label === 'icon'} />
       </div>
     </nav>
   );
