@@ -610,9 +610,9 @@
  "分享用 Google 账号确认身份，只读取邮箱。": "Sharing uses your Google account to confirm identity and reads only your email.",
  "更多操作": "More actions",
  "安装工作区": "Install workspace",
- "把浏览器书签导入后，重新整理成不同的工作区，例如影视、AI、工作、软件安装、数据分析、色彩管理等。工作区中可用零个或多个抽屉细化，抽屉可用多种布局组织。": "Import your browser bookmarks and reorganize them into workspaces, such as Movies, AI, Work, Software, Data analysis, Color management. Each workspace can be refined with zero or more drawers, and drawers can be arranged in several layouts.",
- "可以把工作区、抽屉分成不同的使用场景，例如演讲模式、娱乐模式。": "Workspaces and drawers can be grouped into modes, such as a Presentation mode or an Entertainment mode.",
- "书签、抽屉支持分身到不同抽屉、工作区，对于一些难归类到一个抽屉、工作区的书签非常友好。": "Bookmarks and drawers can be aliased into other drawers and workspaces — great for bookmarks that don't fit neatly in one place.",
- "可以把书签和配置同步到 Google Drive 或 WebDAV 中，这样可以在多个浏览器中同步。": "Bookmarks and settings can sync to Google Drive or WebDAV, so they stay in step across browsers.",
- "此外，如果你想把自己整理好的抽屉或工作区共享给其他人安装使用，也是一件很好的事情。": "And if you'd like to share a drawer or workspace you've organized so others can install it, that's easy too."
+ "导入浏览器书签后，你可以按用途把它们重新整理成多个工作区，例如影视、AI、工作、软件安装、数据分析、色彩管理。工作区内可以再用抽屉细分，也可以不分；抽屉支持多种布局。": "Import your browser bookmarks and reorganize them by purpose into workspaces, such as Movies, AI, Work, Software, Data Analysis, and Color Management. Split a workspace further into drawers, or leave it as is; drawers come in several layouts.",
+ "工作区和抽屉可以按使用场景分组，例如演讲模式、娱乐模式。切换场景后，只显示当下需要的内容。": "Group workspaces and drawers into modes, such as a Presentation mode or an Entertainment mode. Switch modes to see only what you need right now.",
+ "书签和抽屉可以“分身”到其他抽屉或工作区，同一份内容出现在多处。遇到难以只归到一处的书签，不必再纠结放在哪里。": "Alias bookmarks and drawers into other drawers or workspaces, so the same item can live in several places. No more agonizing over where a hard-to-classify bookmark belongs.",
+ "书签和设置可以同步到 Google Drive 或 WebDAV，在多个浏览器之间保持一致。": "Sync bookmarks and settings to Google Drive or WebDAV to keep them consistent across browsers.",
+ "你还可以把整理好的抽屉或工作区分享出去，别人一键就能安装使用。": "Share a drawer or workspace you have organized, and others can install it in one click."
 }
