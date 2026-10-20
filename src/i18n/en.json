@@ -322,7 +322,6 @@
  "已取消分享": "Sharing stopped",
  "已登录并开启同步。云端还没有数据，导入书签或新建工作区后会自动同步。": "Signed in and sync is on. The cloud is empty; it will sync automatically after you import bookmarks or create a workspace.",
  "欢迎使用 Navill": "Welcome to Navill",
- "导入浏览器书签，按「工作区 → 抽屉 → 书签」重新整理；在其他设备用过 Navill，登录 Google 即可同步回来。": "Import your browser bookmarks and reorganize them as Workspace → Drawer → Bookmark. Used Navill on another device? Sign in with Google to sync it back.",
  "导入浏览器书签": "Import browser bookmarks",
  "构建时未配置 Google OAuth 客户端 ID": "Google OAuth client ID not configured at build time",
  "登录 Google 同步": "Sign in with Google to sync",
@@ -602,7 +601,6 @@
  "强": "Strong",
  "关于本扩展": "About this extension",
  "版本 {0}": "Version {0}",
- "把浏览器书签一次性导入，重新整理成「工作区 → 抽屉 → 书签」的新标签页导航，支持分身、场景、标签，并可通过 Google Drive 或 WebDAV 在多台设备间同步。": "Import your browser bookmarks once and reorganize them into a Workspace → Drawer → Bookmark new tab page, with aliases, modes and tags, synced across devices via Google Drive or WebDAV.",
  "反馈": "Feedback",
  "管理分身": "Manage aliases",
  "刷新": "Refresh",
@@ -611,5 +609,10 @@
  "查看，或者在扩展主页的「市场最新分享」中查看。": "or under \"Latest in market\" on the extension's Home page.",
  "分享用 Google 账号确认身份，只读取邮箱。": "Sharing uses your Google account to confirm identity and reads only your email.",
  "更多操作": "More actions",
- "安装工作区": "Install workspace"
+ "安装工作区": "Install workspace",
+ "把浏览器书签导入后，重新整理成不同的工作区，例如影视、AI、工作、软件安装、数据分析、色彩管理等。工作区中可用零个或多个抽屉细化，抽屉可用多种布局组织。": "Import your browser bookmarks and reorganize them into workspaces, such as Movies, AI, Work, Software, Data analysis, Color management. Each workspace can be refined with zero or more drawers, and drawers can be arranged in several layouts.",
+ "可以把工作区、抽屉分成不同的使用场景，例如演讲模式、娱乐模式。": "Workspaces and drawers can be grouped into modes, such as a Presentation mode or an Entertainment mode.",
+ "书签、抽屉支持分身到不同抽屉、工作区，对于一些难归类到一个抽屉、工作区的书签非常友好。": "Bookmarks and drawers can be aliased into other drawers and workspaces — great for bookmarks that don't fit neatly in one place.",
+ "可以把书签和配置同步到 Google Drive 或 WebDAV 中，这样可以在多个浏览器中同步。": "Bookmarks and settings can sync to Google Drive or WebDAV, so they stay in step across browsers.",
+ "此外，如果你想把自己整理好的抽屉或工作区共享给其他人安装使用，也是一件很好的事情。": "And if you'd like to share a drawer or workspace you've organized so others can install it, that's easy too."
 }

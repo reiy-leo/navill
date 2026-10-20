@@ -1,3 +1,4 @@
+import { Intro } from '@/src/ui/Intro';
 import { Banner, Button, Empty, Text } from '@cloudflare/kumo';
 import { BookmarksSimple, GoogleLogo, DownloadSimple, FileArrowUp, Plus } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
@@ -68,8 +69,8 @@ export default function Welcome({ onImport }: { onImport: (tree?: BookmarkNode) 
           size="lg"
           icon={<BookmarksSimple size={48} />}
           title={tr('欢迎使用 Navill')}
-          description={tr('导入浏览器书签，按「工作区 → 抽屉 → 书签」重新整理；在其他设备用过 Navill，登录 Google 即可同步回来。')}
         />
+        <Intro className="mt-2" />
         {err && <div className="mt-4"><Banner variant="error" description={err} /></div>}
         {info && <div className="mt-4"><Banner description={info} /></div>}
         <div className="mt-6 grid gap-2">

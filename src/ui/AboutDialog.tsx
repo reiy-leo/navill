@@ -7,6 +7,8 @@ export const HOMEPAGE = 'https://navill.rei8t.dev';
 export const REPO = 'https://github.com/reiy-leo/navill';
 
 /** 关于本扩展：图标、版本、简介、主页与 GitHub 链接 */
+import { Intro } from './Intro';
+
 export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const m = browser.runtime.getManifest() as { version: string; version_name?: string };
   const links = [
@@ -22,7 +24,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
           <div className="text-lg font-semibold">Navill</div>
           <div className="text-xs text-kumo-subtle">{tr('版本 {0}', m.version_name ?? m.version)}</div>
         </div>
-        <p className="max-w-xs text-sm text-kumo-subtle">{tr('把浏览器书签一次性导入，重新整理成「工作区 → 抽屉 → 书签」的新标签页导航，支持分身、场景、标签，并可通过 Google Drive 或 WebDAV 在多台设备间同步。')}</p>
+        <Intro />
         <div className="flex flex-nowrap justify-center gap-2">
           {links.map((l) => (
             <Button key={l.href} size="sm" variant="secondary" icon={l.icon} className="shrink-0 whitespace-nowrap" onClick={() => window.open(l.href, '_blank', 'noopener')}>{l.label}</Button>
