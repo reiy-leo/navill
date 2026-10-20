@@ -85,10 +85,10 @@ function Row({ label, children, hint, info }: { label: string; children: ReactNo
 }
 
 /** 设置分组：小标题 + 一张卡片包住若干行 */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, info, children }: { title: string; /** 紧跟在小标题后的说明气泡 */ info?: ReactNode; children: ReactNode }) {
   return (
     <section className="mb-5 last:mb-0">
-      <h3 className="mb-1.5 px-1 text-xs font-medium text-kumo-subtle">{title}</h3>
+      <h3 className="mb-1.5 flex items-center gap-0.5 px-1 text-xs font-medium text-kumo-subtle">{title}{info}</h3>
       <div className="rounded-lg border border-kumo-line bg-kumo-base px-4">{children}</div>
     </section>
   );
@@ -351,12 +351,11 @@ function Sync() {
   );
   return (
     <div className="flex flex-col gap-1">
-      <div><InfoTip text={tr('数据存在哪')}>{provider === 'webdav'
-        ? tr('数据保存在你的 WebDAV 服务器根目录下的 {0} 文件夹里，账号和应用密码只保存在本机。', WEBDAV_DIR)
-        : tr('数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。')}</InfoTip></div>
       {err && <Banner variant="error" description={err} />}
       {status.state === 'error' && status.message && <Banner variant="error" title={tr('上次同步失败')} description={status.message} />}
-      <Section title={tr('账号')}>
+      <Section title={tr('账号')} info={<InfoTip label={tr('数据存在哪')}>{provider === 'webdav'
+        ? tr('数据保存在你的 WebDAV 服务器根目录下的 {0} 文件夹里，账号和应用密码只保存在本机。', WEBDAV_DIR)
+        : tr('数据保存在你自己 Google Drive 的隐藏应用目录（appDataFolder），只申请 drive.appdata 权限，看不到你的其他文件。')}</InfoTip>}>
       <Row label={tr('同步方式')} info={signedIn ? tr('断开当前账号后才能切换') : tr('二选一')}>
         <Select aria-label={tr('同步方式')} className="w-44" value={provider} disabled={signedIn} items={{ google: 'Google Drive', webdav: 'WebDAV' }} onValueChange={(v) => v && void syncProviderItem.setValue(v as SyncProvider)} />
       </Row>
