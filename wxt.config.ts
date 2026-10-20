@@ -17,9 +17,9 @@ export default defineConfig({
     // background 是单文件 IIFE，不能拆分，跳过
     'vite:build:extendConfig': (entrypoints, config) => {
       if (entrypoints.some((e) => e.type === 'background' || e.type === 'content-script')) return;
-      const out = (config.build ??= {}).rolldownOptions ??= {};
-      const output = Array.isArray(out.output) ? out.output[0] : (out.output ??= {});
-      output.codeSplitting = {
+      const ro = ((config.build ??= {}).rolldownOptions ??= {});
+      const prev = Array.isArray(ro.output) ? ro.output[0] : ro.output;
+      ro.output = { ...prev, codeSplitting: {
         groups: [
           { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 30 },
           { name: 'ui-kit', test: /node_modules[\\/](@cloudflare[\\/]kumo|@base-ui)/, priority: 20 },
@@ -27,7 +27,7 @@ export default defineConfig({
           // lucide 图标保持按需单独加载，不并入 vendor
           { name: 'vendor', test: (id: string) => /node_modules/.test(id) && !/lucide-react/.test(id), priority: 10 },
         ],
-      };
+      } };
     },
   },
   manifest: {
