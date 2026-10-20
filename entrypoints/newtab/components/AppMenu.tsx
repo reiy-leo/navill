@@ -1,7 +1,7 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
 import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, ShareNetwork, Storefront, CopySimple, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
-import { Cog, RectangleEllipsis } from 'lucide-react';
+import { Ellipsis, Settings } from 'lucide-react';
 import { AboutDialog } from '@/src/ui/AboutDialog';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -10,8 +10,8 @@ import type { Tab } from './Settings';
 
 import { dateLocale, tr } from '@/src/i18n';
 /** 导航栏右端两个按钮：
- * 「设置」(cog)：新建工作区 · 开始整理 · 管理归档 · 管理分身 · 管理分享 · 查看市场
- * 「更多操作」(rectangle-ellipsis)：搜索 · 同步状态 · 设置 · 关于本扩展
+ * 「更多操作」(ellipsis)：新建工作区 · 开始整理 · 管理归档 · 管理分身 · 管理分享 · 查看市场
+ * 「设置」(settings)：搜索 · 同步状态 · 设置 · 关于本扩展
  * vertical：侧边栏图标模式下上下排列 */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
   const { organize, setOrganize, settings, setPanel } = useApp();
@@ -23,7 +23,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
   return (
     <div className={`flex items-center gap-1 ${vertical ? 'flex-col' : ''}`}>
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Cog size={16} />} aria-label={tr('设置')} title={tr('设置')} />} />
+      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Ellipsis size={16} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
       <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>{tr('新建工作区')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
@@ -34,7 +34,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
       </DropdownMenu.Content>
     </DropdownMenu>
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<RectangleEllipsis size={16} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
+      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Settings size={16} />} aria-label={tr('设置')} title={tr('设置')} />} />
       <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>{tr('搜索')}<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
