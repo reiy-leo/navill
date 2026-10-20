@@ -280,26 +280,33 @@ function Tags() {
   }, []);
   const [name, setName] = useState('');
   const dialogs = useDialogs();
+  const add = async () => { if (name.trim()) { await createTag(db, name); setName(''); } };
+  const count = (id: string) => <span className="shrink-0 text-xs text-kumo-subtle">{counts?.get(id) ?? 0} {tr('个书签')}</span>;
   return (
-    <div className="flex flex-col gap-2">
-      <div><InfoTip text={tr('说明')}>{tr('标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。')}</InfoTip></div>
-      {tags.map((t) => (
-        <div key={t.id} className="flex items-center gap-2 rounded-md border border-kumo-line px-3 py-2">
-          {t.builtin ? <span className="flex-1 text-sm">#{t.name} <Badge variant="neutral">{tr('内置')}</Badge></span> : (
+    <div>
+      <Section title={tr('内置')} info={<InfoTip>{tr('标签只用于书签，一个书签可以有多个标签。搜索时输入 #标签名 筛选。')}</InfoTip>}>
+        {tags.filter((t) => t.builtin).map((t) => (
+          <div key={t.id} className="flex items-center gap-2 border-b border-kumo-line py-2.5 last:border-b-0">
+            <span className="flex-1 text-sm">#{t.name}</span>
+            {count(t.id)}
+          </div>
+        ))}
+      </Section>
+      <Section title={tr('自定义')}>
+        {tags.filter((t) => !t.builtin).map((t) => (
+          <div key={t.id} className="flex items-center gap-2 border-b border-kumo-line py-2">
             <Input size="sm" className="flex-1" value={t.name} onChange={(e) => void renameTag(db, t.id, e.target.value)} aria-label={tr('标签名')} />
-          )}
-          <span className="w-16 text-right text-xs text-kumo-subtle">{counts?.get(t.id) ?? 0} {tr('个书签')}</span>
-          {!t.builtin && (
+            {count(t.id)}
             <Button size="xs" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除标签')} onClick={async () => {
               if (await dialogs.confirm({ title: tr('删除标签「{0}」？', t.name), description: tr('会从所有书签上移除。'), okText: tr('删除'), danger: true })) await deleteTag(db, t.id);
             }} />
-          )}
+          </div>
+        ))}
+        <div className="flex items-center gap-2 py-3">
+          <Input className="!h-8 flex-1" placeholder={tr('新标签名')} aria-label={tr('新标签名')} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void add(); }} />
+          <Button className="!h-8" icon={<Plus />} onClick={() => void add()}>{tr('添加')}</Button>
         </div>
-      ))}
-      <div className="mt-2 flex gap-2">
-        <Input size="sm" className="flex-1" placeholder={tr('新标签名')} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={async (e) => { if (e.key === 'Enter' && name.trim()) { await createTag(db, name); setName(''); } }} />
-        <Button size="sm" icon={<Plus />} onClick={async () => { if (name.trim()) { await createTag(db, name); setName(''); } }}>{tr('添加')}</Button>
-      </div>
+      </Section>
     </div>
   );
 }
