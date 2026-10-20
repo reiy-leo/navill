@@ -1,7 +1,7 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
 import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, ShareNetwork, Storefront, CopySimple, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
-import { Ellipsis, Settings } from 'lucide-react';
+import { Ellipsis, Search } from 'lucide-react';
 import { AboutDialog } from '@/src/ui/AboutDialog';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -9,9 +9,8 @@ import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
 
 import { dateLocale, tr } from '@/src/i18n';
-/** 导航栏右端两个按钮：
- * 「更多操作」(ellipsis)：新建工作区 · 开始整理 · 管理归档 · 管理分身 · 管理分享 · 查看市场
- * 「设置」(settings)：搜索 · 同步状态 · 设置 · 关于本扩展
+/** 导航栏右端：「搜索」按钮 + 一个「更多操作」菜单，分三组：
+ * 新建工作区 · 整理 ｜ 归档 · 分身 · 分享 · 市场 ｜ 同步状态 · 设置 · 关于本扩展
  * vertical：侧边栏图标模式下上下排列 */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
   const { organize, setOrganize, settings, setPanel } = useApp();
@@ -22,21 +21,18 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
   const contentAlign = align ?? (side === 'bottom' ? 'end' : 'start');
   return (
     <div className={`flex items-center gap-1 ${vertical ? 'flex-col' : ''}`}>
+    <Button variant="ghost" size="xs" shape="square" icon={<Search size={16} />} onClick={onSearch} aria-label={tr('搜索')} title={`${tr('搜索')} (/)`} />
     <DropdownMenu>
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Ellipsis size={16} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
       <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>{tr('新建工作区')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={Archive} onClick={() => setPanel('archive')}>{tr('管理归档')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={CopySimple} onClick={() => setPanel('aliases')}>{tr('管理分身')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={ShareNetwork} onClick={() => setPanel('shares')}>{tr('管理分享')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={Storefront} onClick={() => setPanel('market')}>{tr('查看市场')}</DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu>
-    <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Settings size={16} />} aria-label={tr('设置')} title={tr('设置')} />} />
-      <DropdownMenu.Content side={side} align={contentAlign}>
-        <DropdownMenu.Item icon={MagnifyingGlass} onClick={onSearch}>{tr('搜索')}<DropdownMenu.Shortcut>/</DropdownMenu.Shortcut></DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item icon={Archive} onClick={() => setPanel('archive')}>{tr('归档')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={CopySimple} onClick={() => setPanel('aliases')}>{tr('分身')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={ShareNetwork} onClick={() => setPanel('shares')}>{tr('分享')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Storefront} onClick={() => setPanel('market')}>{tr('市场')}</DropdownMenu.Item>
+        <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于本扩展')}</DropdownMenu.Item>
