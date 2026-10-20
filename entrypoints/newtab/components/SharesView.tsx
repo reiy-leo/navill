@@ -1,7 +1,7 @@
 import { Badge, Banner, Button, Empty, Loader } from '@cloudflare/kumo';
 import { ArrowSquareOut, Copy, GoogleLogo, ShareNetwork, SquaresFour, Trash, Tray } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
-import { STATUS_LABEL, deleteShare, listShares, type MyShare } from '@/src/lib/share';
+import { SHARE_ORIGIN, STATUS_LABEL, deleteShare, listShares, type MyShare } from '@/src/lib/share';
 import { useDialogs } from '@/src/ui/dialogs';
 import { StatusBadge, copyLink } from '@/src/ui/ShareDialog';
 import { toast } from '@/src/ui/toast';
@@ -27,7 +27,14 @@ export function SharesView() {
       {err && <Banner variant="error" description={err} />}
       {shares === null && <div className="flex justify-center py-10"><Loader /></div>}
       {needLogin && (
-        <Empty icon={<ShareNetwork size={40} />} title={tr('登录后查看你的分享')} description={tr('分享用 Google 账号确认身份，只读取邮箱。')} contents={<Button variant="primary" icon={<GoogleLogo />} onClick={() => void load(true)}>{tr('登录 Google')}</Button>} />
+        <Empty icon={<ShareNetwork size={40} />} title={tr('登录后查看你的分享')} contents={<div className="flex flex-col items-center gap-4">
+        <p className="max-w-md text-center text-sm text-kumo-subtle">
+          {tr('此处登录用于分享抽屉、工作区，方便其他人下载。此处登录不和「登录 Google 同步」共享登录状态，各自独立使用。你的分享、他人的分享都可以在')}{' '}
+          <a href={`${SHARE_ORIGIN}/s`} target="_blank" rel="noreferrer" className="text-kumo-link underline">{SHARE_ORIGIN.replace('https://', '')}/s</a>{' '}
+          {tr('查看，或者在扩展主页的「市场最新分享」中查看。')}
+        </p>
+        <Button variant="primary" icon={<GoogleLogo />} onClick={() => void load(true)}>{tr('登录 Google')}</Button>
+      </div>} />
       )}
       {shares?.length === 0 && !err && !needLogin && (
         <Empty icon={<ShareNetwork size={40} />} title={tr('还没有分享')} description={tr('在抽屉的 ⋯ 菜单或工作区的右键菜单中选择「分享」。')} />

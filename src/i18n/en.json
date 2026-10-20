@@ -310,7 +310,6 @@
  "清空使用统计？": "Clear usage stats?",
  "清空": "Clear",
  "登录后查看你的分享": "Sign in to see your shares",
- "分享用 Google 账号确认身份，只读取邮箱。": "Sharing uses your Google account to confirm identity and reads only your email.",
  "还没有分享": "No shares yet",
  "在抽屉的 ⋯ 菜单或工作区的右键菜单中选择「分享」。": "Choose “Share” in a drawer's ⋯ menu or a workspace's context menu.",
  "更新审核中": "Update under review",
@@ -607,5 +606,8 @@
  "反馈": "Feedback",
  "管理分身": "Manage aliases",
  "刷新": "Refresh",
- "指定颜色": "Set color"
+ "指定颜色": "Set color",
+ "此处登录用于分享抽屉、工作区，方便其他人下载。此处登录不和「登录 Google 同步」共享登录状态，各自独立使用。你的分享、他人的分享都可以在": "Signing in here is for sharing drawers and workspaces so others can download them. It doesn't share login state with \"Sign in with Google to sync\"; the two are independent. Your shares and others' shares can be viewed at",
+ "查看，或者在扩展主页的「市场最新分享」中查看。": "or under \"Latest in market\" on the extension's Home page.",
+ "分享用 Google 账号确认身份，只读取邮箱。": "Sharing uses your Google account to confirm identity and reads only your email."
 }
