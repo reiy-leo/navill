@@ -460,8 +460,7 @@ function Toasts() {
   const set = (p: Partial<S['toast']>) => void updateSettings({ toast: { ...t, ...p } });
   return (
     <div className="flex flex-col gap-1">
-      <div><InfoTip text={tr('说明')}>{tr('提醒设置只对本机生效。按')} {modKey()}{tr('S 时「已跳过」这类直接反馈总是显示。')}</InfoTip></div>
-      <Section title={tr('外观')}>
+      <Section title={tr('外观')} info={<InfoTip>{tr('提醒设置只对本机生效。按')} {modKey()}{tr('S 时「已跳过」这类直接反馈总是显示。')}</InfoTip>}>
       <Row label={tr('位置')}><Pick label={tr('位置')} value={t.position} items={POSITIONS} onChange={(position) => set({ position })} /></Row>
       <Row label={tr('样式')}>
         <div className="flex items-center gap-2">
