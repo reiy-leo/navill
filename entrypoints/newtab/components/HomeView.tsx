@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { TAG_FAVORITE, db } from '@/src/db';
 import { listPublicShares, type PublicShare } from '@/src/lib/share';
 import { mostOpened, taggedItems, visibilityOf } from '@/src/lib/view';
+import { useInstallShare } from '@/src/ui/installShare';
 import { useApp } from '@/src/ui/state';
 import { Items } from './Items';
 
@@ -15,6 +16,7 @@ const LATEST = 6;
 /** 主页：#收藏 标签的书签、最常用的书签（图标一行），然后是市场里最新的分享（倒序，最多 6 个） */
 export function HomeView() {
   const { mode, setPanel } = useApp();
+  const { installShare } = useInstallShare();
   // 按标签 id 取，不依赖标签名（界面语言或改名都不影响）
   const favs = useLiveQuery(() => taggedItems(db, TAG_FAVORITE, visibilityOf(mode)), [mode]);
   const top = useLiveQuery(() => mostOpened(db, visibilityOf(mode), 20), [mode]);
@@ -56,7 +58,7 @@ export function HomeView() {
         {!!latest?.length && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
             {latest.map((s) => (
-              <button key={s.id} type="button" onClick={() => setPanel('market')}
+              <button key={s.id} type="button" title={tr('安装')} onClick={() => void installShare(s)}
                 className="nv-drawer flex flex-col items-start gap-1 rounded-xl p-3 text-left transition hover:-translate-y-0.5"
                 style={s.color ? ({ '--ws-color': s.color } as React.CSSProperties) : undefined}>
                 <div className="flex w-full items-center gap-1.5 text-sm font-medium">

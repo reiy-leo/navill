@@ -1,10 +1,8 @@
-import { Badge, Banner, Button, DropdownMenu, Empty, Loader } from '@cloudflare/kumo';
-import { ArrowSquareOut, DotsThree, DownloadSimple, Storefront } from '@phosphor-icons/react';
-import { db } from '@/src/db';
-import { useDialogs } from '@/src/ui/dialogs';
-import { toast } from '@/src/ui/toast';
+import { Badge, Banner, Button, Empty, Loader } from '@cloudflare/kumo';
+import { ArrowSquareOut, DownloadSimple, Storefront } from '@phosphor-icons/react';
+import { useInstallShare } from '@/src/ui/installShare';
 import { useEffect, useState } from 'react';
-import { getPublicShare, installSharedDrawer, listPublicShares, listShares, shareUrl, type PublicShare, type PublicShareDetail } from '@/src/lib/share';
+import { getPublicShare, listPublicShares, listShares, shareUrl, type PublicShare, type PublicShareDetail } from '@/src/lib/share';
 import { BookmarkIcon } from '@/src/ui/icons';
 
 import { tr } from '@/src/i18n';
@@ -57,18 +55,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
   const [err, setErr] = useState('');
   useEffect(() => { getPublicShare(share.id).then(setDetail, (e) => setErr(e instanceof Error ? e.message : String(e))); }, [share.id]);
   const p = detail?.payload;
-  const dialogs = useDialogs();
-  const install = async (d: { name: string; bookmarks: PublicShareDetail['payload']['drawers'][number]['bookmarks'] }) => {
-    const t = await dialogs.pickTarget({ title: tr('安装抽屉'), workspacesOnly: true, name: d.name, okText: tr('安装') });
-    if (!t) return;
-    const name = t.name || d.name;
-    try {
-      await installSharedDrawer(db, t.workspaceId, { ...d, name: name || d.name });
-      toast(tr('已安装「{0}」，共 {1} 个书签', name || d.name, d.bookmarks.length));
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e));
-    }
-  };
+  const { installDrawer } = useInstallShare();
   const groups = p ? [...(p.loose?.length ? [{ name: '', bookmarks: p.loose }] : []), ...p.drawers] : [];
 
   return (
@@ -93,12 +80,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
           <div key={i} className="group/md mb-1.5 rounded-lg last:mb-0">
             <div className="flex items-center gap-1 pl-2">
               <span className="min-w-0 flex-1 truncate text-xs text-kumo-subtle">{g.name || share.title}</span>
-              <DropdownMenu>
-                <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
-                <DropdownMenu.Content>
-                  <DropdownMenu.Item icon={DownloadSimple} onClick={() => void install({ name: g.name || share.title, bookmarks: g.bookmarks })}>{tr('安装到…')}</DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu>
+              <Button size="xs" variant="ghost" shape="square" icon={<DownloadSimple />} aria-label={tr('安装到…')} title={tr('安装到…')} onClick={() => void installDrawer({ name: g.name || share.title, bookmarks: g.bookmarks })} />
             </div>
             {g.bookmarks.map((b, j) => (
               <a key={j} href={b.url} title={b.note ? `${b.title}\n${b.note}` : b.title}

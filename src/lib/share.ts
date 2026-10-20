@@ -1,7 +1,7 @@
 import type { Bookmark, NavillDB } from '@/src/db';
 import { getShareToken, invalidateShareToken } from '@/src/lib/sync/auth';
 import { loadWorkspace, sortItems, type Item } from '@/src/lib/view';
-import { createBookmark, createDrawer, updateBookmark } from '@/src/lib/store';
+import { createBookmark, createDrawer, createWorkspace, updateBookmark } from '@/src/lib/store';
 
 import { tr } from '@/src/i18n';
 /**
@@ -117,4 +117,12 @@ export async function installSharedDrawer(db: NavillDB, workspaceId: string, dra
     if (b.links?.length) await updateBookmark(db, bookmark.id, { links: b.links });
   }
   return d;
+}
+
+/** 市场：把整个工作区分享安装成一个新工作区（零散书签放进以工作区名命名的抽屉） */
+export async function installSharedWorkspace(db: NavillDB, payload: SharePayload, name: string) {
+  const ws = await createWorkspace(db, { name, emoji: payload.workspace.emoji, color: payload.workspace.color, description: payload.description });
+  if (payload.loose?.length) await installSharedDrawer(db, ws.id, { name, bookmarks: payload.loose });
+  for (const d of payload.drawers) await installSharedDrawer(db, ws.id, d);
+  return ws;
 }
