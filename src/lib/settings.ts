@@ -55,10 +55,10 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   openMode: 'current',
   drawerName: 'full',
-  drawerHead: 'peek',
+  drawerHead: 'show',
   arrange: {},
-  navPosition: 'left',
-  navLabel: 'both',
+  navPosition: 'top',
+  navLabel: 'name',
   workspaceIconStyle: 'emoji',
   surface: 'tint',
   background: 'gradient',
@@ -77,7 +77,7 @@ export async function getSettings(): Promise<Settings> {
   const legacy = (s as { navLayout?: string }).navLayout;
   return {
     ...DEFAULT_SETTINGS, ...s,
-    navPosition: s.navPosition ?? (legacy === 'top' ? 'top' : 'left'),
+    navPosition: s.navPosition ?? (legacy === 'sidebar' ? 'left' : 'top'),
     sync: { ...DEFAULT_SETTINGS.sync, ...s.sync },
     toast: { ...DEFAULT_TOAST, ...s.toast, show: { ...DEFAULT_TOAST.show, ...s.toast?.show } },
   };

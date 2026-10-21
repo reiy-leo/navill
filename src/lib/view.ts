@@ -1,4 +1,5 @@
 import { MODE_DEFAULT, TAG_ADULT, type AliasGroup, type Bookmark, type Drawer, type Mode, type NavillDB, type Placement, type SortMode, type Tag, type ViewMode, type Workspace } from '@/src/db';
+import { localizeNames } from '@/src/lib/presetNames';
 
 export interface Item { placement: Placement; bookmark: Bookmark; mountedFrom?: { group: AliasGroup; drawer: Drawer } }
 
@@ -106,7 +107,7 @@ export interface SearchHit { item: Item; workspace: Workspace; drawer: Drawer | 
 export async function search(db: NavillDB, query: string, v: Visibility, limit = 100): Promise<SearchHit[]> {
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return [];
-  const tags: Tag[] = await db.tags.toArray();
+  const tags: Tag[] = localizeNames(await db.tags.toArray());
   const tagTokens = tokens.filter((t) => t.startsWith('#') && t.length > 1).map((t) => t.slice(1));
   const words = tokens.filter((t) => !t.startsWith('#'));
   const wantTags = tagTokens.map((t) => tags.filter((x) => x.name.toLowerCase().startsWith(t)).map((x) => x.id));

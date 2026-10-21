@@ -1,4 +1,5 @@
 import { InfoTip } from '@/src/ui/InfoTip';
+import { localizeNames } from '@/src/lib/presetNames';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
 import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -195,7 +196,7 @@ function Look() {
 }
 
 function Modes() {
-  const modes = useLiveQuery(() => db.modes.orderBy('order').toArray(), []) ?? [];
+  const modes = useLiveQuery(async () => localizeNames(await db.modes.orderBy('order').toArray()), []) ?? [];
   const [sel, setSel] = useState(MODE_DEFAULT);
   const [fresh, setFresh] = useState<string>();
   const mode = modes.find((m) => m.id === sel) ?? modes[0];
@@ -272,7 +273,7 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
 }
 
 function Tags() {
-  const tags = useLiveQuery(() => db.tags.orderBy('order').toArray(), []) ?? [];
+  const tags = useLiveQuery(async () => localizeNames(await db.tags.orderBy('order').toArray()), []) ?? [];
   const counts = useLiveQuery(async () => {
     const m = new Map<string, number>();
     for (const b of await db.bookmarks.toArray()) for (const t of b.tagIds) m.set(t, (m.get(t) ?? 0) + 1);

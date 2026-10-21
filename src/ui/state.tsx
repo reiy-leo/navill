@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { localizeNames } from '@/src/lib/presetNames';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import type { Settings } from '@/src/lib/settings';
@@ -38,7 +39,7 @@ export const useApp = () => useContext(Ctx)!;
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [settings, updateSettings, ready] = useSettings();
-  const modes = useLiveQuery(() => db.modes.orderBy('order').toArray(), []) ?? [];
+  const modes = useLiveQuery(async () => localizeNames(await db.modes.orderBy('order').toArray()), []) ?? [];
   const mode = modes.find((m) => m.id === settings.currentModeId) ?? modes.find((m) => m.id === MODE_DEFAULT);
   const visibility = useMemo(() => visibilityOf(mode), [mode]);
   const [organize, setOrganizeRaw] = useState(false);

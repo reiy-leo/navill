@@ -1,4 +1,5 @@
 import { ShareDialog } from './ShareDialog';
+import { localizeNames } from '@/src/lib/presetNames';
 import { Check, Plus, Trash } from '@phosphor-icons/react';
 import { iconParts, limitIcon, MAX_ICON_EMOJIS } from '@/src/lib/emoji';
 import { clipWidth, NAME_MAX_WIDTH } from '@/src/lib/textWidth';
@@ -370,7 +371,7 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
 }
 
 function TagsDialog({ ids, onClose }: { ids: string[]; onClose: () => void }) {
-  const tags = useLiveQuery(() => db.tags.orderBy('order').toArray(), []);
+  const tags = useLiveQuery(async () => localizeNames(await db.tags.orderBy('order').toArray()), []);
   const bookmarks = useLiveQuery(() => db.bookmarks.bulkGet(ids), [ids.join()]);
   const [name, setName] = useState('');
   const busy = useRef(false);
