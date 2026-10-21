@@ -126,7 +126,7 @@ export function DrawerCard({
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
-        <DrawerColorPopover anchor={moreBtn} open={colorOpen} onOpenChange={setColorOpen} value={drawer.color} onChange={(color) => void updateDrawer(db, drawer.id, { color })} />
+        <DrawerColorPopover anchor={moreBtn} open={colorOpen} onOpenChange={setColorOpen} value={drawer.color} follow={workspace.color} onChange={(color) => void updateDrawer(db, drawer.id, { color })} />
         <DropdownMenu onOpenChange={setMenuOpen}>
           <DropdownMenu.Trigger render={<Button ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
           <DropdownMenu.Content>
