@@ -1,6 +1,10 @@
-import { Autocomplete, Input } from '@cloudflare/kumo';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { hasHistory, suggest, type Suggestion } from '@/src/lib/suggest';
+import { Autocomplete, Button, Input } from '@cloudflare/kumo';
+import { History, X } from 'lucide-react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { db } from '@/src/db';
+import { tr } from '@/src/i18n';
+import { seedFromHistory } from '@/src/lib/store';
+import { hasHistory, requestHistory, suggest, type Suggestion } from '@/src/lib/suggest';
 import { BookmarkIcon, hostOf } from './icons';
 
 /**
@@ -72,9 +76,44 @@ export function HistoryAutocomplete({
   );
 }
 
+/* 授权状态在页面内共享：任一处开启后，提示条、补全、设置开关一起更新 */
+let grantedNow: boolean | undefined;
+const subs = new Set<() => void>();
+const emit = (v: boolean) => { grantedNow = v; subs.forEach((f) => f()); };
+const subscribe = (f: () => void) => {
+  subs.add(f);
+  if (grantedNow === undefined) void hasHistory().then(emit);
+  return () => { subs.delete(f); };
+};
+/** 设置里切换开关后调用，同步到其他地方 */
+export const setHistoryGranted = emit;
+
+/** 一键申请浏览记录权限；成功后补读本机访问次数 */
+export async function enableHistory(): Promise<boolean> {
+  const ok = await requestHistory();
+  emit(ok);
+  if (ok) await seedFromHistory(db, true).catch(() => 0);
+  return ok;
+}
+
 /** 浏览记录补全是否可用（开关在 设置 → 通用；授权状态就是开关状态） */
 export function useHistoryPermission() {
-  const [granted, setGranted] = useState(false);
-  useEffect(() => { void hasHistory().then(setGranted); }, []);
+  const granted = useSyncExternalStore(subscribe, () => grantedNow ?? false);
   return { granted };
+}
+
+const HINT_OFF = 'nv-history-hint-off';
+/** 未授权时的提示条：「开启」一键申请权限，× 不再提示 */
+export function HistoryHint({ children, className }: { children: ReactNode; className?: string }) {
+  const { granted } = useHistoryPermission();
+  const [off, setOff] = useState(() => localStorage.getItem(HINT_OFF) === '1');
+  if (granted || off || grantedNow === undefined) return null;
+  return (
+    <div className={`flex items-center gap-2 rounded-lg bg-kumo-tint px-3 py-1.5 text-sm text-kumo-subtle ${className ?? ''}`}>
+      <History size={14} className="shrink-0" />
+      <span className="min-w-0 flex-1">{children}</span>
+      <Button size="sm" variant="secondary" onClick={() => void enableHistory()}>{tr('开启')}</Button>
+      <Button size="sm" variant="ghost" shape="square" icon={<X size={14} />} aria-label={tr('不再提示')} onClick={() => { localStorage.setItem(HINT_OFF, '1'); setOff(true); }} />
+    </div>
+  );
 }

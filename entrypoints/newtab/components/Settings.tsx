@@ -25,7 +25,8 @@ import { Modal } from '@/src/ui/Modal';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
-import { hasHistory, removeHistory, requestHistory } from '@/src/lib/suggest';
+import { removeHistory, requestHistory } from '@/src/lib/suggest';
+import { setHistoryGranted, useHistoryPermission } from '@/src/ui/HistoryAutocomplete';
 
 import { dateLocale, getLangSetting, setLanguage, tr } from '@/src/i18n';
 export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'toast' | 'keys' | 'data';
@@ -121,9 +122,8 @@ function IconRows() {
 }
 
 function HistoryRow() {
-  const initial = useLiveQuery(() => hasHistory(), []);
-  const [granted, setGranted] = useState<boolean | undefined>(undefined);
-  const on = granted ?? initial ?? false;
+  const on = useHistoryPermission().granted;
+  const setGranted = setHistoryGranted;
   return (
     <Row label={tr('读取浏览记录')} info={tr('新建或编辑书签时，输入名称或网址会从本机浏览记录里补全；书签的打开次数也会参考本机访问次数，让「最常用」和智能排序更准。浏览记录只在本机读取，不上传。关闭即撤销授权')}>
       <Switch checked={on} aria-label={tr('读取浏览记录')} onClick={async () => {

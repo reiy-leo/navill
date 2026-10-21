@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { TAG_FAVORITE, db } from '@/src/db';
 import { listPublicShares, type PublicShare } from '@/src/lib/share';
 import { mostOpened, taggedItems, visibilityOf } from '@/src/lib/view';
+import { HistoryHint } from '@/src/ui/HistoryAutocomplete';
 import { useInstallShare } from '@/src/ui/installShare';
 import { useApp } from '@/src/ui/state';
 import { Items } from './Items';
@@ -43,6 +44,7 @@ export function HomeView() {
       {!!top?.length && (
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-medium">{tr('最常用')}</h2>
+          <HistoryHint>{tr('开启「读取浏览记录」后，最常用会参考本机访问次数，更准')}</HistoryHint>
           <Items items={top} view="icon" strip />
         </section>
       )}

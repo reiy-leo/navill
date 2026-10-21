@@ -614,5 +614,9 @@
  "工作区和抽屉可以按使用场景分组，例如演讲模式、娱乐模式。切换场景后，只显示当下需要的内容。": "Group workspaces and drawers into modes, such as a Presentation mode or an Entertainment mode. Switch modes to see only what you need right now.",
  "书签和抽屉可以“分身”到其他抽屉或工作区，同一份内容出现在多处。遇到难以只归到一处的书签，不必再纠结放在哪里。": "Alias bookmarks and drawers into other drawers or workspaces, so the same item can live in several places. No more agonizing over where a hard-to-classify bookmark belongs.",
  "书签和设置可以同步到 Google Drive 或 WebDAV，在多个浏览器之间保持一致。": "Sync bookmarks and settings to Google Drive or WebDAV to keep them consistent across browsers.",
- "你还可以把整理好的抽屉或工作区分享出去，别人一键就能安装使用。": "Share a drawer or workspace you have organized, and others can install it in one click."
+ "你还可以把整理好的抽屉或工作区分享出去，别人一键就能安装使用。": "Share a drawer or workspace you have organized, and others can install it in one click.",
+ "开启": "Turn on",
+ "不再提示": "Don't show again",
+ "开启「读取浏览记录」后，输入名称或网址可从浏览记录补全": "Turn on \"Read browsing history\" to autocomplete names and URLs from your history",
+ "开启「读取浏览记录」后，最常用会参考本机访问次数，更准": "Turn on \"Read browsing history\" so Most used also counts your local visits"
 }
