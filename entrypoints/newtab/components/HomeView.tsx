@@ -60,7 +60,7 @@ export function HomeView() {
         {!!latest?.length && (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
             {latest.map((s) => (
-              <button key={s.id} type="button" title={tr('安装')} onClick={() => void installShare(s)}
+              <button key={s.id} type="button" title={tr('点击安装')} onClick={() => void installShare(s)}
                 className="nv-drawer flex flex-col items-start gap-1 rounded-xl p-3 text-left transition hover:-translate-y-0.5"
                 style={s.color ? ({ '--ws-color': s.color } as React.CSSProperties) : undefined}>
                 <div className="flex w-full items-center gap-1.5 text-sm font-medium">
