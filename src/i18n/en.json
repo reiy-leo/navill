@@ -618,5 +618,15 @@
  "开启": "Turn on",
  "不再提示": "Don't show again",
  "开启「读取浏览记录」，输入时可从浏览记录补全": "Turn on \"Read browsing history\" to autocomplete from your history",
- "开启「读取浏览记录」后，最常用会参考本机访问次数，更准": "Turn on \"Read browsing history\" so Most used also counts your local visits"
+ "开启「读取浏览记录」后，最常用会参考本机访问次数，更准": "Turn on \"Read browsing history\" so Most used also counts your local visits",
+ "海棠": "Crabapple",
+ "豆沙": "Red Bean",
+ "琥珀": "Amber",
+ "苔绿": "Moss",
+ "豆绿": "Pea Green",
+ "竹青": "Bamboo",
+ "晴山": "Clear Hills",
+ "青莲": "Lotus Purple",
+ "藕荷": "Lotus Root",
+ "最近使用": "Recent"
 }

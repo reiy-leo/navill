@@ -1,99 +1,32 @@
 import { useSyncExternalStore } from 'react';
 
 import { tr } from '@/src/i18n';
-/**
- * 预置颜色：8 类 × 8 种 = 64 色，按节气四季、节日、矿石、器物、中性分类，名字取自中国传统色。
- * 每种是一对：light 用于浅色主题，dark 用于深色主题（略提亮、降饱和），两者都能承载白色文字。
- * 数据里只存 light 值（兼容旧数据与同步），显示时用 tone() 换成当前主题对应的颜色。
- */
+import { LEGACY_COLORS } from './colors-legacy';
+/** 预置颜色：light 用于浅色主题，dark 用于深色主题；数据里只存 light 值，显示时用 tone() 换成当前主题对应的颜色。 */
 export interface PresetColor { name: string; light: string; dark: string }
-export interface ColorGroup { name: string; colors: PresetColor[] }
 
-export const COLOR_GROUPS: ColorGroup[] = [
-  { name: tr('春'), colors: [
-    { name: tr('迎春'), light: '#b39609', dark: '#c7ad42' },
-    { name: tr('嫩芽'), light: '#779b1e', dark: '#8faf51' },
-    { name: tr('柳色'), light: '#58994a', dark: '#76ac6a' },
-    { name: tr('青团'), light: '#438c60', dark: '#639f78' },
-    { name: tr('春水'), light: '#1d9999', dark: '#53acac' },
-    { name: tr('桃夭'), light: '#d2678c', dark: '#e184a1' },
-    { name: tr('杏红'), light: '#d3694f', dark: '#e1856e' },
-    { name: tr('樱草'), light: '#c38824', dark: '#d4a056' },
-  ] },
-  { name: tr('夏'), colors: [
-    { name: tr('荷叶'), light: '#409156', dark: '#62a471' },
-    { name: tr('荷花'), light: '#ca5e96', dark: '#d97caa' },
-    { name: tr('榴火'), light: '#da4339', dark: '#e7685b' },
-    { name: tr('碧空'), light: '#248fcc', dark: '#54a4d9' },
-    { name: tr('湖蓝'), light: '#0e8ba8', dark: '#38a0bd' },
-    { name: tr('薄荷'), light: '#33a182', dark: '#5fb599' },
-    { name: tr('葡萄'), light: '#8b5fb9', dark: '#9d78c6' },
-    { name: tr('芒种'), light: '#bb8d0c', dark: '#d0a43e' },
-  ] },
-  { name: tr('秋'), colors: [
-    { name: tr('枫红'), light: '#cf4040', dark: '#dd645e' },
-    { name: tr('丹柿'), light: '#dc631e', dark: '#ea814f' },
-    { name: tr('银杏'), light: '#b28d0e', dark: '#c7a33a' },
-    { name: tr('稻黄'), light: '#b5820c', dark: '#c6994a' },
-    { name: tr('桂子'), light: '#cc7d1b', dark: '#db9751' },
-    { name: tr('秋香'), light: '#848538', dark: '#989a5b' },
-    { name: tr('霜紫'), light: '#9a67a6', dark: '#ac7fb6' },
-    { name: tr('远山'), light: '#6084a9', dark: '#7a99b9' },
-  ] },
-  { name: tr('冬'), colors: [
-    { name: tr('松青'), light: '#317f61', dark: '#549278' },
-    { name: tr('雪青'), light: '#8e84c8', dark: '#a39cd7' },
-    { name: tr('冰蓝'), light: '#529cbf', dark: '#74b1cf' },
-    { name: tr('黛蓝'), light: '#4b6fa9', dark: '#6584b6' },
-    { name: tr('腊梅'), light: '#b88a06', dark: '#caa146' },
-    { name: tr('冬青'), light: '#547e4b', dark: '#6e9266' },
-    { name: tr('寒烟'), light: '#7a909b', dark: '#92a5af' },
-    { name: tr('炭灰'), light: '#5e646c', dark: '#73787f' },
-  ] },
-  { name: tr('节日'), colors: [
-    { name: tr('春节红'), light: '#db3834', dark: '#e86156' },
-    { name: tr('元宵金'), light: '#c38406', dark: '#d69b3f' },
-    { name: tr('清明青'), light: '#3a927d', dark: '#5fa592' },
-    { name: tr('端午艾'), light: '#668644', dark: '#7e9a62' },
-    { name: tr('七夕紫'), light: '#926bcf', dark: '#a585db' },
-    { name: tr('中秋月'), light: '#b7933f', dark: '#c9aa66' },
-    { name: tr('重阳菊'), light: '#d07506', dark: '#e28e42' },
-    { name: tr('腊八褐'), light: '#976346', dark: '#a87a61' },
-  ] },
-  { name: tr('矿石'), colors: [
-    { name: tr('朱砂'), light: '#de482f', dark: '#eb6c55' },
-    { name: tr('赭石'), light: '#ac603d', dark: '#bc795c' },
-    { name: tr('石青'), light: '#297ab6', dark: '#508fc3' },
-    { name: tr('石绿'), light: '#2d9570', dark: '#58a887' },
-    { name: tr('孔雀蓝'), light: '#0a8393', dark: '#3398a8' },
-    { name: tr('胭脂'), light: '#be425f', dark: '#cd6276' },
-    { name: tr('藤黄'), light: '#bd9600', dark: '#d0ad45' },
-    { name: tr('琉璃'), light: '#5d76d0', dark: '#768edb' },
-  ] },
-  { name: tr('器物'), colors: [
-    { name: tr('青瓷'), light: '#619587', dark: '#7da99d' },
-    { name: tr('天青'), light: '#5a9aaa', dark: '#79afbc' },
-    { name: tr('霁蓝'), light: '#3b6ac5', dark: '#5881cf' },
-    { name: tr('祭红'), light: '#bd373f', dark: '#cb5a5b' },
-    { name: tr('钧紫'), light: '#a55d96', dark: '#b677a8' },
-    { name: tr('茶褐'), light: '#a16d40', dark: '#b2845f' },
-    { name: tr('檀色'), light: '#b66d54', dark: '#c68670' },
-    { name: tr('古铜'), light: '#966b34', dark: '#a78155' },
-  ] },
-  { name: tr('中性'), colors: [
-    { name: tr('墨'), light: '#55585e', dark: '#696c71' },
-    { name: tr('玄青'), light: '#5b6375', dark: '#707787' },
-    { name: tr('烟灰'), light: '#747b83', dark: '#899097' },
-    { name: tr('苍灰'), light: '#738485', dark: '#8a9999' },
-    { name: tr('银鼠'), light: '#8f9298', dark: '#a5a8ad' },
-    { name: tr('驼色'), light: '#9c8067', dark: '#ae9680' },
-    { name: tr('岩灰'), light: '#76756b', dark: '#8b8981' },
-    { name: tr('暖灰'), light: '#8d847d', dark: '#a29a94' },
-  ] },
+/**
+ * 色板：按色相排成 13 列（12 个色相 + 灰），每列 4 种由浅到深（柔和 / 鲜明 / 灰调 / 深沉），共 52 色。
+ * 由 OKLCH 生成（固定明度与彩度档位，保证同一行观感一致、都能承载白色文字），名字取自中国传统色。
+ */
+export const COLOR_COLUMNS: PresetColor[][] = [
+  [{ name: tr('海棠'), light: '#c17e78', dark: '#ce938e' }, { name: tr('榴火'), light: '#ca5551', dark: '#d5706a' }, { name: tr('豆沙'), light: '#87615d', dark: '#957471' }, { name: tr('祭红'), light: '#9c433f', dark: '#a85b56' }],
+  [{ name: tr('杏红'), light: '#be8266', dark: '#cc977f' }, { name: tr('朱砂'), light: '#c65d26', dark: '#d1774c' }, { name: tr('檀色'), light: '#856354', dark: '#947669' }, { name: tr('赭石'), light: '#994920', dark: '#a5603f' }],
+  [{ name: tr('驼色'), light: '#b58858', dark: '#c39c73' }, { name: tr('桂子'), light: '#b26f06', dark: '#c5812c' }, { name: tr('古铜'), light: '#7f674c', dark: '#8f7962' }, { name: tr('琥珀'), light: '#8b5505', dark: '#9b6829' }],
+  [{ name: tr('中秋月'), light: '#a59153', dark: '#b5a470' }, { name: tr('藤黄'), light: '#9a7d03', dark: '#ae8f1c' }, { name: tr('秋香'), light: '#766b4a', dark: '#867d61' }, { name: tr('稻黄'), light: '#786107', dark: '#8a7220' }],
+  [{ name: tr('柳色'), light: '#869c61', dark: '#9aad7b' }, { name: tr('嫩芽'), light: '#6c8e03', dark: '#809f41' }, { name: tr('苔绿'), light: '#657151', dark: '#778266' }, { name: tr('端午艾'), light: '#546e0d', dark: '#677f37' }],
+  [{ name: tr('豆绿'), light: '#6ca177', dark: '#84b28d' }, { name: tr('荷叶'), light: '#25984d', dark: '#51a867' }, { name: tr('冬青'), light: '#57745d', dark: '#6c8570' }, { name: tr('松青'), light: '#21763c', dark: '#448554' }],
+  [{ name: tr('青瓷'), light: '#54a38f', dark: '#72b4a2' }, { name: tr('薄荷'), light: '#11957c', dark: '#07aa8e' }, { name: tr('竹青'), light: '#4c766a', dark: '#63867c' }, { name: tr('石绿'), light: '#097460', dark: '#118871' }],
+  [{ name: tr('天青'), light: '#49a1ab', dark: '#6bb2ba' }, { name: tr('春水'), light: '#03919d', dark: '#09a5b3' }, { name: tr('寒烟'), light: '#48747a', dark: '#5f8589' }, { name: tr('孔雀蓝'), light: '#06717a', dark: '#09848f' }],
+  [{ name: tr('冰蓝'), light: '#6099c1', dark: '#7babce' }, { name: tr('碧空'), light: '#0f89c7', dark: '#389bd8' }, { name: tr('远山'), light: '#517086', dark: '#678194' }, { name: tr('石青'), light: '#086a9c', dark: '#327caa' }],
+  [{ name: tr('晴山'), light: '#7e90c7', dark: '#93a3d3' }, { name: tr('琉璃'), light: '#5e78d9', dark: '#748de0' }, { name: tr('黛蓝'), light: '#606b89', dark: '#737d97' }, { name: tr('霁蓝'), light: '#495da7', dark: '#5d71b0' }],
+  [{ name: tr('雪青'), light: '#9e85bc', dark: '#af9ac9' }, { name: tr('葡萄'), light: '#9565c7', dark: '#a47dd0' }, { name: tr('霜紫'), light: '#726583', dark: '#837792' }, { name: tr('青莲'), light: '#734f99', dark: '#8264a4' }],
+  [{ name: tr('荷花'), light: '#ba7d99', dark: '#c892ab' }, { name: tr('桃夭'), light: '#c0558d', dark: '#cb6f9d' }, { name: tr('藕荷'), light: '#836070', dark: '#927381' }, { name: tr('胭脂'), light: '#94436d', dark: '#a15a7d' }],
+  [{ name: tr('银鼠'), light: '#8f9296', dark: '#a2a5a8' }, { name: tr('烟灰'), light: '#757b80', dark: '#878d92' }, { name: tr('玄青'), light: '#5e636f', dark: '#6f7581' }, { name: tr('墨'), light: '#4a4d52', dark: '#5b5e62' }],
 ];
 
-export const PRESET_COLORS: PresetColor[] = COLOR_GROUPS.flatMap((g) => g.colors);
-const BY_LIGHT = new Map(PRESET_COLORS.map((c) => [c.light.toLowerCase(), c]));
+export const PRESET_COLORS: PresetColor[] = COLOR_COLUMNS.flat();
+const BY_LIGHT = new Map([...LEGACY_COLORS, ...PRESET_COLORS].map((c) => [c.light.toLowerCase(), c]));
 
 export const presetOf = (hex?: string) => (hex ? BY_LIGHT.get(hex.toLowerCase()) : undefined);
 
@@ -136,4 +69,14 @@ export const useDarkMode = () => useSyncExternalStore(subscribe, isDark, () => f
 /** 颜色随主题切换 */
 export function useTone(hex: string | undefined): string | undefined {
   return tone(hex, useDarkMode());
+}
+
+const RECENT_KEY = 'nv-recent-colors';
+/** 最近使用的颜色（本机，最多 6 个，新的在前） */
+export function recentColors(): string[] {
+  try { const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 6) : []; } catch { return []; }
+}
+export function pushRecentColor(hex: string) {
+  const h = hex.toLowerCase();
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify([h, ...recentColors().filter((x) => x !== h)].slice(0, 6))); } catch { /* ignore */ }
 }
