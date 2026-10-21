@@ -33,10 +33,10 @@ export function WorkspaceBackdrop({ color }: { color?: string }) {
     <svg aria-hidden className="pointer-events-none fixed inset-0 -z-10 h-full w-full" preserveAspectRatio="none" viewBox="0 0 1600 1000">
       <defs>
         <linearGradient id="nv-wash" x1="0" y1="0" x2="1" y2="1">
-          {stop(main, 0.1, '0')}{stop(far, 0.05, '0.55')}{stop(near, 0.09, '1')}
+          {stop(main, 0.06, '0')}{stop(far, 0.05, '0.55')}{stop(near, 0.09, '1')}
         </linearGradient>
-        <radialGradient id="nv-glow-a" cx="0.12" cy="0.05" r="0.55">
-          {stop(main, 0.22, '0')}{stop(main, 0.08, '0.5')}{stop(main, 0, '1')}
+        <radialGradient id="nv-glow-a" cx="0.12" cy="0.05" r="0.6">
+          {stop(main, 0.12, '0')}{stop(main, 0.05, '0.5')}{stop(main, 0, '1')}
         </radialGradient>
         <radialGradient id="nv-glow-b" cx="0.92" cy="0.35" r="0.5">
           {stop(near, 0.16, '0')}{stop(near, 0.05, '0.55')}{stop(near, 0, '1')}
