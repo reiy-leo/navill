@@ -67,7 +67,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       <div className="flex items-center gap-2">
         <WorkspaceIcon ws={workspace} size={20} />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-medium">{workspace.name}</h1>
+          <h1 className="line-clamp-2 break-words text-base font-medium">{workspace.name}</h1>
           {workspace.description && <p className="truncate text-sm text-kumo-subtle">{workspace.description}</p>}
         </div>
         {dragging && top.length === 0 && (

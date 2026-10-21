@@ -200,6 +200,18 @@ function NavItem({
 }) {
   const [over, setOver] = useState(false);
   const tone = useTone(w.color);
+  // 名称被截断时才在提示里显示全名
+  const nameEl = useRef<HTMLSpanElement>(null);
+  const [cut, setCut] = useState(false);
+  useEffect(() => {
+    const el = nameEl.current;
+    if (!el) { setCut(false); return; }
+    const check = () => setCut(el.scrollWidth > el.clientWidth + 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [w.name, label, horizontal]);
   const btn = (
     <button
       draggable={w.source !== 'inbox'}
@@ -247,11 +259,11 @@ function NavItem({
           </span>
         </span>
       )}
-      {label !== 'icon' && <span className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
+      {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
       {label !== 'icon' && w.adult && <span className="text-xs text-kumo-danger">18+</span>}
     </button>
   );
-  const tip = [label === 'icon' ? w.name : '', w.description].filter(Boolean).join(' · ');
+  const tip = [label === 'icon' || cut ? w.name : '', w.description].filter(Boolean).join(' · ');
   return tip ? <Tooltip content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
 }
 

@@ -1,6 +1,7 @@
 import { ShareDialog } from './ShareDialog';
 import { Check, Plus, Trash } from '@phosphor-icons/react';
 import { iconParts, limitIcon, MAX_ICON_EMOJIS } from '@/src/lib/emoji';
+import { clipWidth, NAME_MAX_WIDTH } from '@/src/lib/textWidth';
 import { Button, Checkbox, Input, InputArea, Tabs, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -163,10 +164,12 @@ function PromptDialog({ title, initial, placeholder, onDone }: { title: string; 
 }
 
 /** 名称与说明：两个普通输入框，无 label、无提示小字 */
-function NameFields({ name, description, onName, onDescription, what, disabled, onEnter }: { name: string; description: string; onName: (v: string) => void; onDescription: (v: string) => void; what: string; disabled?: boolean; onEnter?: () => void }) {
+function NameFields({ name, description, onName, onDescription, what, disabled, onEnter, maxWidth }: { name: string; description: string; onName: (v: string) => void; onDescription: (v: string) => void; what: string; disabled?: boolean; onEnter?: () => void; maxWidth?: number }) {
+  // 按显示宽度限长；输入法组字时不截，避免打断拼音
+  const limit = (v: string, composing: boolean) => (maxWidth && !composing ? clipWidth(v, maxWidth) : v);
   return (
     <div className="grid min-w-0 flex-1 gap-2">
-      <Input autoFocus value={name} disabled={disabled} placeholder={tr('{0}名称', what)} aria-label={tr('{0}名称', what)} onChange={(e) => onName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()} />
+      <Input autoFocus value={name} disabled={disabled} placeholder={tr('{0}名称', what)} aria-label={tr('{0}名称', what)} onChange={(e) => onName(limit(e.target.value, (e.nativeEvent as InputEvent).isComposing))} onCompositionEnd={(e) => onName(limit(e.currentTarget.value, false))} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onEnter?.()} />
       <Input
         size="sm" className="!h-7 !text-xs"
         value={description} maxLength={50} placeholder={tr('说明')} aria-label={tr('{0}说明', what)}
@@ -335,7 +338,7 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
             <IconBox color={form.color} onColor={(color) => setForm({ ...form, color })} label={tr('工作区颜色')}>
               <WorkspaceIcon ws={{ name: form.name || tr('工作区'), emoji: form.emoji, lucide: form.lucide, glyph: form.glyph, color: form.color }} size={36} style={tab} />
             </IconBox>
-            <NameFields what={tr('工作区')} name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
+            <NameFields what={tr('工作区')} maxWidth={NAME_MAX_WIDTH} name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>
           <div>
             <div className="mb-2 flex items-center gap-2">
