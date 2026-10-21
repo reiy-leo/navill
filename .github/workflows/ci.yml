@@ -7,7 +7,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # 优先用 Celesto 自托管 runner；额度用完时把仓库变量 CI_RUNNER 设为 github 改回 GitHub 托管
+    runs-on: ${{ vars.CI_RUNNER == 'github' && 'ubuntu-latest' || fromJSON('["self-hosted","celesto-micro"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

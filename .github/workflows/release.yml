@@ -13,7 +13,8 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    # 优先用 Celesto 自托管 runner；额度用完时把仓库变量 CI_RUNNER 设为 github 改回 GitHub 托管
+    runs-on: ${{ vars.CI_RUNNER == 'github' && 'ubuntu-latest' || fromJSON('["self-hosted","celesto-micro"]') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,6 +31,14 @@ jobs:
           PKG="$(node -p "require('./package.json').version")"
           if [ "$TAG" != "$PKG" ]; then echo "tag $GITHUB_REF_NAME 与 package.json 版本 $PKG 不一致"; exit 1; fi
           if [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "STABLE=1" >> "$GITHUB_ENV"; else echo "STABLE=0" >> "$GITHUB_ENV"; fi
+
+      - name: 确保有 gh（自托管 runner 镜像可能没装）
+        run: |
+          if ! command -v gh >/dev/null; then
+            V=2.62.0
+            curl -fsSL "https://github.com/cli/cli/releases/download/v$V/gh_${V}_linux_amd64.tar.gz" | tar -xz -C "$RUNNER_TEMP"
+            echo "$RUNNER_TEMP/gh_${V}_linux_amd64/bin" >> "$GITHUB_PATH"
+          fi
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm compile
