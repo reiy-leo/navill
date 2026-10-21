@@ -180,3 +180,10 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 /* 几乎全白/全黑的单色透明网站图标：同色主题下反转颜色，保证看得见 */
 :root:not([data-mode='dark']) .nv-ico-light,
 [data-mode='dark'] .nv-ico-dark { filter: invert(1); }
+
+/* 抽屉标题栏的图标按钮：hover/展开时不加背景，只把图标颜色加深 */
+.nv-drawer-head [data-kumo-component='Button'] { background: transparent !important; color: var(--text-color-kumo-subtle); transition: color 150ms ease; }
+.nv-drawer-head [data-kumo-component='Button']:hover,
+.nv-drawer-head [data-kumo-component='Button'][aria-expanded='true'],
+.nv-drawer-head [data-kumo-component='Button'][data-popup-open] { color: var(--text-color-kumo-strong); }
+.nv-drawer-head [data-kumo-component='Button']:focus:not(:focus-visible) { outline: none; box-shadow: none; }
