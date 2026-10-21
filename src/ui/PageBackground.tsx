@@ -7,7 +7,7 @@ import { WorkspaceBackdrop } from './WorkspaceBackdrop';
  * 页面背景（设置 → 外观 → 背景）：纯色（浅色纯白、深色纯黑）/ 工作区颜色渐变 / Bing 每日图片。
  * 图片可加磨砂模糊，并按明暗模式盖一层薄遮罩保证文字可读；图片取不到时退回渐变。
  */
-export function PageBackground({ settings, color, workspace }: { settings: Settings; color?: string; workspace: boolean }) {
+export function PageBackground({ settings, color }: { settings: Settings; color?: string }) {
   const kind = settings.background;
   const [img, setImg] = useState<BingImage | null>(null);
   const [src, setSrc] = useState<string>();
@@ -41,5 +41,6 @@ export function PageBackground({ settings, color, workspace }: { settings: Setti
       </div>
     );
   }
-  return workspace ? <WorkspaceBackdrop color={color} /> : null;
+  // 主页和工作区用同一个渐变（主页沿用当前工作区的颜色）
+  return <WorkspaceBackdrop color={color} />;
 }

@@ -113,7 +113,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
 
   return (
     <div className={`relative isolate flex h-full overflow-hidden ${bar ? 'flex-col' : right ? 'flex-row-reverse' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
-      <PageBackground settings={settings} color={wsColor} workspace={view === 'workspace'} />
+      <PageBackground settings={settings} color={wsColor} />
       {!bar && <Nav current={current?.id} {...menu} />}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {pos === 'top' && <Nav current={current?.id} {...menu} />}
