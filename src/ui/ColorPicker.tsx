@@ -65,7 +65,7 @@ export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { 
       <Tooltip key={hex} content={name} asChild>
         <button
           type="button" role="radio" aria-checked={on} aria-label={name}
-          className={`size-6 shrink-0 rounded-md ring-offset-2 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-2' : ''}`}
+          className={`size-[17px] shrink-0 rounded-[4px] ring-offset-2 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-2' : ''}`}
           style={{ background: shown, ['--tw-ring-color' as string]: shown }}
           onClick={() => pick(hex)}
         />
@@ -75,13 +75,13 @@ export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { 
   return (
     <div role="radiogroup" aria-label={label} className="flex flex-col gap-2.5">
       {(recent.length > 0 || extra) && (
-        <div className="flex min-h-7 items-center gap-1">
+        <div className="flex min-h-5 items-center gap-[3px]">
           {recent.length > 0 && <span className="mr-1 text-xs text-kumo-subtle">{tr('最近使用')}</span>}
           {recent.map((hex) => dot(hex, presetOf(hex)?.name ?? hex))}
           {extra && <span className="ml-auto pl-3">{extra}</span>}
         </div>
       )}
-      <div className="grid grid-flow-col grid-rows-7 gap-1">
+      <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
         {COLOR_COLUMNS.flat().map((c) => dot(c.light, c.name))}
       </div>
     </div>

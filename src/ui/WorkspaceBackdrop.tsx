@@ -24,8 +24,10 @@ export function WorkspaceBackdrop({ color }: { color?: string }) {
   const main = hsl(h, s, l);
   const near = hsl(h + 28, s, Math.min(l + 6, 90));
   const far = hsl(h - 24, s, Math.min(l + 12, 92));
+  // 越深的颜色背景越浓，浅色更淡：拉开同色相深浅档的差别
+  const k = 0.7 + (1 - l / 100) * 1.4;
   const stop = (c: string, o: number, offset: string) => (
-    <stop offset={offset} style={{ stopColor: c, stopOpacity: o, transition: 'stop-color 400ms ease' }} />
+    <stop offset={offset} style={{ stopColor: c, stopOpacity: Math.min(1, o * k), transition: 'stop-color 400ms ease' }} />
   );
   return (
     <svg aria-hidden className="pointer-events-none fixed inset-0 -z-10 h-full w-full" preserveAspectRatio="none" viewBox="0 0 1600 1000">

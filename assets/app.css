@@ -46,12 +46,12 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
  */
 .nv-drawer, .nv-tile, .nv-plate { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
 
-/* 色调卡片：以白色（深色主题为底色）为基础混入工作区色，色彩明显、不发灰；边框只比底色深一点 */
+/* 色调卡片：由工作区色按 OKLCH 推导（保留色相，明度随颜色深浅线性变化），同色相深浅档在卡片上也明显不同 */
 [data-surface='tint'] { --nv-tint-base: #fff; }
 [data-mode='dark'][data-surface='tint'] { --nv-tint-base: var(--color-kumo-base); }
 [data-surface='tint'] .nv-drawer {
-  background: color-mix(in oklab, var(--ws-color, #94a3b8) 13%, var(--nv-tint-base));
-  --tw-ring-color: color-mix(in oklab, var(--ws-color, #94a3b8) 20%, var(--nv-tint-base));
+  background: oklch(from var(--ws-color, #94a3b8) calc(0.7 + l * 0.3) calc(c * (1.6 - l) * 0.33) h);
+  --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.65 + l * 0.3) calc(c * (1.6 - l) * 0.4) h);
 }
 /* 层次：不用主色光晕，改用中性的分层投影。
  * 抽屉整体：贴边 1px 细影 + 向下扩散的柔影（混入一点工作区色的暗调，避免发灰），把抽屉从背景上托起来；
@@ -67,14 +67,19 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-surface='glass'] .nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 3px rgb(0 0 0 / 0.05); }
 /* Layer Card：外层（标题栏）是有色的 secondary，内层 primary 更亮，承载书签 */
 [data-surface='tint'] .nv-drawer-primary {
-  background: color-mix(in oklab, var(--ws-color, #94a3b8) 3%, var(--nv-tint-base));
-  --tw-ring-color: color-mix(in oklab, var(--ws-color, #94a3b8) 22%, var(--nv-tint-base));
+  background: oklch(from var(--ws-color, #94a3b8) calc(0.9 + l * 0.1) calc(c * (1.6 - l) * 0.11) h);
+  --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.65 + l * 0.3) calc(c * (1.6 - l) * 0.4) h);
 }
 [data-surface='tint'] .nv-tile {
-  background: color-mix(in oklab, var(--ws-color, #94a3b8) 6%, var(--nv-tint-base));
-  border-color: color-mix(in oklab, var(--ws-color, #94a3b8) 16%, var(--nv-tint-base));
+  background: oklch(from var(--ws-color, #94a3b8) calc(0.82 + l * 0.18) calc(c * (1.6 - l) * 0.2) h);
+  border-color: oklch(from var(--ws-color, #94a3b8) calc(0.7 + l * 0.27) calc(c * (1.6 - l) * 0.33) h);
 }
-[data-surface='tint'] .nv-plate { background: color-mix(in oklab, var(--ws-color, #94a3b8) 18%, var(--nv-tint-base)); }
+[data-surface='tint'] .nv-plate { background: oklch(from var(--ws-color, #94a3b8) calc(0.68 + l * 0.32) calc(c * (1.6 - l) * 0.39) h); }
+/* 深色主题：颜色越浅，卡片越亮 */
+[data-mode='dark'][data-surface='tint'] .nv-drawer { background: oklch(from var(--ws-color, #94a3b8) calc(0.06 + l * 0.38) calc(c * (1.6 - l) * 0.33) h); --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.12 + l * 0.38) calc(c * (1.6 - l) * 0.4) h); }
+[data-mode='dark'][data-surface='tint'] .nv-drawer-primary { background: oklch(from var(--ws-color, #94a3b8) calc(0.08 + l * 0.2) calc(c * (1.6 - l) * 0.13) h); --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.12 + l * 0.38) calc(c * (1.6 - l) * 0.4) h); }
+[data-mode='dark'][data-surface='tint'] .nv-tile { background: oklch(from var(--ws-color, #94a3b8) calc(0.1 + l * 0.3) calc(c * (1.6 - l) * 0.2) h); border-color: oklch(from var(--ws-color, #94a3b8) calc(0.14 + l * 0.34) calc(c * (1.6 - l) * 0.33) h); }
+[data-mode='dark'][data-surface='tint'] .nv-plate { background: oklch(from var(--ws-color, #94a3b8) calc(0.08 + l * 0.38) calc(c * (1.6 - l) * 0.33) h); }
 
 [data-surface='glass'] .nv-drawer {
   background: rgb(255 255 255 / 0.55);
