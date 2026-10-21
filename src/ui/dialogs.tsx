@@ -348,7 +348,7 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
             </div>
             {tab === 'char' ? (
               <Input
-                className="w-40" placeholder={Array.from(form.name.trim())[0] ?? tr('字')} aria-label={tr('字符图标')} value={form.glyph}
+                className="w-full" placeholder={Array.from(form.name.trim())[0] ?? tr('字')} aria-label={tr('字符图标')} value={form.glyph}
                 onChange={(e) => setForm({ ...form, glyph: e.target.value })}
                 onBlur={() => setForm({ ...form, glyph: limitGlyph(form.glyph) })}
               />
