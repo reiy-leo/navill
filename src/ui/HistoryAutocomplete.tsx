@@ -98,16 +98,16 @@ export async function enableHistory(): Promise<boolean> {
 
 /** 浏览记录补全是否可用（开关在 设置 → 通用；授权状态就是开关状态） */
 export function useHistoryPermission() {
-  const granted = useSyncExternalStore(subscribe, () => grantedNow ?? false);
-  return { granted };
+  const known = useSyncExternalStore(subscribe, () => grantedNow);
+  return { granted: known ?? false, known: known !== undefined };
 }
 
 const HINT_OFF = 'nv-history-hint-off';
 /** 未授权时的提示条：「开启」一键申请权限，× 不再提示 */
 export function HistoryHint({ children, className }: { children: ReactNode; className?: string }) {
-  const { granted } = useHistoryPermission();
+  const { granted, known } = useHistoryPermission();
   const [off, setOff] = useState(() => localStorage.getItem(HINT_OFF) === '1');
-  if (granted || off || grantedNow === undefined) return null;
+  if (!known || granted || off) return null;
   return (
     <div className={`flex items-center gap-2 rounded-lg bg-kumo-tint px-3 py-1.5 text-sm text-kumo-subtle ${className ?? ''}`}>
       <History size={14} className="shrink-0" />
