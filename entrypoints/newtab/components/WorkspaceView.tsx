@@ -9,11 +9,12 @@ import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { DrawerCard } from './DrawerCard';
+import { DND_PLACEMENT } from './dnd';
 import { Items } from './Items';
 import { ArrangeMenu, ViewMenu } from './menus';
 import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NewDrawerPopover } from '@/src/ui/NewDrawerPopover';
 import { useFlip, useSortable } from './sortable';
 
@@ -32,6 +33,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   useFlip(area, sort.sig, '[data-flip-drawer]');
   const newBtn = useRef<HTMLButtonElement>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const dragging = useDraggingPlacement();
+  const [over, setOver] = useState(false);
 
   if (data === undefined) return <div className="flex justify-center p-12"><Loader /></div>;
   if (data === null) return null;
@@ -67,6 +70,20 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
           <h1 className="truncate text-base font-medium">{workspace.name}</h1>
           {workspace.description && <p className="truncate text-sm text-kumo-subtle">{workspace.description}</p>}
         </div>
+        {dragging && top.length === 0 && (
+          <div
+            className={`flex h-8 min-w-0 flex-[2] items-center justify-center truncate rounded-lg border border-dashed px-3 text-xs transition-colors ${over ? 'border-kumo-brand bg-kumo-tint text-kumo-default' : 'border-kumo-line text-kumo-subtle'}`}
+            onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+            onDragLeave={() => setOver(false)}
+            onDrop={(e) => {
+              e.preventDefault(); setOver(false);
+              const id = e.dataTransfer.getData(DND_PLACEMENT);
+              if (id) void movePlacement(db, id, workspace.id, null);
+            }}
+          >
+            {tr('拖到这里放到工作区顶层')}
+          </div>
+        )}
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
         <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
@@ -110,20 +127,22 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
             </div>
           )}
           </div>
-          {top.length === 0 && (
-            <div
-              className="rounded-lg border border-dashed border-kumo-line p-3 text-center text-xs text-kumo-subtle"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                const id = e.dataTransfer.getData('application/x-navill-placement');
-                if (id) void movePlacement(db, id, workspace.id, null);
-              }}
-            >
-              {tr('拖到这里放到工作区顶层')}
-            </div>
-          )}
         </>
       )}
     </div>
   );
+}
+
+/** 正在拖动书签（placement）时为 true：用于拖拽开始后才显示「放到工作区顶层」的落点 */
+function useDraggingPlacement() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const start = (e: DragEvent) => { if (e.dataTransfer?.types.includes(DND_PLACEMENT)) setTimeout(() => setOn(true), 0); }; // 延后渲染，避免拖拽开始时改 DOM 打断拖动
+    const end = () => setOn(false);
+    document.addEventListener('dragstart', start);
+    document.addEventListener('dragend', end);
+    document.addEventListener('drop', end);
+    return () => { document.removeEventListener('dragstart', start); document.removeEventListener('dragend', end); document.removeEventListener('drop', end); };
+  }, []);
+  return on;
 }
