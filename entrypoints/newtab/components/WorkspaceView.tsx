@@ -66,9 +66,9 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <WorkspaceIcon ws={workspace} size={20} />
-        <div className="min-w-0 flex-1">
-          <h1 className="line-clamp-2 break-words text-base font-medium">{workspace.name}</h1>
-          {workspace.description && <p className="truncate text-sm text-kumo-subtle">{workspace.description}</p>}
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <h1 className="line-clamp-2 min-w-0 shrink-0 break-words text-base font-medium" style={{ maxWidth: '60%' }}>{workspace.name}</h1>
+          {workspace.description && <p className="min-w-0 truncate text-sm text-kumo-subtle" title={workspace.description}>{workspace.description}</p>}
         </div>
         {dragging && top.length === 0 && (
           <div
@@ -84,10 +84,12 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
             {tr('拖到这里放到工作区顶层')}
           </div>
         )}
+        <div className="nv-ws-tools flex items-center gap-0.5">
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
         <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
         <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
+        </div>
         <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} onCreate={(n, c) => void createNew(n, c)} />
       </div>
 
