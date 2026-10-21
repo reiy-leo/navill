@@ -39,7 +39,7 @@ export function IconBox({ color, onColor, children, label = tr('颜色') }: { co
       <Tooltip content={label} asChild>
         <button
           ref={dot} type="button" aria-label={label}
-          className="absolute -top-1 -right-1 size-3.5 rounded-full ring-2 ring-kumo-base transition-transform hover:scale-125"
+          className="absolute -top-1 -right-1 z-10 size-3.5 rounded-full ring-2 ring-kumo-base transition-transform hover:scale-125"
           style={{ background: shown }}
           onClick={() => setOpen(true)}
         />
