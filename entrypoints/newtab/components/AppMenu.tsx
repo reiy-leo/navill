@@ -10,7 +10,7 @@ import type { Tab } from './Settings';
 
 import { dateLocale, tr } from '@/src/i18n';
 /** 导航栏右端：「搜索」按钮 + 一个「更多操作」菜单，分三组：
- * 新建工作区 · 整理 ｜ 归档 · 分身 · 分享 · 市场 ｜ 同步状态 · 设置 · 关于本扩展
+ * 新建工作区 · 整理 ｜ 归档 · 分身 · 分享 · 市场 ｜ 同步状态 · 设置 · 关于
  * vertical：侧边栏图标模式下上下排列 */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
   const { organize, setOrganize, settings, setPanel } = useApp();
@@ -35,7 +35,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
         <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于本扩展')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于')}</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
     <AboutDialog open={about} onClose={() => setAbout(false)} />

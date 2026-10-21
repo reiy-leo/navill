@@ -17,7 +17,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
     { href: `${REPO}/issues`, icon: <Bug />, label: tr('反馈') },
   ];
   return (
-    <Modal open={open} onClose={onClose} title={tr('关于本扩展')} size="base" hideTitle>
+    <Modal open={open} onClose={onClose} title={tr('关于')} size="base" hideTitle>
       <div className="flex flex-col items-center gap-3 text-center">
         <img src="/icon/128.png" alt="" className="h-16 w-16" />
         <div>
