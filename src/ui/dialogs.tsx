@@ -357,7 +357,7 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
               {EMOJIS.map((e) => (
                 <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${picked.includes(e) ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: toggleEmoji(picked, e) })}>{e}</Button>
               ))}
-              <Input size="sm" className="w-24" placeholder={tr('自定义')} value={picked.every((x) => EMOJIS.includes(x)) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label={tr('自定义 emoji')} />
+              <Input className="w-28" placeholder={tr('自定义')} value={picked.every((x) => EMOJIS.includes(x)) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label={tr('自定义 emoji')} />
             </div>)}
           </div>
         </div>
