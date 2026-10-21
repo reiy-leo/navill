@@ -19,11 +19,11 @@ const hsl = (h: number, s: number, l: number) => `hsl(${((h % 360) + 360) % 360}
 
 export function WorkspaceBackdrop({ color }: { color?: string }) {
   if (!color) return null;
-  const [h, s0] = hexToHsl(color);
-  const s = Math.max(s0, 35); // 灰色也保留一点色相感
-  const main = hsl(h, s, 60);
-  const near = hsl(h + 28, s, 65);
-  const far = hsl(h - 24, s, 70);
+  // 沿用颜色本身的饱和度和明度：同色相的深浅档、灰色在背景上也能看出区别
+  const [h, s, l] = hexToHsl(color);
+  const main = hsl(h, s, l);
+  const near = hsl(h + 28, s, Math.min(l + 6, 90));
+  const far = hsl(h - 24, s, Math.min(l + 12, 92));
   const stop = (c: string, o: number, offset: string) => (
     <stop offset={offset} style={{ stopColor: c, stopOpacity: o, transition: 'stop-color 400ms ease' }} />
   );

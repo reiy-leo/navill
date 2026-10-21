@@ -109,7 +109,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 
 /* 图标选择（编辑/新建弹窗）：底色跟随所选颜色 --pick */
 .nv-pick:hover { background: color-mix(in oklab, var(--pick) 14%, transparent) !important; }
-.nv-pick-on { background: var(--pick) !important; color: #fff !important; }
+.nv-pick-on { background: var(--pick) !important; color: var(--pick-ink, #fff) !important; }
 .nv-pick-on.nv-pick-soft { background: color-mix(in oklab, var(--pick) 30%, var(--color-kumo-base)) !important; }
 
 /* 标题栏「悬停显示」：书签区（primary）默认盖住标题栏（secondary，32px）的 80%，

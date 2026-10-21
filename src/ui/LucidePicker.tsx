@@ -1,4 +1,4 @@
-import { useTone } from './colors';
+import { inkOn, useTone } from './colors';
 import { Button, Input } from '@cloudflare/kumo';
 import { DynamicIcon, iconNames, type IconName } from 'lucide-react/dynamic';
 import { useMemo, useState } from 'react';
@@ -33,7 +33,7 @@ export function LucidePicker({ value, onChange, allowNone = true, color }: { val
             key={n} size="sm" shape="square" title={n} aria-label={n}
             variant={value === n && !c ? 'outline' : 'ghost'}
             className={value === n ? (c ? 'nv-pick-on' : '!ring-kumo-brand') : c ? 'nv-pick' : ''}
-            style={c ? ({ '--pick': c } as React.CSSProperties) : undefined}
+            style={c ? ({ '--pick': c, '--pick-ink': inkOn(c) } as React.CSSProperties) : undefined}
             onClick={() => onChange(allowNone && value === n ? undefined : n)}>
             <DynamicIcon name={n} size={18} />
           </Button>

@@ -1,4 +1,4 @@
-import { useTone } from './colors';
+import { inkOn, useTone } from './colors';
 import { iconToneOf, measureIconTone, type IconTone } from '@/src/lib/icons/tone';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { useIconStyle } from './iconStyle';
@@ -53,7 +53,7 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
   const bg = useTone(ws.color) ?? '#8d8d86';
   if (mode === 'lucide' && ws.lucide) {
     return (
-      <span className="inline-flex shrink-0 items-center justify-center rounded-md text-white" style={{ width: size, height: size, background: bg }}>
+      <span className="inline-flex shrink-0 items-center justify-center rounded-md" style={{ width: size, height: size, background: bg, color: inkOn(bg) }}>
         <DynamicIcon name={ws.lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
       </span>
     );
@@ -61,11 +61,12 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
   const emoji = mode === 'emoji' ? ws.emoji : undefined;
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold text-white"
+      className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold"
       style={{
         width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * (Array.from(charIcon(ws)).length > 1 ? 0.36 : 0.5),
         letterSpacing: emoji ? '-0.05em' : undefined,
         background: emoji ? 'transparent' : bg,
+        color: emoji ? undefined : inkOn(bg),
       }}
     >
       {emoji || charIcon(ws)}
