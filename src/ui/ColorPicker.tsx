@@ -52,7 +52,7 @@ export function IconBox({ color, onColor, children, label = tr('颜色') }: { co
   );
 }
 
-/** 统一的颜色选择：色板按色相排成列、由浅到深，同色系一眼找到；顶部一行最近使用（可带额外按钮，如「跟随工作区」）；悬停显示名称 */
+/** 统一的颜色选择：色板 8×7 圆角方块，每列一个色相、由浅到深，同色系一眼找到；顶部一行最近使用（可带额外按钮，如「跟随工作区」）；悬停显示名称 */
 export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { value?: string; onChange: (hex: string) => void; label?: string; extra?: ReactNode }) {
   const dark = useDarkMode();
   const cur = value?.toLowerCase();
@@ -65,7 +65,7 @@ export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { 
       <Tooltip key={hex} content={name} asChild>
         <button
           type="button" role="radio" aria-checked={on} aria-label={name}
-          className={`size-6 shrink-0 rounded-full ring-offset-2 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-2' : ''}`}
+          className={`size-6 shrink-0 rounded-md ring-offset-2 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-2' : ''}`}
           style={{ background: shown, ['--tw-ring-color' as string]: shown }}
           onClick={() => pick(hex)}
         />
@@ -73,15 +73,15 @@ export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { 
     );
   };
   return (
-    <div role="radiogroup" aria-label={label} className="flex flex-col gap-3">
+    <div role="radiogroup" aria-label={label} className="flex flex-col gap-2.5">
       {(recent.length > 0 || extra) && (
-        <div className="flex min-h-7 items-center gap-1.5">
+        <div className="flex min-h-7 items-center gap-1">
           {recent.length > 0 && <span className="mr-1 text-xs text-kumo-subtle">{tr('最近使用')}</span>}
           {recent.map((hex) => dot(hex, presetOf(hex)?.name ?? hex))}
           {extra && <span className="ml-auto pl-3">{extra}</span>}
         </div>
       )}
-      <div className="grid grid-flow-col grid-rows-4 gap-1.5">
+      <div className="grid grid-flow-col grid-rows-7 gap-1">
         {COLOR_COLUMNS.flat().map((c) => dot(c.light, c.name))}
       </div>
     </div>

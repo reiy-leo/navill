@@ -6,23 +6,18 @@ import { LEGACY_COLORS } from './colors-legacy';
 export interface PresetColor { name: string; light: string; dark: string }
 
 /**
- * 色板：按色相排成 13 列（12 个色相 + 灰），每列 4 种由浅到深（柔和 / 鲜明 / 灰调 / 深沉），共 52 色。
- * 由 OKLCH 生成（固定明度与彩度档位，保证同一行观感一致、都能承载白色文字），名字取自中国传统色。
+ * 色板：8 列 × 7 行。每列一个色相（红 橙 黄 绿 青 蓝 紫 灰），自上而下由浅到深 7 档。
+ * 由 OKLCH 生成（同一行明度一致、彩度两头低中间高），都能承载白色文字；名字取自中国传统色。
  */
 export const COLOR_COLUMNS: PresetColor[][] = [
-  [{ name: tr('海棠'), light: '#c17e78', dark: '#ce938e' }, { name: tr('榴火'), light: '#ca5551', dark: '#d5706a' }, { name: tr('豆沙'), light: '#87615d', dark: '#957471' }, { name: tr('祭红'), light: '#9c433f', dark: '#a85b56' }],
-  [{ name: tr('杏红'), light: '#be8266', dark: '#cc977f' }, { name: tr('朱砂'), light: '#c65d26', dark: '#d1774c' }, { name: tr('檀色'), light: '#856354', dark: '#947669' }, { name: tr('赭石'), light: '#994920', dark: '#a5603f' }],
-  [{ name: tr('驼色'), light: '#b58858', dark: '#c39c73' }, { name: tr('桂子'), light: '#b26f06', dark: '#c5812c' }, { name: tr('古铜'), light: '#7f674c', dark: '#8f7962' }, { name: tr('琥珀'), light: '#8b5505', dark: '#9b6829' }],
-  [{ name: tr('中秋月'), light: '#a59153', dark: '#b5a470' }, { name: tr('藤黄'), light: '#9a7d03', dark: '#ae8f1c' }, { name: tr('秋香'), light: '#766b4a', dark: '#867d61' }, { name: tr('稻黄'), light: '#786107', dark: '#8a7220' }],
-  [{ name: tr('柳色'), light: '#869c61', dark: '#9aad7b' }, { name: tr('嫩芽'), light: '#6c8e03', dark: '#809f41' }, { name: tr('苔绿'), light: '#657151', dark: '#778266' }, { name: tr('端午艾'), light: '#546e0d', dark: '#677f37' }],
-  [{ name: tr('豆绿'), light: '#6ca177', dark: '#84b28d' }, { name: tr('荷叶'), light: '#25984d', dark: '#51a867' }, { name: tr('冬青'), light: '#57745d', dark: '#6c8570' }, { name: tr('松青'), light: '#21763c', dark: '#448554' }],
-  [{ name: tr('青瓷'), light: '#54a38f', dark: '#72b4a2' }, { name: tr('薄荷'), light: '#11957c', dark: '#07aa8e' }, { name: tr('竹青'), light: '#4c766a', dark: '#63867c' }, { name: tr('石绿'), light: '#097460', dark: '#118871' }],
-  [{ name: tr('天青'), light: '#49a1ab', dark: '#6bb2ba' }, { name: tr('春水'), light: '#03919d', dark: '#09a5b3' }, { name: tr('寒烟'), light: '#48747a', dark: '#5f8589' }, { name: tr('孔雀蓝'), light: '#06717a', dark: '#09848f' }],
-  [{ name: tr('冰蓝'), light: '#6099c1', dark: '#7babce' }, { name: tr('碧空'), light: '#0f89c7', dark: '#389bd8' }, { name: tr('远山'), light: '#517086', dark: '#678194' }, { name: tr('石青'), light: '#086a9c', dark: '#327caa' }],
-  [{ name: tr('晴山'), light: '#7e90c7', dark: '#93a3d3' }, { name: tr('琉璃'), light: '#5e78d9', dark: '#748de0' }, { name: tr('黛蓝'), light: '#606b89', dark: '#737d97' }, { name: tr('霁蓝'), light: '#495da7', dark: '#5d71b0' }],
-  [{ name: tr('雪青'), light: '#9e85bc', dark: '#af9ac9' }, { name: tr('葡萄'), light: '#9565c7', dark: '#a47dd0' }, { name: tr('霜紫'), light: '#726583', dark: '#837792' }, { name: tr('青莲'), light: '#734f99', dark: '#8264a4' }],
-  [{ name: tr('荷花'), light: '#ba7d99', dark: '#c892ab' }, { name: tr('桃夭'), light: '#c0558d', dark: '#cb6f9d' }, { name: tr('藕荷'), light: '#836070', dark: '#927381' }, { name: tr('胭脂'), light: '#94436d', dark: '#a15a7d' }],
-  [{ name: tr('银鼠'), light: '#8f9296', dark: '#a2a5a8' }, { name: tr('烟灰'), light: '#757b80', dark: '#878d92' }, { name: tr('玄青'), light: '#5e636f', dark: '#6f7581' }, { name: tr('墨'), light: '#4a4d52', dark: '#5b5e62' }],
+  [{ name: tr('海棠'), light: '#bf837e', dark: '#cd9994' }, { name: tr('杏红'), light: '#bd6f69', dark: '#ca8680' }, { name: tr('榴火'), light: '#bc5853', dark: '#c8716b' }, { name: tr('春节红'), light: '#b44542', dark: '#bf605a' }, { name: tr('枫红'), light: '#a13c39', dark: '#ad5651' }, { name: tr('祭红'), light: '#8b3835', dark: '#984f4a' }, { name: tr('胭脂'), light: '#743531', dark: '#814a45' }],
+  [{ name: tr('驼色'), light: '#ba8969', dark: '#c89e82' }, { name: tr('桂子'), light: '#b7774a', dark: '#c48c67' }, { name: tr('重阳菊'), light: '#b56320', dark: '#c17a47' }, { name: tr('丹柿'), light: '#a85603', dark: '#b86a2e' }, { name: tr('赭石'), light: '#964c01', dark: '#a65f28' }, { name: tr('琥珀'), light: '#844203', dark: '#92572b' }, { name: tr('茶褐'), light: '#6f3c12', dark: '#7c4f2f' }],
+  [{ name: tr('中秋月'), light: '#a6945f', dark: '#b6a77a' }, { name: tr('迎春'), light: '#9e863a', dark: '#ad995b' }, { name: tr('腊梅'), light: '#957806', dark: '#a58b32' }, { name: tr('藤黄'), light: '#866c06', dark: '#9a7d0f' }, { name: tr('银杏'), light: '#776008', dark: '#8b710c' }, { name: tr('稻黄'), light: '#695405', dark: '#7c6514' }, { name: tr('秋香'), light: '#5b4904', dark: '#6b5a23' }],
+  [{ name: tr('豆绿'), light: '#7da175', dark: '#93b28c' }, { name: tr('柳色'), light: '#67975c', dark: '#7ea875' }, { name: tr('嫩芽'), light: '#4e8e3f', dark: '#689e5c' }, { name: tr('荷叶'), light: '#398227', dark: '#569248' }, { name: tr('青团'), light: '#327421', dark: '#4d8441' }, { name: tr('松青'), light: '#2f6522', dark: '#47753d' }, { name: tr('冬青'), light: '#2e5625', dark: '#44663c' }],
+  [{ name: tr('天青'), light: '#5aa49f', dark: '#78b5b0' }, { name: tr('青瓷'), light: '#249b96', dark: '#54aba6' }, { name: tr('薄荷'), light: '#108e88', dark: '#05a29c' }, { name: tr('春水'), light: '#02807b', dark: '#03948e' }, { name: tr('石绿'), light: '#0d716d', dark: '#098580' }, { name: tr('孔雀蓝'), light: '#0d6460', dark: '#0f7772' }, { name: tr('竹青'), light: '#035753', dark: '#126965' }],
+  [{ name: tr('冰蓝'), light: '#7698c3', dark: '#8daad0' }, { name: tr('晴山'), light: '#5e8bc4', dark: '#769dcf' }, { name: tr('碧空'), light: '#417dc7', dark: '#5d90cf' }, { name: tr('琉璃'), light: '#2a6fc1', dark: '#4a82c8' }, { name: tr('石青'), light: '#2363ad', dark: '#4275b6' }, { name: tr('霁蓝'), light: '#245795', dark: '#3f699f' }, { name: tr('黛蓝'), light: '#264c7b', dark: '#3d5d86' }],
+  [{ name: tr('雪青'), light: '#a389b8', dark: '#b49dc6' }, { name: tr('藕荷'), light: '#9b77b6', dark: '#ab8cc2' }, { name: tr('七夕紫'), light: '#9363b5', dark: '#a27ac0' }, { name: tr('葡萄'), light: '#8953ad', dark: '#976ab7' }, { name: tr('青莲'), light: '#7a499b', dark: '#885fa6' }, { name: tr('钧紫'), light: '#6a4286', dark: '#795791' }, { name: tr('霜紫'), light: '#5a3c6f', dark: '#694f7c' }],
+  [{ name: tr('银鼠'), light: '#92959a', dark: '#a4a8ad' }, { name: tr('暖灰'), light: '#85898d', dark: '#979b9f' }, { name: tr('烟灰'), light: '#787c80', dark: '#8a8e92' }, { name: tr('岩灰'), light: '#6c6f74', dark: '#7d8185' }, { name: tr('玄青'), light: '#606367', dark: '#717479' }, { name: tr('炭灰'), light: '#54575b', dark: '#64686c' }, { name: tr('墨'), light: '#484b4f', dark: '#585c60' }],
 ];
 
 export const PRESET_COLORS: PresetColor[] = COLOR_COLUMNS.flat();
