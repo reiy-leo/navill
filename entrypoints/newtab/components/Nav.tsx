@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
-import { CaretLeft, CaretRight, House, PencilSimple, ShareNetwork, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, House, PencilSimple, ShareNetwork, Shapes, Smiley, TextAa, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
@@ -21,7 +21,7 @@ export function useVisibleWorkspaces() {
 }
 
 export function Nav({ current, onSearch, onSettings }: { current?: string; onSearch: () => void; onSettings: (tab?: Tab) => void }) {
-  const { settings, selectWorkspace, view, setView } = useApp();
+  const { settings, updateSettings, selectWorkspace, view, setView } = useApp();
   const workspaces = useVisibleWorkspaces() ?? [];
   const dialogs = useDialogs();
   const menu = useContextMenu();
@@ -58,6 +58,12 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
       { label: tr('分享…'), icon: ShareNetwork, onSelect: () => dialogs.share('workspace', w.id, w.name) },
       { divider: true },
       { label: w.adult ? tr('取消 18+') : tr('标记为 18+'), icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
+      ...(label === 'icon' ? [
+        { divider: true },
+        ...([['emoji', 'Emoji', Smiley], ['lucide', tr('线性图标'), Shapes], ['char', tr('字符'), TextAa]] as const).map(([v, l, icon]) => ({
+          label: l, icon, checked: settings.workspaceIconStyle === v, onSelect: () => void updateSettings({ workspaceIconStyle: v }),
+        })),
+      ] : []),
       { divider: true },
       {
         label: tr('删除'), icon: Trash, danger: true, disabled: w.source === 'inbox',

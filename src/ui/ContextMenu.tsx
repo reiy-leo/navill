@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import type { Icon } from '@phosphor-icons/react';
+import { Check, type Icon } from '@phosphor-icons/react';
 
 export interface MenuItem {
   label?: string;
@@ -7,6 +7,8 @@ export interface MenuItem {
   danger?: boolean;
   disabled?: boolean;
   divider?: boolean;
+  /** 单选项：当前选中时右侧显示对勾 */
+  checked?: boolean;
   onSelect?: () => void;
 }
 
@@ -78,7 +80,8 @@ export function ContextMenuProvider({ children }: { children: ReactNode }) {
                 }}
               >
                 {it.icon && <it.icon size={16} />}
-                {it.label}
+                <span className="flex-1">{it.label}</span>
+                {it.checked && <Check size={14} />}
               </button>
             ),
           )}
