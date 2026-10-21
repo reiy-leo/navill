@@ -2,7 +2,7 @@ import { inkOn, useTone } from './colors';
 import { iconToneOf, measureIconTone, type IconTone } from '@/src/lib/icons/tone';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { useIconStyle } from './iconStyle';
-import { iconCount } from '@/src/lib/emoji';
+import { iconCount, iconParts } from '@/src/lib/emoji';
 import type { Workspace } from '@/src/db';
 import { faviconUrl } from '@/src/lib/favicon';
 import { useState } from 'react';
@@ -44,6 +44,10 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
   );
 }
 
+/** 两个 emoji / 字符紧贴显示：第二个用负外边距往前靠 */
+const tight = (parts: string[], overlap: string) =>
+  parts.length < 2 ? parts.join('') : parts.map((p, i) => <span key={i} style={i ? { marginLeft: overlap } : undefined}>{p}</span>);
+
 /** 字符图标：用户输入的字符，否则名称首字 */
 export const charIcon = (ws: { name: string; glyph?: string }) => Array.from(ws.glyph?.trim() ?? '').slice(0, 2).join('') || Array.from(ws.name.trim())[0] || '?';
 
@@ -63,13 +67,12 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold"
       style={{
-        width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.42 : 0.7) : size * (Array.from(charIcon(ws)).length > 1 ? 0.36 : 0.5),
-        letterSpacing: emoji ? '-0.05em' : undefined,
+        width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.46 : 0.7) : size * (Array.from(charIcon(ws)).length > 1 ? 0.36 : 0.5),
         background: emoji ? 'transparent' : bg,
         color: emoji ? undefined : inkOn(bg),
       }}
     >
-      {emoji || charIcon(ws)}
+      {tight(emoji ? iconParts(emoji) : Array.from(charIcon(ws)), emoji ? '-0.16em' : '-0.08em')}
     </span>
   );
 }

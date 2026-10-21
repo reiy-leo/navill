@@ -29,6 +29,9 @@ export function limitIcon(raw: string): string {
   return out.join('');
 }
 
+/** 图标拆成单个 emoji */
+export const iconParts = (icon: string) => [...segmenter.segment(icon)].map((x) => x.segment);
+
 /** 图标里有几个 emoji */
 export const iconCount = (icon: string) => [...segmenter.segment(icon)].length;
 

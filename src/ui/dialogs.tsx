@@ -1,7 +1,7 @@
 import { ShareDialog } from './ShareDialog';
 import { Check, Plus, Trash } from '@phosphor-icons/react';
-import { limitIcon } from '@/src/lib/emoji';
-import { Button, Checkbox, Input, InputArea, Text } from '@cloudflare/kumo';
+import { iconParts, limitIcon, MAX_ICON_EMOJIS } from '@/src/lib/emoji';
+import { Button, Checkbox, Input, InputArea, Tabs, Text } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MODE_DEFAULT, PALETTE, db, type Drawer, type Workspace } from '@/src/db';
@@ -297,6 +297,10 @@ function EditBookmarkDialog({ id, onClose }: { id: string; onClose: () => void }
 }
 
 /** 字符图标最多 2 个字（输入法组字期间不截断，失焦和保存时再截） */
+/** emoji 多选：再点取消；已满两个时去掉最早的 */
+const toggleEmoji = (picked: string[], e: string) =>
+  (picked.includes(e) ? picked.filter((x) => x !== e) : [...picked, e].slice(-MAX_ICON_EMOJIS)).join('');
+
 const limitGlyph = (v: string) => Array.from(v.trim()).slice(0, 2).join('');
 
 const EMOJIS: string[] = Array.from('📁💼🏠🎯📚🧠💡🛠️🧪🎨🎵🎮📷✈️🍜💰📈🗂️📝🔖⭐🔥🌱🧘🏃🎬📺🛒🧾🔒🤖💻🌐📰🗓️❤️🐱🌙☀️🚀'.match(/\p{Extended_Pictographic}\uFE0F?/gu) ?? []);
@@ -321,6 +325,7 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
   const [form, setForm] = useState<WorkspaceForm | null>(null);
   if (initial && !form) setForm(initial);
   const pickTone = useTone(form?.color) ?? '#8d8d86';
+  const picked = iconParts(form?.emoji ?? '');
   const save = async () => { if (form) await onSubmit({ ...form, glyph: limitGlyph(form.glyph) }); };
   return (
     <Modal open form title={title} size="lg" onClose={onClose} footer={<><Button onClick={onClose}>{tr('取消')}</Button><Button variant="primary" onClick={() => void save()}>{okText}</Button></>}>
@@ -333,13 +338,13 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
             <NameFields what={tr('工作区')} name={form.name} disabled={isInbox} description={form.description} onName={(name) => setForm({ ...form, name })} onDescription={(description) => setForm({ ...form, description })} onEnter={() => void save()} />
           </div>
           <div>
-            <div className="mb-1 flex items-center gap-2">
-              <span className="flex gap-1">
-                <Button size="xs" variant={tab === 'emoji' ? 'secondary' : 'ghost'} onClick={() => setTab('emoji')}>Emoji</Button>
-                <Button size="xs" variant={tab === 'lucide' ? 'secondary' : 'ghost'} onClick={() => setTab('lucide')}>{tr('线性图标')}</Button>
-                <Button size="xs" variant={tab === 'char' ? 'secondary' : 'ghost'} onClick={() => setTab('char')}>{tr('字符')}</Button>
-              </span>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-sm text-kumo-subtle">{tr('图标')}</span>
               <InfoTip>{tr('三种都会保存，显示哪种在「设置 → 外观」切换。字符留空时用名称首字。')}</InfoTip>
+              <span className="ml-auto">
+                <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}
+                  tabs={[{ value: 'emoji', label: 'Emoji' }, { value: 'lucide', label: tr('线性图标') }, { value: 'char', label: tr('字符') }]} />
+              </span>
             </div>
             {tab === 'char' ? (
               <Input
@@ -347,12 +352,12 @@ function WorkspaceDialog({ title, okText, initial, isInbox, onSubmit, onClose }:
                 onChange={(e) => setForm({ ...form, glyph: e.target.value })}
                 onBlur={() => setForm({ ...form, glyph: limitGlyph(form.glyph) })}
               />
-            ) : tab === 'lucide' ? <LucidePicker color={form.color} value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
+            ) : tab === 'lucide' ? <LucidePicker search={false} color={form.color} value={form.lucide} onChange={(lucide) => setForm({ ...form, lucide })} /> : (
             <div className="flex flex-wrap gap-1">
               {EMOJIS.map((e) => (
-                <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${form.emoji === e ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: form.emoji === e ? '' : e })}>{e}</Button>
+                <Button key={e} size="sm" shape="square" variant="ghost" className={`text-lg ${picked.includes(e) ? 'nv-pick-on nv-pick-soft' : 'nv-pick'}`} style={{ '--pick': pickTone } as React.CSSProperties} aria-label={e} onClick={() => setForm({ ...form, emoji: toggleEmoji(picked, e) })}>{e}</Button>
               ))}
-              <Input size="sm" className="w-24" placeholder={tr('自定义')} value={EMOJIS.includes(form.emoji) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label={tr('自定义 emoji')} />
+              <Input size="sm" className="w-24" placeholder={tr('自定义')} value={picked.every((x) => EMOJIS.includes(x)) ? '' : form.emoji} onChange={(e) => setForm({ ...form, emoji: limitIcon(e.target.value) })} aria-label={tr('自定义 emoji')} />
             </div>)}
           </div>
         </div>

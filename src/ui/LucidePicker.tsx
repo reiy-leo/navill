@@ -16,7 +16,7 @@ const COMMON: IconName[] = [
 const LIMIT = 80;
 
 /** Lucide 图标选择：关键词按图标英文名匹配；allowNone 时再点一次已选图标即取消（回到名称首字） */
-export function LucidePicker({ value, onChange, allowNone = true, color }: { value?: string; onChange: (name: string | undefined) => void; allowNone?: boolean; color?: string }) {
+export function LucidePicker({ value, onChange, allowNone = true, color, search = true }: { value?: string; onChange: (name: string | undefined) => void; allowNone?: boolean; color?: string; search?: boolean }) {
   const [q, setQ] = useState('');
   const c = useTone(color);
   const list = useMemo(() => {
@@ -26,7 +26,7 @@ export function LucidePicker({ value, onChange, allowNone = true, color }: { val
   }, [q]);
   return (
     <div className="grid gap-2">
-      <Input size="sm" placeholder={tr('搜索图标，如 book、code、home')} aria-label={tr('搜索图标')} value={q} onChange={(e) => setQ(e.target.value)} />
+      {search && <Input size="sm" placeholder={tr('搜索图标，如 book、code、home')} aria-label={tr('搜索图标')} value={q} onChange={(e) => setQ(e.target.value)} />}
       <div className="-m-1 flex max-h-48 flex-wrap gap-1 overflow-y-auto p-1">
         {list.map((n) => (
           <Button
