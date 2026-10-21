@@ -51,14 +51,35 @@ const tight = (parts: string[], overlap: string) =>
 /** 字符图标：用户输入的字符，否则名称首字 */
 export const charIcon = (ws: { name: string; glyph?: string }) => Array.from(ws.glyph?.trim() ?? '').slice(0, 2).join('') || Array.from(ws.name.trim())[0] || '?';
 
+/** 线性图标模式下工作区没设线性图标：按 emoji 选一个相近的，选不到用文件夹，不退回字符 */
+const EMOJI_LUCIDE: Record<string, string> = {
+  '📥': 'inbox', '📚': 'library', '📖': 'book-open', '💼': 'briefcase', '📎': 'paperclip', '👨‍💻': 'laptop', '💻': 'laptop',
+  '🎮': 'gamepad-2', '🕹️': 'joystick', '👾': 'gamepad-2', '⭐': 'star', '🌟': 'star', '❤️': 'heart', '🏠': 'house', '🏡': 'house',
+  '🎵': 'music', '🎶': 'music', '🎬': 'clapperboard', '📺': 'tv', '📷': 'camera', '🎨': 'palette', '✈️': 'plane', '🌍': 'globe',
+  '🌐': 'globe', '🛒': 'shopping-cart', '🛍️': 'shopping-bag', '💰': 'wallet', '💵': 'banknote', '📈': 'trending-up', '📊': 'chart-bar',
+  '📰': 'newspaper', '📝': 'notebook-pen', '✏️': 'pencil', '🔧': 'wrench', '🛠️': 'hammer', '⚙️': 'settings', '🔬': 'microscope',
+  '🧪': 'flask-conical', '🤖': 'bot', '🧠': 'brain', '🍔': 'utensils', '🍳': 'chef-hat', '☕': 'coffee', '🏃': 'activity',
+  '💪': 'dumbbell', '🏥': 'hospital', '💊': 'pill', '🎓': 'graduation-cap', '🏫': 'school', '📅': 'calendar', '🗂️': 'folder-open',
+  '📁': 'folder', '📂': 'folder-open', '🔖': 'bookmark', '🔗': 'link', '🔒': 'lock', '🔑': 'key', '🚀': 'rocket', '💡': 'lightbulb',
+  '🐱': 'cat', '🐶': 'dog', '🌱': 'sprout', '🎁': 'gift', '📦': 'package', '🧳': 'luggage', '🚗': 'car', '📱': 'smartphone',
+};
+function lucideFromEmoji(emoji?: string): string {
+  for (const part of emoji ? iconParts(emoji) : []) {
+    const hit = EMOJI_LUCIDE[part] ?? EMOJI_LUCIDE[part.replace(/\uFE0F/g, '')];
+    if (hit) return hit;
+  }
+  return 'folder';
+}
+
 export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'> & { glyph?: string }; size?: number; style?: 'emoji' | 'lucide' | 'char' }) {
   const global = useIconStyle();
   const mode = style ?? global;
   const bg = useTone(ws.color) ?? '#8d8d86';
-  if (mode === 'lucide' && ws.lucide) {
+  const lucide = mode === 'lucide' ? ws.lucide || lucideFromEmoji(ws.emoji) : undefined;
+  if (lucide) {
     return (
       <span className="inline-flex shrink-0 items-center justify-center rounded-md" style={{ width: size, height: size, background: bg, color: inkOn(bg) }}>
-        <DynamicIcon name={ws.lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
+        <DynamicIcon name={lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
       </span>
     );
   }
