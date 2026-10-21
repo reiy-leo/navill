@@ -7,7 +7,6 @@ import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, upd
 import { workspaceVisible } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
-import { useTone } from '@/src/ui/colors';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { AppMenu } from './AppMenu';
@@ -101,11 +100,8 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   );
 }
 
-/** 「仅图标」模式：选中的工作区图标放大到 1.5 倍，切换时两侧空间以动画撑开 */
+/** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
-const ICON_BIG = 33;
-/** 选中图标两侧额外撑开的空间 */
-const GAP_BIG = 6;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FADE = 40;
@@ -199,7 +195,6 @@ function NavItem({
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void;
 }) {
   const [over, setOver] = useState(false);
-  const tone = useTone(w.color);
   // 名称被截断时才在提示里显示全名
   const nameEl = useRef<HTMLSpanElement>(null);
   const [cut, setCut] = useState(false);
@@ -237,26 +232,15 @@ function NavItem({
       }}
       data-flip={w.id}
       data-flip-ws=""
-      className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
-        active ? (label === 'icon' ? '' : 'bg-[color-mix(in_srgb,var(--nv-c)_20%,transparent)] font-medium') : 'hover:bg-[color-mix(in_srgb,var(--nv-c)_10%,transparent)]'
+      className={`group flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
+        active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
-      style={{ '--nv-c': tone ?? 'var(--color-kumo-brand)' } as React.CSSProperties}
       aria-label={w.name}
       data-active={active || undefined}
     >
-      {label === 'both' && <WorkspaceIcon ws={w} size={ICON} />}
-      {label === 'icon' && (
-        <span className="relative shrink-0 transition-[width,height,margin] duration-300 ease-out motion-reduce:transition-none"
-          style={horizontal
-            ? { height: ICON, width: active ? ICON_BIG : ICON, marginInline: active ? GAP_BIG : 0 }
-            : { width: ICON, height: active ? ICON_BIG : ICON, marginBlock: active ? GAP_BIG : 0 }}>
-          {/* 以贴边的一侧为基线放大：顶栏贴上沿向下长，底栏贴下沿向上长，左侧栏贴左沿向右长，右侧栏贴右沿向左长 */}
-          <span className={`absolute block ${horizontal ? `left-1/2 ${bottom ? 'bottom-0' : 'top-0'} -translate-x-1/2` : `${right ? 'right-0' : 'left-0'} top-1/2 -translate-y-1/2`}`}>
-            <span className="block transition-transform duration-300 ease-out motion-reduce:transition-none"
-              style={{ transformOrigin: horizontal ? (bottom ? 'bottom center' : 'top center') : right ? 'right center' : 'left center', transform: `scale(${active ? 1 : ICON / ICON_BIG})` }}>
-              <WorkspaceIcon ws={w} size={ICON_BIG} />
-            </span>
-          </span>
+      {label !== 'name' && (
+        <span className={`shrink-0 transition-opacity duration-150 ${active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
+          <WorkspaceIcon ws={w} size={ICON} />
         </span>
       )}
       {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
@@ -272,7 +256,7 @@ function HomeItem({ active, label, horizontal, onClick }: { active: boolean; lab
   const btn = (
     <button type="button" onClick={onClick} aria-label={tr('主页')} data-active={active || undefined}
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${horizontal ? '' : 'w-full'} ${
-        active ? 'bg-kumo-tint font-medium text-kumo-default' : 'text-kumo-subtle hover:bg-kumo-tint hover:text-kumo-default'}`}>
+        active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`}>
       {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} weight={active ? 'fill' : 'regular'} /></span>}
       {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>{tr('主页')}</span>}
     </button>
