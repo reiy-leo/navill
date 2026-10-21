@@ -53,7 +53,7 @@ export function IconBox({ color, onColor, children, label = tr('颜色') }: { co
   );
 }
 
-/** 统一的颜色选择：色板 8×7 圆角方块，每列一个色相、由浅到深，同色系一眼找到；顶部一行最近使用（不加文字，下方一条浅分隔线；最右可放图标按钮，如「跟随工作区」）；悬停显示名称 */
+/** 统一的颜色选择：色板 8×7 圆角方块，每列一个色相、由浅到深，同色系一眼找到；顶部一行最近使用（不加文字，下方一条浅分隔线；最右可放图标按钮，如「跟随工作区」） */
 export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { value?: string; onChange: (hex: string) => void; label?: string; extra?: ReactNode }) {
   const dark = useDarkMode();
   const cur = value?.toLowerCase();
@@ -63,14 +63,12 @@ export function ColorPicker({ value, onChange, label = tr('颜色'), extra }: { 
     const on = cur === hex.toLowerCase();
     const shown = tone(hex, dark)!;
     return (
-      <Tooltip key={hex} content={name} asChild>
-        <button
-          type="button" role="radio" aria-checked={on} aria-label={name}
-          className={`size-[17px] shrink-0 rounded-[4px] ring-offset-1 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-[1.5px]' : ''}`}
-          style={{ background: shown, ['--tw-ring-color' as string]: `color-mix(in oklab, ${shown} 75%, var(--text-color-kumo-default, #000))` }}
-          onClick={() => pick(hex)}
-        />
-      </Tooltip>
+      <button
+        key={hex} type="button" role="radio" aria-checked={on} aria-label={name}
+        className={`size-[17px] shrink-0 rounded-[4px] ring-offset-1 ring-offset-kumo-base transition-transform hover:scale-110 ${on ? 'ring-[1.5px]' : ''}`}
+        style={{ background: shown, ['--tw-ring-color' as string]: `color-mix(in oklab, ${shown} 75%, var(--text-color-kumo-default, #000))` }}
+        onClick={() => pick(hex)}
+      />
     );
   };
   return (
@@ -100,7 +98,7 @@ export function DrawerColorPopover({ anchor, open, onOpenChange, value, onChange
   const followTip = (
     <span className="flex items-center gap-1.5">
       <span className="size-3 rounded-[3px]" style={{ background: followShown }} />
-      {tr('跟随工作区')}{follow ? ` · ${presetOf(follow)?.name ?? follow}` : ''}
+      {tr('跟随工作区')}
     </span>
   );
   const set = (hex: string | undefined) => { onChange(hex); onOpenChange(false); };
