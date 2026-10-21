@@ -617,6 +617,6 @@
  "你还可以把整理好的抽屉或工作区分享出去，别人一键就能安装使用。": "Share a drawer or workspace you have organized, and others can install it in one click.",
  "开启": "Turn on",
  "不再提示": "Don't show again",
- "开启「读取浏览记录」后，输入名称或网址可从浏览记录补全": "Turn on \"Read browsing history\" to autocomplete names and URLs from your history",
+ "开启「读取浏览记录」，输入时可从浏览记录补全": "Turn on \"Read browsing history\" to autocomplete from your history",
  "开启「读取浏览记录」后，最常用会参考本机访问次数，更准": "Turn on \"Read browsing history\" so Most used also counts your local visits"
 }
