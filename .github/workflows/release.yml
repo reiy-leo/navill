@@ -1,5 +1,5 @@
 # 推送版本 tag 时构建扩展包。
-# - vX.Y.Z（正式版）：构建并创建 GitHub Release，附 Chrome / Edge zip 与自上个正式版以来的提交列表。
+# - vX.Y.Z（正式版）：构建并创建 GitHub Release，附 Chrome / Edge / Firefox zip（Firefox 另附 AMO 审核用的源码包） 与自上个正式版以来的提交列表。
 # - vX.Y.Z-alpha.N 等预发布 tag：创建标记为 Pre-release 的 GitHub Release，附 zip 与自上一个 tag 以来的提交列表。
 # tag 必须与 package.json 的 version 一致（不含前缀 v）。
 name: Release
@@ -47,6 +47,7 @@ jobs:
 
       - run: pnpm zip
       - run: pnpm zip:edge
+      - run: pnpm zip:firefox
 
       - name: 创建 Release
         env:
@@ -114,3 +115,24 @@ jobs:
           WXT_EXTENSION_KEY=none pnpm zip
           node -e 'if(require("./.output/chrome-mv3/manifest.json").key){console.error("商店包不应包含 key");process.exit(1)}'
           scripts/cws-publish.sh ".output/navill-${GITHUB_REF_NAME#v}-chrome.zip"
+
+      # 正式版自动提交到 Firefox 附加组件商店 AMO（预发布不提交）。需要仓库 Secrets：AMO_JWT_ISSUER、AMO_JWT_SECRET；没配就跳过。
+      # 首个版本须在 AMO 网页手动上传（新附加组件要填商店信息），之后的正式版由这里提交新版本 + 源码包。
+      - name: 提交 Firefox AMO
+        if: ${{ !cancelled() && env.STABLE == '1' }}
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$AMO_JWT_ISSUER" ] || [ -z "$AMO_JWT_SECRET" ]; then
+            echo "::notice::未配置 AMO Secrets，跳过 Firefox 商店提交"; exit 0
+          fi
+          V="${GITHUB_REF_NAME#v}"
+          pnpm dlx web-ext@8 sign \
+            --source-dir .output/firefox-mv3 \
+            --artifacts-dir .output/amo \
+            --channel listed \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET" \
+            --upload-source-code ".output/navill-$V-sources.zip" \
+            --approval-timeout 0
