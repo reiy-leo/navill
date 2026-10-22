@@ -26,7 +26,6 @@ export function startDrag(d: Drag) {
 export function endDrag() {
   if (state.drag) set({ drag: null, over: null });
 }
-export const currentDrag = () => state.drag;
 
 if (typeof document !== 'undefined') {
   document.addEventListener('dragend', endDrag);

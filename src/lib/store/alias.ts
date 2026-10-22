@@ -1,5 +1,5 @@
 import type { AliasGroup, NavillDB } from '@/src/db';
-import { del, put, tx, uid } from './core';
+import { del, put, uid } from './core';
 import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';

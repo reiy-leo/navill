@@ -1,3 +1,4 @@
+import { useElementWidth } from '@/src/ui/useElementWidth';
 import { Children, isValidElement, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
 
 /**
@@ -53,17 +54,8 @@ export function Masonry({ children, frozen = false }: { children: ReactNode; fro
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<{ id?: string; children: ReactNode }>[];
   const box = useRef<HTMLDivElement>(null);
   const refs = useRef(new Map<string, HTMLDivElement>());
-  const [width, setWidth] = useState(0);
+  const width = useElementWidth(box);
   const [heights, setHeights] = useState<Record<string, number>>({});
-
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
-    ro.observe(el);
-    setWidth(el.clientWidth);
-    return () => ro.disconnect();
-  }, []);
 
   const keys = items.map((c) => String(c.key));
   useLayoutEffect(() => {

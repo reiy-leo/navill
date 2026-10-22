@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useElementWidth } from '@/src/ui/useElementWidth';
+import { useRef, type ReactNode } from 'react';
 import type { ViewMode } from '@/src/db';
 
 /** 便当排列：120px 网格，每个抽屉按内容多少和视图占一块 c×r 的区域，内容超出时在抽屉内滚动 */
@@ -29,15 +30,7 @@ export function bentoSpan(count: number, view: ViewMode, head: number, gridCols:
 
 export function Bento({ items, head }: { items: { key: string; id?: string; count: number; view: ViewMode; node: ReactNode }[]; head: number }) {
   const box = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
-    ro.observe(el);
-    setWidth(el.clientWidth);
-    return () => ro.disconnect();
-  }, []);
+  const width = useElementWidth(box);
   const cols = Math.max(1, Math.floor((width + GAP) / (CELL + GAP)));
   const cellW = width ? (width - (cols - 1) * GAP) / cols : CELL;
   return (

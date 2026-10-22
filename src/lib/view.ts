@@ -101,6 +101,28 @@ export async function loadWorkspace(db: NavillDB, workspaceId: string, v: Visibi
   return { workspace, top, drawers: data };
 }
 
+/** 每个书签取一个可见位置（原书签优先）：工作区、抽屉都要在当前场景可见 */
+async function visiblePlacementPicker(db: NavillDB, v: Visibility): Promise<(bookmarkId: string) => VisiblePlacement | null> {
+  const [workspaces, drawers, placements] = await Promise.all([db.workspaces.toArray(), db.drawers.toArray(), db.placements.toArray()]);
+  const wsMap = new Map(workspaces.map((w) => [w.id, w]));
+  const drMap = new Map(drawers.map((d) => [d.id, d]));
+  const byBookmark = new Map<string, Placement[]>();
+  for (const p of placements) {
+    const list = byBookmark.get(p.bookmarkId);
+    if (list) list.push(p); else byBookmark.set(p.bookmarkId, [p]);
+  }
+  for (const list of byBookmark.values()) list.sort((x, y) => Number(x.isAlias) - Number(y.isAlias));
+  return (bookmarkId) => {
+    for (const p of byBookmark.get(bookmarkId) ?? []) {
+      const workspace = wsMap.get(p.workspaceId);
+      const drawer = p.drawerId ? drMap.get(p.drawerId) ?? null : null;
+      if (workspace && workspaceVisible(workspace, v) && (!drawer || drawerVisible(drawer, v))) return { placement: p, workspace, drawer };
+    }
+    return null;
+  };
+}
+interface VisiblePlacement { placement: Placement; workspace: Workspace; drawer: Drawer | null }
+
 export interface SearchHit { item: Item; workspace: Workspace; drawer: Drawer | null }
 
 /** 全局搜索：标题 + URL + 备注；`#标签` 按标签筛选；只搜当前场景可见内容 */
@@ -113,29 +135,15 @@ export async function search(db: NavillDB, query: string, v: Visibility, limit =
   const wantTags = tagTokens.map((t) => tags.filter((x) => x.name.toLowerCase().startsWith(t)).map((x) => x.id));
   if (wantTags.some((ids) => ids.length === 0)) return [];
 
-  const [workspaces, drawers, placements, bookmarks] = await Promise.all([
-    db.workspaces.toArray(), db.drawers.toArray(), db.placements.toArray(), db.bookmarks.toArray(),
-  ]);
-  const wsMap = new Map(workspaces.map((w) => [w.id, w]));
-  const drMap = new Map(drawers.map((d) => [d.id, d]));
-  const byBookmark = new Map<string, Placement[]>();
-  for (const p of placements) byBookmark.set(p.bookmarkId, [...(byBookmark.get(p.bookmarkId) ?? []), p]);
-
+  const [pick, bookmarks] = await Promise.all([visiblePlacementPicker(db, v), db.bookmarks.toArray()]);
   const hits: SearchHit[] = [];
   for (const b of bookmarks) {
     if (!bookmarkVisible(b, v)) continue;
     if (!wantTags.every((ids) => ids.some((id) => b.tagIds.includes(id)))) continue;
     const hay = `${b.title}\n${b.url}\n${b.note ?? ''}\n${(b.links ?? []).map((l) => `${l.title ?? ''} ${l.url}`).join('\n')}`.toLowerCase();
     if (!words.every((w) => hay.includes(w))) continue;
-    // 取一个可见的位置，原书签优先
-    const ps = (byBookmark.get(b.id) ?? []).sort((x, y) => Number(x.isAlias) - Number(y.isAlias));
-    for (const p of ps) {
-      const w = wsMap.get(p.workspaceId);
-      const d = p.drawerId ? drMap.get(p.drawerId) ?? null : null;
-      if (!w || !workspaceVisible(w, v) || (d && !drawerVisible(d, v))) continue;
-      hits.push({ item: { placement: p, bookmark: b }, workspace: w, drawer: d });
-      break;
-    }
+    const at = pick(b.id);
+    if (at) hits.push({ item: { placement: at.placement, bookmark: b }, workspace: at.workspace, drawer: at.drawer });
   }
   return hits
     .sort((a, b) => b.item.bookmark.openCount - a.item.bookmark.openCount || collator.compare(a.item.bookmark.title, b.item.bookmark.title))
@@ -144,43 +152,22 @@ export async function search(db: NavillDB, query: string, v: Visibility, limit =
 
 /** 带某个标签（按 id）的书签，每个书签取一个可见位置，原书签优先；按打开次数、标题排序 */
 export async function taggedItems(db: NavillDB, tagId: string, v: Visibility): Promise<Item[]> {
-  const [workspaces, drawers, placements, bookmarks] = await Promise.all([
-    db.workspaces.toArray(), db.drawers.toArray(), db.placements.toArray(), db.bookmarks.where('tagIds').equals(tagId).toArray(),
-  ]);
-  const wsMap = new Map(workspaces.map((w) => [w.id, w]));
-  const drMap = new Map(drawers.map((d) => [d.id, d]));
-  const byBookmark = new Map<string, Placement[]>();
-  for (const p of placements) byBookmark.set(p.bookmarkId, [...(byBookmark.get(p.bookmarkId) ?? []), p]);
+  const [pick, bookmarks] = await Promise.all([visiblePlacementPicker(db, v), db.bookmarks.where('tagIds').equals(tagId).toArray()]);
   const out: Item[] = [];
   for (const b of bookmarks.filter((b) => bookmarkVisible(b, v)).sort((a, b) => b.openCount - a.openCount || collator.compare(a.title, b.title))) {
-    const p = (byBookmark.get(b.id) ?? []).sort((x, y) => Number(x.isAlias) - Number(y.isAlias)).find((p) => {
-      const w = wsMap.get(p.workspaceId);
-      const d = p.drawerId ? drMap.get(p.drawerId) ?? null : null;
-      return w && workspaceVisible(w, v) && (!d || drawerVisible(d, v));
-    });
-    if (p) out.push({ placement: p, bookmark: b });
+    const at = pick(b.id);
+    if (at) out.push({ placement: at.placement, bookmark: b });
   }
   return out;
 }
 
 /** 打开次数最多的书签（只算打开过的），每个书签取一个可见位置，原书签优先 */
 export async function mostOpened(db: NavillDB, v: Visibility, limit = 20): Promise<Item[]> {
-  const [workspaces, drawers, placements, bookmarks] = await Promise.all([
-    db.workspaces.toArray(), db.drawers.toArray(), db.placements.toArray(), db.bookmarks.toArray(),
-  ]);
-  const wsMap = new Map(workspaces.map((w) => [w.id, w]));
-  const drMap = new Map(drawers.map((d) => [d.id, d]));
-  const byBookmark = new Map<string, Placement[]>();
-  for (const p of placements) byBookmark.set(p.bookmarkId, [...(byBookmark.get(p.bookmarkId) ?? []), p]);
+  const [pick, bookmarks] = await Promise.all([visiblePlacementPicker(db, v), db.bookmarks.toArray()]);
   const out: Item[] = [];
-  for (const b of [...bookmarks].filter((b) => b.openCount > 0 && bookmarkVisible(b, v)).sort((a, b) => b.openCount - a.openCount)) {
-    const ps = (byBookmark.get(b.id) ?? []).sort((x, y) => Number(x.isAlias) - Number(y.isAlias));
-    const p = ps.find((p) => {
-      const w = wsMap.get(p.workspaceId);
-      const d = p.drawerId ? drMap.get(p.drawerId) ?? null : null;
-      return w && workspaceVisible(w, v) && (!d || drawerVisible(d, v));
-    });
-    if (p) out.push({ placement: p, bookmark: b });
+  for (const b of bookmarks.filter((b) => b.openCount > 0 && bookmarkVisible(b, v)).sort((a, b) => b.openCount - a.openCount)) {
+    const at = pick(b.id);
+    if (at) out.push({ placement: at.placement, bookmark: b });
     if (out.length >= limit) break;
   }
   return out;

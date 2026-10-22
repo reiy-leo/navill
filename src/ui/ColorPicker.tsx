@@ -4,6 +4,19 @@ import { useRef, useState, type ReactNode, type RefObject } from 'react';
 import { COLOR_COLUMNS, presetOf, pushRecentColor, recentColors, tone, useDarkMode, useTone } from './colors';
 
 import { tr } from '@/src/i18n';
+/** 颜色按钮共用的弹出层：选中后关闭 */
+function ColorPopover({ open, setOpen, anchor, label, color, onColor }: {
+  open: boolean; setOpen: (open: boolean) => void; anchor: RefObject<HTMLButtonElement | null>; label: string; color?: string; onColor: (hex: string) => void;
+}) {
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Popover.Content anchor={anchor} side="right" align="start" sideOffset={8} className="max-w-[90vw] p-3">
+        <ColorPicker label={label} value={color} onChange={(hex) => { onColor(hex); setOpen(false); }} />
+      </Popover.Content>
+    </Popover>
+  );
+}
+
 /** 颜色方块：整个方块就是按钮，点击弹出颜色选择（抽屉弹窗用） */
 export function ColorSwatch({ color, onColor, label = tr('颜色'), size = 36 }: { color?: string; onColor: (hex: string) => void; label?: string; size?: number }) {
   const [open, setOpen] = useState(false);
@@ -19,11 +32,7 @@ export function ColorSwatch({ color, onColor, label = tr('颜色'), size = 36 }:
           onClick={() => setOpen(true)}
         />
       </Tooltip>
-      <Popover open={open} onOpenChange={setOpen}>
-        <Popover.Content anchor={box} side="right" align="start" sideOffset={8} className="max-w-[90vw] p-3">
-          <ColorPicker label={label} value={color} onChange={(hex) => { onColor(hex); setOpen(false); }} />
-        </Popover.Content>
-      </Popover>
+      <ColorPopover open={open} setOpen={setOpen} anchor={box} label={label} color={color} onColor={onColor} />
     </>
   );
 }
@@ -44,11 +53,7 @@ export function IconBox({ color, onColor, children, label = tr('颜色') }: { co
           onClick={() => setOpen(true)}
         />
       </Tooltip>
-      <Popover open={open} onOpenChange={setOpen}>
-        <Popover.Content anchor={dot} side="right" align="start" sideOffset={8} className="max-w-[90vw] p-3">
-          <ColorPicker label={label} value={color} onChange={(hex) => { onColor(hex); setOpen(false); }} />
-        </Popover.Content>
-      </Popover>
+      <ColorPopover open={open} setOpen={setOpen} anchor={dot} label={label} color={color} onColor={onColor} />
     </span>
   );
 }

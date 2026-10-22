@@ -1,4 +1,4 @@
-import { Button, Tooltip } from '@cloudflare/kumo';
+import { Tooltip } from '@cloudflare/kumo';
 import { CaretLeft, CaretRight, House, PencilSimple, ShareNetwork, Shapes, Smiley, TextAa, Trash, WarningCircle } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';

@@ -102,11 +102,14 @@ export function mergeLogs(...lists: LogEntry[][]): LogEntry[] {
 export const q = (s: string | undefined) => `「${(s ?? '').length > 40 ? `${s!.slice(0, 40)}…` : s ?? ''}」`;
 
 /** 按 UTC 月份分组（时间正序），用于按月上传 */
-export function groupByMonth(logs: LogEntry[]): Map<string, LogEntry[]> {
-  const m = new Map<string, LogEntry[]>();
-  for (const e of [...logs].sort((a, b) => a.at - b.at)) {
-    const k = monthKey(e.at);
-    m.set(k, [...(m.get(k) ?? []), e]);
+export function groupByMonth<T extends { at: number }>(rows: T[]): Map<string, T[]>;
+export function groupByMonth<T>(rows: T[], at: (r: T) => number): Map<string, T[]>;
+export function groupByMonth<T>(rows: T[], at: (r: T) => number = (r) => (r as { at: number }).at): Map<string, T[]> {
+  const m = new Map<string, T[]>();
+  for (const e of [...rows].sort((a, b) => at(a) - at(b))) {
+    const k = monthKey(at(e));
+    const list = m.get(k);
+    if (list) list.push(e); else m.set(k, [e]);
   }
   return m;
 }

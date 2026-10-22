@@ -36,4 +36,3 @@ export const iconParts = (icon: string) => [...segmenter.segment(icon)].map((x) 
 export const iconCount = (icon: string) => [...segmenter.segment(icon)].length;
 
 /** 去掉名称中的 emoji */
-export const stripEmoji = (raw: string) => splitEmoji(raw).name;

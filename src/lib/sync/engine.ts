@@ -1,4 +1,4 @@
-import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent, type SyncEntity } from '@/src/db';
+import { SYNC_ENTITIES, type LogEntry, type NavillDB, type OpenEvent } from '@/src/db';
 import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
 import { ensureSeed, mergeInboxes } from '../store/seed';
@@ -9,14 +9,12 @@ import { gunzip, gzip } from './drive';
 import { backend, connectWebdav, disconnect, isConnected, syncProviderItem, type Backend, type RemoteFile } from './backend';
 import { HttpError } from './http';
 import type { WebdavConfig } from './webdav';
-import { mergeStates, monthKey, type RemoteState } from './merge';
+import { mergeStates, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
 import { tr } from '@/src/i18n';
 const STATE_FILE = 'state.json.gz';
 const SETTINGS_FILE = 'settings.json.gz';
-const eventsFile = (dev: string, month: string) => `events/${dev}-${month}.jsonl.gz`;
-const logsFile = (dev: string, month: string) => `logs/${dev}-${month}.jsonl.gz`;
 
 let running: Promise<void> | null = null;
 
@@ -91,31 +89,19 @@ async function run(db: NavillDB) {
 
     // 2. 使用统计：每台设备只写自己的月度事件文件，读取其他设备变化过的文件
     const mine = await db.openEvents.where('deviceId').equals(dev).toArray();
-    const months = new Map<string, OpenEvent[]>();
-    for (const e of mine) months.set(monthKey(e.openedAt), [...(months.get(monthKey(e.openedAt)) ?? []), e]);
-    const uploaded = ((await db.meta.get('eventsUploaded'))?.value ?? {}) as Record<string, number>;
-    for (const [month, events] of months) {
-      if (uploaded[month] === events.length) continue;
-      const name = eventsFile(dev, month);
-      await upload(name, await gzip(events.map((e) => JSON.stringify(e)).join('\n')), byName.get(name));
-      uploaded[month] = events.length;
-    }
-    await db.meta.put({ key: 'eventsUploaded', value: uploaded });
-
-    const seen = ((await db.meta.get('eventsSeen'))?.value ?? {}) as Record<string, string>;
-    let pulled = false;
-    for (const f of files) {
-      if (!f.name.startsWith('events/') || f.name.startsWith(`events/${dev}-`)) continue;
-      if (seen[f.name] === f.modifiedTime) continue;
-      const lines = (await gunzip(await download(f))).split('\n').filter(Boolean);
-      await db.openEvents.bulkPut(lines.map((l) => JSON.parse(l) as OpenEvent));
-      seen[f.name] = f.modifiedTime;
-      pulled = true;
-    }
-    await db.meta.put({ key: 'eventsSeen', value: seen });
+    const pulled = await syncDeviceFiles(db, be, files, byName, {
+      dir: 'events', dev, months: groupByMonth(mine, (e) => e.openedAt),
+      put: (rows) => db.openEvents.bulkPut(rows as OpenEvent[]),
+    });
     if (pulled) await recount(db);
-    // 3. 日志（可选）：与使用统计相同，每台设备只追加自己的月度文件，下载时按 id 合并
-    if ((await getSettings()).sync.logs) await syncLogs(db, be, dev, files, byName);
+    // 3. 日志（可选）：同上，下载时按 id 合并
+    if ((await getSettings()).sync.logs) {
+      const logs = await db.logs.where('deviceId').equals(dev).toArray();
+      await syncDeviceFiles(db, be, files, byName, {
+        dir: 'logs', dev, months: groupByMonth(logs, (e) => e.at),
+        put: (rows) => db.logs.bulkPut(rows as LogEntry[]),
+      });
+    }
 
     await syncStatusItem.setValue({ state: 'ok', lastSyncAt: Date.now() });
     await db.meta.put({ key: 'syncFailures', value: 0 });
@@ -149,26 +135,35 @@ async function syncSettings(db: NavillDB, { download, upload }: Backend, file: R
   await db.meta.put({ key: 'settingsRemoteSavedAt', value: savedAt });
 }
 
-async function syncLogs(db: NavillDB, { download, upload }: Backend, dev: string, files: RemoteFile[], byName: Map<string, RemoteFile>) {
-  const mine = await db.logs.where('deviceId').equals(dev).toArray();
-  const months = groupByMonth(mine);
-  const uploaded = ((await db.meta.get('logsUploaded'))?.value ?? {}) as Record<string, number>;
-  for (const [month, logs] of months) {
-    if (uploaded[month] === logs.length) continue;
-    const name = logsFile(dev, month);
-    await upload(name, await gzip(logs.map((e) => JSON.stringify(e)).join('\n')), byName.get(name));
-    uploaded[month] = logs.length;
+/**
+ * 按设备分月的 jsonl 文件（`{dir}/{设备}-{月}.jsonl.gz`）：上传本机条数有变化的月份，下载其他设备变化过的文件。
+ * 进度记在 meta 的 `{dir}Uploaded`（每月已传条数）和 `{dir}Seen`（已读文件的修改时间）。返回是否拉到了新文件。
+ */
+async function syncDeviceFiles(
+  db: NavillDB, { download, upload }: Backend, files: RemoteFile[], byName: Map<string, RemoteFile>,
+  o: { dir: 'events' | 'logs'; dev: string; months: Map<string, unknown[]>; put: (rows: unknown[]) => Promise<unknown> },
+): Promise<boolean> {
+  const uploaded = ((await db.meta.get(`${o.dir}Uploaded`))?.value ?? {}) as Record<string, number>;
+  for (const [month, rows] of o.months) {
+    if (uploaded[month] === rows.length) continue;
+    const name = `${o.dir}/${o.dev}-${month}.jsonl.gz`;
+    await upload(name, await gzip(rows.map((r) => JSON.stringify(r)).join('\n')), byName.get(name));
+    uploaded[month] = rows.length;
   }
-  await db.meta.put({ key: 'logsUploaded', value: uploaded });
-  const seen = ((await db.meta.get('logsSeen'))?.value ?? {}) as Record<string, string>;
+  await db.meta.put({ key: `${o.dir}Uploaded`, value: uploaded });
+
+  const seen = ((await db.meta.get(`${o.dir}Seen`))?.value ?? {}) as Record<string, string>;
+  let pulled = false;
   for (const f of files) {
-    if (!f.name.startsWith('logs/') || f.name.startsWith(`logs/${dev}-`)) continue;
+    if (!f.name.startsWith(`${o.dir}/`) || f.name.startsWith(`${o.dir}/${o.dev}-`)) continue;
     if (seen[f.name] === f.modifiedTime) continue;
     const lines = (await gunzip(await download(f))).split('\n').filter(Boolean);
-    await db.logs.bulkPut(lines.map((l) => JSON.parse(l) as LogEntry));
+    await o.put(lines.map((l) => JSON.parse(l)));
     seen[f.name] = f.modifiedTime;
+    pulled = true;
   }
-  await db.meta.put({ key: 'logsSeen', value: seen });
+  await db.meta.put({ key: `${o.dir}Seen`, value: seen });
+  return pulled;
 }
 
 /** 待上传的改动数：结构改动（outbox）+ 开启日志同步时未上传的本机日志 */
@@ -213,8 +208,6 @@ export async function disconnectSync(db: NavillDB) {
   await disconnect();
   await resetRemoteMeta(db);
 }
-
-export type { SyncEntity };
 
 /** 登录 Google 并记一条日志 */
 export async function signInAndLog(db: NavillDB) {

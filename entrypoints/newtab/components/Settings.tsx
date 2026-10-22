@@ -1,11 +1,11 @@
 import { InfoTip } from '@/src/ui/InfoTip';
 import { localizeNames } from '@/src/lib/presetNames';
-import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs, Text } from '@cloudflare/kumo';
-import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, LinkBreak, Smiley, ListBullets, Play } from '@phosphor-icons/react';
+import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs } from '@cloudflare/kumo';
+import { DownloadSimple, FileArrowUp, Plus, Trash, ArrowsClockwise, SignOut, GoogleLogo, Smiley, ListBullets, Play } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bell, CloudCog, Database, Keyboard, Layers, Palette, Settings2, Tag, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { MODE_DEFAULT, PALETTE, db, type Mode } from '@/src/db';
+import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
 import { hasBingPermission, requestBingPermission } from '@/src/lib/bing';
 import { IconBox } from '@/src/ui/ColorPicker';

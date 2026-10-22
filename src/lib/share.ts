@@ -1,5 +1,6 @@
 import type { Bookmark, NavillDB } from '@/src/db';
 import { getShareToken, invalidateShareToken } from '@/src/lib/sync/auth';
+import { httpGloss } from '@/src/lib/sync/http';
 import { loadWorkspace, sortItems, type Item } from '@/src/lib/view';
 import { createBookmark, createDrawer, createWorkspace, updateBookmark } from '@/src/lib/store';
 
@@ -28,10 +29,6 @@ export const STATUS_LABEL: Record<MyShare['status'], string> = {
   live: tr('已公开'), pending: tr('审核中'), rejected: tr('未通过'), taken_down: tr('已下架'),
 };
 
-const HTTP_GLOSS: Record<number, string> = {
-  401: tr('401 未授权'), 403: tr('403 禁止访问'), 409: tr('409 冲突'), 413: tr('413 内容太大'), 422: tr('422 无法处理'), 429: tr('429 请求太频繁'), 500: tr('500 服务器错误'), 502: tr('502 网关错误'), 503: tr('503 服务不可用'),
-};
-
 async function call<T>(method: string, path: string, body?: unknown, retried = false, interactive = true): Promise<T> {
   const token = await getShareToken(interactive);
   const res = await fetch(SHARE_ORIGIN + path, {
@@ -44,13 +41,17 @@ async function call<T>(method: string, path: string, body?: unknown, retried = f
     return call(method, path, body, true, interactive);
   }
   if (res.status === 204) return undefined as T;
+  return parse<T>(res);
+}
+
+/** 解析响应：失败时优先用服务端给的 error，否则用带中文释义的状态码 */
+async function parse<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || HTTP_GLOSS[res.status] || tr('{0} 请求失败', res.status));
+  if (!res.ok) throw new Error(data?.error || httpGloss(res.status));
   return data as T;
 }
 
 export const listShares = (interactive = true) => call<{ shares: MyShare[] }>('GET', '/api/ext/shares', undefined, false, interactive).then((r) => r.shares);
-export const findShare = async (kind: ShareKind, sourceId: string) => (await listShares()).find((s) => s.kind === kind && s.sourceId === sourceId) ?? null;
 export const putShare = (kind: ShareKind, sourceId: string, payload: SharePayload) =>
   call<{ share: MyShare }>('PUT', '/api/ext/shares', { kind, sourceId, payload }).then((r) => r.share);
 export const deleteShare = (id: string) => call<void>('DELETE', `/api/ext/shares/${encodeURIComponent(id)}`);
@@ -98,12 +99,7 @@ export interface PublicShare {
 }
 export interface PublicShareDetail extends PublicShare { payload: SharePayload }
 
-async function pub<T>(path: string): Promise<T> {
-  const res = await fetch(SHARE_ORIGIN + path);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || HTTP_GLOSS[res.status] || tr('{0} 请求失败', res.status));
-  return data as T;
-}
+const pub = async <T>(path: string): Promise<T> => parse<T>(await fetch(SHARE_ORIGIN + path));
 export const listPublicShares = (cursor?: string | null) =>
   pub<{ items: PublicShare[]; nextCursor: string | null }>(`/api/shares${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`);
 export const getPublicShare = (id: string) => pub<PublicShareDetail>(`/api/shares/${encodeURIComponent(id)}`);

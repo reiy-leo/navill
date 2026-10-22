@@ -1,7 +1,7 @@
 import { Badge, Banner, Button, Empty, Loader } from '@cloudflare/kumo';
 import { ArrowSquareOut, Copy, GoogleLogo, ShareNetwork, SquaresFour, Trash, Tray } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
-import { SHARE_ORIGIN, STATUS_LABEL, deleteShare, listShares, type MyShare } from '@/src/lib/share';
+import { SHARE_ORIGIN, deleteShare, listShares, type MyShare } from '@/src/lib/share';
 import { useDialogs } from '@/src/ui/dialogs';
 import { StatusBadge, copyLink } from '@/src/ui/ShareDialog';
 import { toast } from '@/src/ui/toast';

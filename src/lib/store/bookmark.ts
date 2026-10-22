@@ -1,6 +1,6 @@
 import type { Bookmark, NavillDB, Placement } from '@/src/db';
-import { del, deviceId, patch, put, tx, uid } from './core';
-import { nextOrder, removePlacement } from './placement';
+import { del, deviceId, patch, put, uid } from './core';
+import { nextOrder } from './placement';
 import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';
@@ -68,9 +68,6 @@ export async function deleteBookmarkEverywhere(db: NavillDB, bookmarkId: string)
     await del(db, 'bookmarks', bookmarkId);
   });
 }
-
-/** 仅删此处 */
-export const deletePlacementOnly = removePlacement;
 
 export async function archiveBookmark(db: NavillDB, id: string, archived = true) {
   await logged(db, async (log) => {

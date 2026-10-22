@@ -72,6 +72,13 @@ export const DrawerCard = memo(function DrawerCard({
 
   const groups = [...new Map(mounted.map((m) => [m.mountedFrom!.group.id, m.mountedFrom!])).values()];
 
+  const title = (
+    <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : tr('{0}，双击改名', drawer.name)} onDoubleClick={() => setEditing(true)}>
+      {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
+      {display}
+      <span className="ml-1.5 opacity-70">{all.length}</span>
+    </h2>
+  );
   return (
     <LayerCard
       render={<section />}
@@ -111,19 +118,7 @@ export const DrawerCard = memo(function DrawerCard({
             aria-label={tr('抽屉名称')}
           />
         ) : (
-          drawer.description ? <Tooltip content={drawer.description} side="top" asChild>
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : tr('{0}，双击改名', drawer.name)} onDoubleClick={() => setEditing(true)}>
-            {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
-            {display}
-            <span className="ml-1.5 opacity-70">{all.length}</span>
-          </h2>
-          </Tooltip> : <>
-          <h2 className="min-w-0 flex-1 cursor-grab truncate text-sm font-normal" title={drawer.description ? undefined : tr('{0}，双击改名', drawer.name)} onDoubleClick={() => setEditing(true)}>
-            {drawer.adult && <span className="mr-1 rounded bg-kumo-danger-tint px-1 text-xs text-kumo-danger">18+</span>}
-            {display}
-            <span className="ml-1.5 opacity-70">{all.length}</span>
-          </h2>
-          </>
+          drawer.description ? <Tooltip content={drawer.description} side="top" asChild>{title}</Tooltip> : title
         )}
         <ViewMenu value={view} inherited={!drawer.viewMode} onChange={(v) => void updateDrawer(db, drawer.id, { viewMode: v })} />
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
