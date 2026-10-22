@@ -12,6 +12,9 @@ import { dateLocale, tr } from '@/src/i18n';
 /** 导航栏右端：「搜索」按钮 + 一个「更多操作」菜单，分三组：
  * 新建工作区 · 整理 ｜ 归档 · 分身 · 分享 · 市场 ｜ 同步状态 · 设置 · 关于
  * vertical：侧边栏图标模式下上下排列 */
+/** 导航栏右侧按钮：图标与工作区图标同大，默认灰，悬停加深 */
+const NAV_BTN = 'text-kumo-subtle hover:text-kumo-default';
+
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
   const { settings, setPanel } = useApp();
   const { organize, setOrganize } = useSelection();
@@ -22,9 +25,9 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
   const contentAlign = align ?? (side === 'bottom' ? 'end' : 'start');
   return (
     <div className={`flex items-center gap-1 ${vertical ? 'flex-col' : ''}`}>
-    <Button variant="ghost" size="xs" shape="square" icon={<Search size={16} />} onClick={onSearch} aria-label={tr('搜索')} title={`${tr('搜索')} (/)`} />
+    <Button variant="ghost" size="xs" shape="square" className={NAV_BTN} icon={<Search size={14} />} onClick={onSearch} aria-label={tr('搜索')} title={`${tr('搜索')} (/)`} />
     <DropdownMenu>
-      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" icon={<Ellipsis size={16} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
+      <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" className={organize ? undefined : NAV_BTN} icon={<Ellipsis size={14} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
       <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>{tr('新建工作区')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
