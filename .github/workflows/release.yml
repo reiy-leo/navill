@@ -61,3 +61,21 @@ jobs:
           RANGE="${PREV:+$PREV..}$GITHUB_REF_NAME"
           { echo "## 更新内容"; echo; git log --no-merges --pretty='- %s' "$RANGE"; } > notes.md
           gh release create "$GITHUB_REF_NAME" .output/*.zip --title "Navill $GITHUB_REF_NAME" --notes-file notes.md $FLAG
+
+      # 正式版自动提交到 Edge Add-ons（预发布不提交）。需要仓库 Secrets：EDGE_CLIENT_ID、EDGE_API_KEY、EDGE_PRODUCT_ID；没配就跳过。
+      # 商店包不带开发 key（WXT_EXTENSION_KEY=none），商店会用自己分配的扩展 ID。
+      - name: 提交 Edge Add-ons
+        if: env.STABLE == '1'
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+        run: |
+          if [ -z "$EDGE_CLIENT_ID" ] || [ -z "$EDGE_API_KEY" ] || [ -z "$EDGE_PRODUCT_ID" ]; then
+            echo "::notice::未配置 Edge Secrets，跳过商店提交"; exit 0
+          fi
+          # Release 已上传带 key 的包，这里重新打一个不带 key 的覆盖同名文件
+          WXT_EXTENSION_KEY=none pnpm zip:edge
+          ZIP=".output/navill-${GITHUB_REF_NAME#v}-edge.zip"
+          node -e 'if(require("./.output/edge-mv3/manifest.json").key){console.error("商店包不应包含 key");process.exit(1)}'
+          scripts/edge-publish.sh "$ZIP" "Navill $GITHUB_REF_NAME 更新。测试步骤同首次提交：安装后新标签页即为 Navill，可从浏览器书签导入。"
