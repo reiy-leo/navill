@@ -1,6 +1,6 @@
 import { Checkbox } from '@cloudflare/kumo';
 import { Copy, LinkSimple, Star } from '@phosphor-icons/react';
-import { useId, useRef } from 'react';
+import { memo, useId, useRef } from 'react';
 import { TAG_FAVORITE, db, type ViewMode } from '@/src/db';
 import { toggleTagOn } from '@/src/lib/store';
 import type { Item } from '@/src/lib/view';
@@ -10,7 +10,7 @@ import { useDialogs } from '@/src/ui/dialogs';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
 import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
-import { useApp } from '@/src/ui/state';
+import { useApp, useSelection } from '@/src/ui/state';
 import { DND_PLACEMENT } from './dnd';
 import { useFlip, useSortable } from './sortable';
 
@@ -74,7 +74,7 @@ export function Items({ items, view, list, onDrop, onReveal, emptyHint, strip }:
           ghost={ghost}
           hidden={hidden}
           size={!strip && view === 'bento' ? ((rank.get(it.placement.id) ?? 9) === 0 ? 'xl' : (rank.get(it.placement.id) ?? 9) < 3 ? 'lg' : 'sm') : 'sm'}
-          dnd={{ ...sort.target(key), ...sort.source(key, it) }}
+          dnd={sort.bind(key, it)}
           onReveal={onReveal}
         />
       ))}
@@ -82,13 +82,14 @@ export function Items({ items, view, list, onDrop, onReveal, emptyHint, strip }:
   );
 }
 
-function BookmarkItem({
+const BookmarkItem = memo(function BookmarkItem({
   item, view, size, strip, flip, ghost, hidden, dnd, onReveal,
 }: {
   item: Item; view: ViewMode; strip?: boolean; size: 'sm' | 'lg' | 'xl'; flip: string; ghost: boolean; hidden: boolean; onReveal?: (i: Item) => void;
   dnd: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
 }) {
-  const { settings, organize, selection, toggleSelect } = useApp();
+  const { settings } = useApp();
+  const { organize, selection, toggleSelect } = useSelection();
   const menu = useContextMenu();
   const dialogs = useDialogs();
   const { bookmark: b, placement: p, mountedFrom } = item;
@@ -202,4 +203,4 @@ function BookmarkItem({
       )}
     </a>
   );
-}
+});

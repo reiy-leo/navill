@@ -3,7 +3,7 @@ import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, Cloud
 import { useEffect, useRef, useState } from 'react';
 import { Ellipsis, Search } from 'lucide-react';
 import { AboutDialog } from '@/src/ui/AboutDialog';
-import { useApp } from '@/src/ui/state';
+import { useApp, useQuery, useSelection } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { SearchResults } from './SearchResults';
 import type { Tab } from './Settings';
@@ -13,7 +13,8 @@ import { dateLocale, tr } from '@/src/i18n';
  * 新建工作区 · 整理 ｜ 归档 · 分身 · 分享 · 市场 ｜ 同步状态 · 设置 · 关于
  * vertical：侧边栏图标模式下上下排列 */
 export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom', align, vertical }: { onSearch: () => void; onSettings: (tab?: Tab) => void; onNewWorkspace: () => void; side?: 'bottom' | 'right' | 'top' | 'left'; align?: 'start' | 'end'; vertical?: boolean }) {
-  const { organize, setOrganize, settings, setPanel } = useApp();
+  const { settings, setPanel } = useApp();
+  const { organize, setOrganize } = useSelection();
   const sync = useSyncStatus();
   const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
   const syncLabel = !settings.sync.enabled ? tr('同步未开启') : sync.state === 'error' ? tr('同步失败') : sync.state === 'syncing' ? tr('正在同步…') : sync.lastSyncAt ? tr('已同步 {0}', new Date(sync.lastSyncAt).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })) : tr('同步');
@@ -45,7 +46,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
 
 /** 屏幕中间的搜索框；按 / 或 ⌘L / Ctrl+L 打开，Esc 关闭 */
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { query, setQuery } = useApp();
+  const { query, setQuery } = useQuery();
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (!open) { setQuery(''); return; }

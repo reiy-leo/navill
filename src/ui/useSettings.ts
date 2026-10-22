@@ -9,7 +9,8 @@ export function useSettings(): [Settings, (patch: Partial<Settings>) => Promise<
       setS(v);
       setReady(true);
     });
-    return settingsItem.watch(() => void getSettings().then(setS));
+    // 内容没变（如别的标签页写入同样的值）就保留旧对象，避免整棵树重渲染
+    return settingsItem.watch(() => void getSettings().then((v) => setS((prev) => (JSON.stringify(prev) === JSON.stringify(v) ? prev : v))));
   }, []);
   return [s, updateSettings, ready];
 }

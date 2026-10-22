@@ -1,7 +1,7 @@
 import { Button, DropdownMenu, Input, LayerCard, Tooltip } from '@cloudflare/kumo';
 import {
   ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, ShareNetwork, Palette } from '@phosphor-icons/react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { useTone } from '@/src/ui/colors';
 import { DrawerColorPopover } from '@/src/ui/ColorPicker';
 import { db, type Workspace } from '@/src/db';
@@ -18,7 +18,8 @@ import { Items } from './Items';
 import { SortMenu, ViewMenu } from './menus';
 
 import { tr } from '@/src/i18n';
-export function DrawerCard({
+/** memo：数据经结构共享、拖放处理函数为稳定引用，未变的抽屉不重渲染 */
+export const DrawerCard = memo(function DrawerCard({
   data, workspace, arrange, ghost, dnd, onReveal,
 }: {
   data: DrawerData; workspace: Workspace; arrange: Arrange; ghost?: boolean; onReveal: (i: Item) => void;
@@ -185,7 +186,7 @@ export function DrawerCard({
       </LayerCard.Primary>
     </LayerCard>
   );
-}
+});
 
 /** 自适应高度时最多显示的行数，多余的在抽屉内滚动 */
 export const AUTO_MAX_ROWS = 10;

@@ -81,7 +81,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
   const items = [home, ...ordered.map(({ w, ghost }) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
-      ghost={ghost} dnd={w.source === 'inbox' ? undefined : { ...sort.target(w.id), ...sort.source(w.id) }}
+      ghost={ghost} dnd={w.source === 'inbox' ? undefined : sort.bind(w.id)}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
   ))];
 

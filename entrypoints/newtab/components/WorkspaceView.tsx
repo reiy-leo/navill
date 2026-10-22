@@ -14,7 +14,8 @@ import { Items } from './Items';
 import { ArrangeMenu, ViewMenu } from './menus';
 import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useShared } from '@/src/ui/useShared';
 import { NewDrawerPopover } from '@/src/ui/NewDrawerPopover';
 import { useFlip, useSortable } from './sortable';
 
@@ -22,7 +23,8 @@ import { tr } from '@/src/i18n';
 export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const { visibility, settings, selectWorkspace, updateSettings } = useApp();
   const dialogs = useDialogs();
-  const data = useLiveQuery(() => loadWorkspace(db, workspaceId, visibility), [workspaceId, visibility]);
+  // 结构共享：只有真正变了的抽屉 / 书签换新引用，其余的 memo 组件跳过重渲染
+  const data = useShared(useLiveQuery(() => loadWorkspace(db, workspaceId, visibility), [workspaceId, visibility]));
   const area = useRef<HTMLDivElement>(null);
   const arrange = settings.arrange[workspaceId] ?? 'masonry';
   const sort = useSortable({
@@ -35,6 +37,12 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const [newOpen, setNewOpen] = useState(false);
   const dragging = useDraggingPlacement();
   const [over, setOver] = useState(false);
+  const reveal = useCallback((item: Item) => {
+    const src = item.mountedFrom?.drawer;
+    if (!src) return;
+    selectWorkspace(src.workspaceId);
+    setTimeout(() => document.getElementById(`drawer-${src.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+  }, [selectWorkspace]);
 
   if (data === undefined) return <div className="flex justify-center p-12"><Loader /></div>;
   if (data === null) return null;
@@ -51,14 +59,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     const nb = await dialogs.newBookmark();
     if (nb?.url.trim()) await createBookmark(db, { ...nb, title: nb.title.trim() || undefined }, workspace.id, null);
   };
-  const reveal = (item: Item) => {
-    const src = item.mountedFrom?.drawer;
-    if (!src) return;
-    selectWorkspace(src.workspaceId);
-    setTimeout(() => document.getElementById(`drawer-${src.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
-  };
   const card = (d: (typeof drawers)[number], ghost: boolean) => (
-    <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={reveal} ghost={ghost} dnd={{ ...sort.target(d.drawer.id), ...sort.source(d.drawer.id) }} />
+    <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={reveal} ghost={ghost} dnd={sort.bind(d.drawer.id)} />
   );
   const rows = sort.rows;
 

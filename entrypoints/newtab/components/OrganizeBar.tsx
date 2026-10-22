@@ -4,12 +4,12 @@ import { db } from '@/src/db';
 import { archiveBookmark, removePlacement } from '@/src/lib/store';
 import { aliasTo, moveTo } from '@/src/ui/actions';
 import { useDialogs } from '@/src/ui/dialogs';
-import { useApp } from '@/src/ui/state';
+import { useSelection } from '@/src/ui/state';
 
 import { tr } from '@/src/i18n';
 /** 「整理」多选模式的底部操作栏 */
 export function OrganizeBar() {
-  const { organize, selection, clearSelection, setOrganize } = useApp();
+  const { organize, selection, clearSelection, setOrganize } = useSelection();
   const dialogs = useDialogs();
   if (!organize) return null;
   const ids = [...selection];

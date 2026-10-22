@@ -39,6 +39,8 @@ export function BookmarkIcon({ url, size = 16, src }: { url: string; size?: numb
       className={`shrink-0 rounded-sm ${toneClass(tone ?? iconToneOf(imgSrc))}`}
       onLoad={(e) => setTone(measureIconTone(e.currentTarget))}
       onError={() => setFailed(true)}
+      loading="lazy"
+      decoding="async"
       draggable={false}
     />
   );

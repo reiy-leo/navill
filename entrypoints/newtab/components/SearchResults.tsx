@@ -9,12 +9,14 @@ import { useDialogs } from '@/src/ui/dialogs';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
 import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
-import { useApp } from '@/src/ui/state';
+import { useApp, useQuery, useSelection } from '@/src/ui/state';
 import { search, visibilityOf } from '@/src/lib/view';
 
 import { tr } from '@/src/i18n';
 export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
-  const { query, mode, settings, organize, selection, toggleSelect } = useApp();
+  const { mode, settings } = useApp();
+  const { query } = useQuery();
+  const { organize, selection, toggleSelect } = useSelection();
   const [archived, setArchived] = useState(false);
   const [active, setActive] = useState(0);
   const menu = useContextMenu();

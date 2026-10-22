@@ -19,13 +19,6 @@ interface AppState {
   modes: Mode[];
   mode: Mode | undefined;
   visibility: Visibility;
-  organize: boolean;
-  setOrganize: (v: boolean) => void;
-  selection: Set<string>; // placement ids
-  toggleSelect: (placementId: string, on?: boolean) => void;
-  clearSelection: () => void;
-  query: string;
-  setQuery: (q: string) => void;
   view: MainView;
   setView: (v: MainView) => void;
   panel: Panel | null;
@@ -34,12 +27,28 @@ interface AppState {
   selectWorkspace: (id: string) => void;
 }
 
+/** 整理模式与多选：变化频繁，单独一个 context，只有用到的组件才重渲染 */
+interface SelectionState {
+  organize: boolean;
+  setOrganize: (v: boolean) => void;
+  selection: Set<string>; // placement ids
+  toggleSelect: (placementId: string, on?: boolean) => void;
+  clearSelection: () => void;
+}
+/** 搜索词：每次按键都变，单独一个 context */
+interface QueryState { query: string; setQuery: (q: string) => void }
+
 const Ctx = createContext<AppState | null>(null);
+const SelCtx = createContext<SelectionState | null>(null);
+const QueryCtx = createContext<QueryState | null>(null);
 export const useApp = () => useContext(Ctx)!;
+export const useSelection = () => useContext(SelCtx)!;
+export const useQuery = () => useContext(QueryCtx)!;
+const NO_MODES: Mode[] = [];
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [settings, updateSettings, ready] = useSettings();
-  const modes = useLiveQuery(async () => localizeNames(await db.modes.orderBy('order').toArray()), []) ?? [];
+  const modes = useLiveQuery(async () => localizeNames(await db.modes.orderBy('order').toArray()), []) ?? NO_MODES;
   const mode = modes.find((m) => m.id === settings.currentModeId) ?? modes.find((m) => m.id === MODE_DEFAULT);
   const visibility = useMemo(() => visibilityOf(mode), [mode]);
   const [organize, setOrganizeRaw] = useState(false);
@@ -89,14 +98,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!v) setSelection(new Set());
   }, []);
 
+  const app = useMemo<AppState>(
+    () => ({ settings, updateSettings, ready, modes, mode, visibility, view, setView, panel, setPanel, workspaceId, selectWorkspace }),
+    [settings, updateSettings, ready, modes, mode, visibility, view, setView, panel, workspaceId, selectWorkspace],
+  );
+  const sel = useMemo<SelectionState>(
+    () => ({ organize, setOrganize, selection, toggleSelect, clearSelection }),
+    [organize, setOrganize, selection, toggleSelect, clearSelection],
+  );
+  const q = useMemo<QueryState>(() => ({ query, setQuery }), [query]);
+
   return (
-    <Ctx.Provider
-      value={{
-        settings, updateSettings, ready, modes, mode, visibility, organize, setOrganize, selection, toggleSelect,
-        clearSelection, query, setQuery, view, setView, panel, setPanel, workspaceId, selectWorkspace,
-      }}
-    >
-      {children}
+    <Ctx.Provider value={app}>
+      <SelCtx.Provider value={sel}>
+        <QueryCtx.Provider value={q}>{children}</QueryCtx.Provider>
+      </SelCtx.Provider>
     </Ctx.Provider>
   );
 }

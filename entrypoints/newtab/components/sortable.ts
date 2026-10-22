@@ -97,7 +97,16 @@ export function useSortable<T>({
   foreign?: (payload: unknown) => T | undefined;
   onDrop?: (id: string, keys: string[]) => void;
 }) {
-  const s = useSyncExternalStore(subscribe, () => state);
+  const byKey = new Map(items.map((t) => [keyOf(t), t]));
+  // 只订阅与本列表相关的那一小片状态：别的列表里移动不会让本列表重渲染
+  useSyncExternalStore(subscribe, () => {
+    const d = state.drag;
+    if (!d || d.kind !== kind) return '';
+    const o = state.over;
+    const here = o?.list === list ? `h${o.index}` : '';
+    return byKey.has(d.id) ? `${d.id}|o|${here || (o ? 'x' : 'n')}` : `${d.id}|${here}`;
+  });
+  const s = state;
   const lastTarget = useRef<string | null>(null);
   // 放下后到数据库新顺序回来之前，先保持预览顺序，避免闪回
   const [pending, setPending] = useState<string[] | null>(null);
@@ -111,7 +120,6 @@ export function useSortable<T>({
   }, [pending]);
 
   const d = s.drag && s.drag.kind === kind ? s.drag : null;
-  const byKey = new Map(items.map((t) => [keyOf(t), t]));
   let rows: SortRow<T>[];
   if (pending) {
     rows = pending.filter((k) => byKey.has(k)).map((k) => ({ t: byKey.get(k)!, key: k, ghost: false, hidden: false }));
@@ -134,72 +142,95 @@ export function useSortable<T>({
   }
   const sig = rows.map((r) => r.key + (r.hidden ? '-' : '')).join('|');
 
-  const accept = (e: React.DragEvent) => !!d && sortable && !!onDrop && (byKey.has(d.id) || !!foreign?.(d.payload)) && e.dataTransfer !== null;
-
-  const rest = (cur: SortRow<T>[]) => cur.filter((r) => r.key !== d?.id && !r.hidden);
+  // 处理函数在事件发生时读最新的值，所以可以缓存成稳定引用（子组件 memo 才有效）
+  const live = useRef({ rows, byKey, sortable, onDrop, foreign, horizontal, list, dataSig });
+  live.current = { rows, byKey, sortable, onDrop, foreign, horizontal, list, dataSig };
+  const cur = () => (state.drag && state.drag.kind === kind ? state.drag : null);
+  const accept = (e: React.DragEvent) => {
+    const dd = cur(), L = live.current;
+    return !!dd && L.sortable && !!L.onDrop && (L.byKey.has(dd.id) || !!L.foreign?.(dd.payload)) && e.dataTransfer !== null;
+  };
+  const rest = (cur_: SortRow<T>[], id: string) => cur_.filter((r) => r.key !== id && !r.hidden);
 
   const drop = (e: React.DragEvent) => {
-    if (!d || !accept(e) || state.over?.list !== list) return;
+    const dd = cur(), L = live.current;
+    if (!dd || !accept(e) || state.over?.list !== L.list) return;
     e.preventDefault();
     e.stopPropagation();
-    const keys = rows.filter((r) => !r.hidden).map((r) => r.key);
+    const keys = L.rows.filter((r) => !r.hidden).map((r) => r.key);
     setPending(keys);
-    pendingFor.current = dataSig;
-    onDrop!(d.id, keys);
+    pendingFor.current = L.dataSig;
+    L.onDrop!(dd.id, keys);
     endDrag();
   };
 
-  /** 每一项上的拖放目标处理 */
-  const target = (key: string) => ({
-    onDragOver: (e: React.DragEvent) => {
-      if (!d || !accept(e)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (key === d.id) { lastTarget.current = null; return; }
-      if (!settled(e)) return;
-      const r = rest(rows);
-      const at = r.findIndex((x) => x.key === key);
-      if (at < 0) return;
-      const shown = rows.findIndex((x) => x.key === d.id && x.ghost);
-      let index: number;
-      if (shown >= 0 && s.over?.list === list) {
-        // 已在本列表里：经过谁就占谁的位置；同一目标在离开前不重复触发，避免大小不同时来回跳
-        if (lastTarget.current === key) return;
-        const mine = rows.findIndex((x) => x.key === key);
-        index = shown < mine ? at + 1 : at;
-      } else {
-        index = insertAfter(e, horizontal) ? at + 1 : at;
-      }
-      lastTarget.current = key;
-      if (state.over?.list !== list || state.over.index !== index) { markMove(e); set({ ...state, over: { list, index } }); }
-    },
-    onDrop: drop,
-  });
+  const onItemOver = (key: string, e: React.DragEvent) => {
+    const dd = cur(), L = live.current;
+    if (!dd || !accept(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (key === dd.id) { lastTarget.current = null; return; }
+    if (!settled(e)) return;
+    const r = rest(L.rows, dd.id);
+    const at = r.findIndex((x) => x.key === key);
+    if (at < 0) return;
+    const shown = L.rows.findIndex((x) => x.key === dd.id && x.ghost);
+    let index: number;
+    if (shown >= 0 && state.over?.list === L.list) {
+      // 已在本列表里：经过谁就占谁的位置；同一目标在离开前不重复触发，避免大小不同时来回跳
+      if (lastTarget.current === key) return;
+      const mine = L.rows.findIndex((x) => x.key === key);
+      index = shown < mine ? at + 1 : at;
+    } else {
+      index = insertAfter(e, L.horizontal) ? at + 1 : at;
+    }
+    lastTarget.current = key;
+    if (state.over?.list !== L.list || state.over.index !== index) { markMove(e); set({ ...state, over: { list: L.list, index } }); }
+  };
+
+  type Handlers = { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
+  const cache = useRef(new Map<string, Handlers>());
+  const payloads = useRef(new Map<string, unknown>());
+  // 去掉已不在列表里的缓存
+  if (cache.current.size > byKey.size + 8) for (const k of cache.current.keys()) if (!byKey.has(k)) { cache.current.delete(k); payloads.current.delete(k); }
+
+  /** 每一项的拖放处理（目标 + 拖动源），按 key 缓存为稳定引用；payload 在拖动开始时读取 */
+  const bind = (key: string, payload?: unknown): Handlers => {
+    payloads.current.set(key, payload);
+    let h = cache.current.get(key);
+    if (!h) {
+      h = {
+        onDragOver: (e) => onItemOver(key, e),
+        onDrop: (e) => drop(e),
+        onDragStart: () => {
+          lastTarget.current = null;
+          startDrag({ kind, id: key, from: live.current.list, payload: payloads.current.get(key) });
+        },
+      };
+      cache.current.set(key, h);
+    }
+    return h;
+  };
+  // 缓存的闭包引用的是首次渲染时的 onItemOver/drop，它们只通过 live / state / ref 读值，所以不会过期
 
   /** 列表容器（空白处）：从别处拖进来时追加到末尾 */
-  const container = {
+  const container = useRef({
     'data-sort-kind': kind,
     'data-sort-list': list,
     onDragOver: (e: React.DragEvent) => {
-      if (!d || !accept(e)) return;
+      const dd = cur(), L = live.current;
+      if (!dd || !accept(e)) return;
       e.preventDefault();
-      if (state.over?.list !== list) {
+      if (state.over?.list !== L.list) {
         if (!settled(e)) return;
         lastTarget.current = null;
         markMove(e);
-        set({ ...state, over: { list, index: rest(rows).length } });
+        set({ ...state, over: { list: L.list, index: rest(L.rows, dd.id).length } });
       }
     },
-    onDrop: drop,
-  };
+    onDrop: (e: React.DragEvent) => drop(e),
+  }).current;
+  container['data-sort-list'] = list;
 
-  /** 拖动源 */
-  const source = (key: string, payload?: unknown) => ({
-    onDragStart: () => {
-      lastTarget.current = null;
-      startDrag({ kind, id: key, from: list, payload });
-    },
-  });
-
-  return { rows, sig, target, container, source, dragging: !!d };
+  return { rows, sig, bind, container, dragging: !!d };
 }
