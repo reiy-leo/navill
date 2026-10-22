@@ -43,19 +43,20 @@ export function lastSettingsTab(): Tab {
 export function SettingsDialog({ open, onClose, onReimport, initialTab = 'general' }: { open: boolean; onClose: () => void; onReimport: (source: 'browser' | 'html') => void; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab);
   return (
-    <Modal open={open} onClose={onClose} title={tr('设置')} size="xl">
+    <Modal open={open} onClose={onClose} title={tr('设置')} size="xl" header={
       <div className="overflow-x-auto [scrollbar-width:none]">
       <Tabs
         variant="underline"
         value={tab}
-        onValueChange={(v) => { setTab(v as Tab); localStorage.setItem(TAB_KEY, v as string); }}
+        onValueChange={(v) => { setTab(v as Tab); localStorage.setItem(TAB_KEY, v as string); document.querySelector('.navill-modal-body')?.scrollTo(0, 0); }}
         tabs={[
           ['general', tr('通用'), Settings2], ['look', tr('外观'), Palette], ['modes', tr('场景'), Layers], ['tags', tr('标签'), Tag],
           ['sync', tr('同步'), CloudCog], ['toast', tr('提醒'), Bell], ['keys', tr('快捷键'), Keyboard], ['data', tr('数据'), Database],
         ].map(([value, label, Icon]) => ({ value: value as string, label: <TabLabel icon={Icon as LucideIcon} text={label as string} /> }))}
       />
       </div>
-      <div className="mt-4 min-h-[50vh]">
+    }>
+      <div className="min-h-[50vh]">
         {tab === 'general' && <General />}
         {tab === 'look' && <Look />}
         {tab === 'modes' && <Modes />}
