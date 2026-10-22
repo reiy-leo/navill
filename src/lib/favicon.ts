@@ -3,7 +3,7 @@
  * Firefox 没有 _favicon，退回 Google s2 图标服务（已在 host_permissions 内）。
  */
 export function faviconUrl(pageUrl: string, size = 32): string {
-  if (import.meta.env.FIREFOX) {
+  if (import.meta.env.BROWSER === 'firefox') {
     return `https://www.google.com/s2/favicons?sz=${size}&domain_url=${encodeURIComponent(pageUrl)}`;
   }
   const base = (browser.runtime.getURL as (p: string) => string)('/_favicon/');

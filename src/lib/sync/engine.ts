@@ -13,6 +13,7 @@ import { mergeStates, type RemoteState } from './merge';
 import { addLog, groupByMonth } from '../log';
 
 import { tr } from '@/src/i18n';
+import { CONSENT_DENIED, ensureBookmarksConsent, hasBookmarksConsent } from '../consent';
 const STATE_FILE = 'state.json.gz';
 const SETTINGS_FILE = 'settings.json.gz';
 
@@ -42,6 +43,11 @@ async function run(db: NavillDB) {
     return;
   }
   const prev = await syncStatusItem.getValue();
+  // Firefox：用户没同意传输书签数据就不同步（在 about:addons 里撤销后也会走到这里）
+  if (!(await hasBookmarksConsent())) {
+    await syncStatusItem.setValue({ ...prev, state: 'error', message: CONSENT_DENIED() });
+    return;
+  }
   await syncStatusItem.setValue({ ...prev, state: 'syncing', message: undefined });
   try {
     await ensureSeed(db);
@@ -221,6 +227,7 @@ export async function disconnectSync(db: NavillDB) {
 
 /** 登录 Google 并记一条日志 */
 export async function signInAndLog(db: NavillDB) {
+  await ensureBookmarksConsent(); // 必须是第一个 await，Firefox 授权框只能由点击直接触发
   if ((await syncProviderItem.getValue()) !== 'google') {
     await disconnectSync(db);
     await syncProviderItem.setValue('google');

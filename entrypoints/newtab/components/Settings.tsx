@@ -19,6 +19,7 @@ import { connectWebdavAndLog, deleteRemoteData, disconnectSync, signInAndLog } f
 import { syncProviderItem, type SyncProvider } from '@/src/lib/sync/backend';
 import { normalizeUrl, originPattern, webdavConfigItem, WEBDAV_DIR, type WebdavConfig } from '@/src/lib/sync/webdav';
 import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
+import { NEEDS_DATA_CONSENT, requestBookmarksConsent, withBookmarksConsent } from '@/src/lib/consent';
 import { toast } from '@/src/ui/toast';
 import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon } from '@/src/ui/icons';
@@ -345,9 +346,9 @@ function Sync() {
       return;
     }
     // 授权请求必须在点击后立即发起
-    const granted = browser.permissions.request({ origins: [originPattern(url)] });
+    const granted = browser.permissions.request(withBookmarksConsent({ origins: [originPattern(url)] }));
     void run(async () => {
-      if (!(await granted)) throw new Error(tr('需要授权 Navill 访问这个服务器'));
+      if (!(await granted)) throw new Error(NEEDS_DATA_CONSENT ? tr('需要授权 Navill 访问这个服务器并传输书签数据') : tr('需要授权 Navill 访问这个服务器'));
       const cfg: WebdavConfig = { url, username: form.username.trim(), password: form.password };
       await connectWebdavAndLog(db, cfg);
       setForm({ url: '', username: '', password: '' });
@@ -391,7 +392,7 @@ function Sync() {
       ))}
       </Section>
       <Section title={tr('同步')}>
-      <Row label={tr('自动同步')}><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } })} /></Row>
+      <Row label={tr('自动同步')}><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => { if (!settings.sync.enabled) void requestBookmarksConsent(); void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } }); }} /></Row>
       <Row label={tr('同步频率')} info={tr('只在有改动时上传')}><Select aria-label={tr('同步频率')} className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': tr('每 5 分钟'), '15': tr('每 15 分钟'), '60': tr('每 60 分钟'), '0': tr('仅手动') }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
       <Row label={tr('立即同步')} hint={status.lastSyncAt ? tr('上次同步：{0}', new Date(status.lastSyncAt).toLocaleString(dateLocale)) : tr('尚未同步')}>
         <Button size="sm" icon={<RefreshCw size="1em" />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>{tr('立即同步')}</Button>

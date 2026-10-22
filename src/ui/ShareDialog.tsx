@@ -10,6 +10,7 @@ import { Confetti } from './Confetti';
 import { Modal } from './Modal';
 import { toast } from './toast';
 
+import { ensureBookmarksConsent } from '@/src/lib/consent';
 import { tr } from '@/src/i18n';
 const SITE_ICON = 'https://navill.rei8t.dev/icon-192.png';
 const authorItem = storage.defineItem<string>('local:shareAuthor', { fallback: '' });
@@ -57,8 +58,10 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
   }, [kind, sourceId]);
 
   const submit = async () => {
+    const consent = ensureBookmarksConsent(); // Firefox 授权框只能由点击直接触发，先发起
     setBusy(true); setErr('');
     try {
+      await consent;
       await authorItem.setValue(author.trim());
       const { payload, count } = await buildPayload(db, kind, sourceId, { includeAdult: false, author, description });
       if (!count) throw new Error(tr('没有可以分享的书签'));

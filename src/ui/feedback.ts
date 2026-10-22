@@ -6,6 +6,7 @@ import { isConnected } from '@/src/lib/sync/backend';
 import { pendingChanges, syncNow } from '@/src/lib/sync/engine';
 import { SHORTCUT_SYNC_TEXT, shortcutSyncDecision } from '@/src/lib/sync/shortcut';
 import { toast } from './toast';
+import { ensureBookmarksConsent } from '@/src/lib/consent';
 
 import { tr } from '@/src/i18n';
 export const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -27,6 +28,7 @@ export function useLogToasts(settings: Settings) {
 
 /** 从页面发起的同步：成功按设置提醒，失败抛出给调用方 */
 export async function syncFromPage(db: NavillDB, settings: Settings) {
+  await ensureBookmarksConsent(); // Firefox 授权，须在第一个 await
   await syncNow(db);
   if ((await syncStatusItem.getValue()).state === 'ok' && settings.toast.show.sync) toast(tr('同步完成'), { group: 'sync' });
 }
