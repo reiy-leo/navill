@@ -111,7 +111,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
           )}
           <div ref={area} {...sort.container}>
           {arrange === 'masonry' ? (
-            <Masonry>
+            <Masonry frozen={dragging}>
               {rows.map(({ t: d, ghost }) => (
                 <MasonryItem key={d.drawer.id} id={`drawer-${d.drawer.id}`}>{card(d, ghost)}</MasonryItem>
               ))}

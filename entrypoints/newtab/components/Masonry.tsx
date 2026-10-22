@@ -35,7 +35,21 @@ export function layout(heights: number[], width: number) {
   return { ...full, colW };
 }
 
-export function Masonry({ children }: { children: ReactNode }) {
+/** 保持既有分列，只按当前高度在各列内重新堆叠（拖拽中用，避免抽屉换列） */
+export function stack(keys: string[], heights: number[], assign: Map<string, number>, cols: number, colW: number) {
+  const col = new Array(cols).fill(0);
+  const pos: Pos[] = keys.map((k, i) => {
+    let c = assign.get(k);
+    if (c === undefined || c >= cols) { c = 0; for (let j = 1; j < cols; j++) if (col[j] < col[c] - 0.5) c = j; }
+    const p = { left: c * (colW + GAP), top: col[c] };
+    col[c] += heights[i]! + GAP;
+    return p;
+  });
+  return { pos, height: Math.max(0, ...col.map((v) => v - GAP)) };
+}
+
+/** frozen：拖动书签期间不重排，抽屉保持所在列，结束后再按瀑布规则重排 */
+export function Masonry({ children, frozen = false }: { children: ReactNode; frozen?: boolean }) {
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<{ id?: string; children: ReactNode }>[];
   const box = useRef<HTMLDivElement>(null);
   const refs = useRef(new Map<string, HTMLDivElement>());
@@ -69,7 +83,18 @@ export function Masonry({ children }: { children: ReactNode }) {
     return () => ro.disconnect();
   }, [keys.join('|')]);
 
-  const { pos, height, colW } = layout(keys.map((k) => heights[k] ?? 0), width || MIN_COL);
+  const hs = keys.map((k) => heights[k] ?? 0);
+  const w = width || MIN_COL;
+  const last = useRef<{ w: number; cols: number; colW: number; assign: Map<string, number> } | null>(null);
+  let pos: Pos[], height: number, colW: number;
+  if (frozen && last.current && last.current.w === w) {
+    ({ colW } = last.current);
+    ({ pos, height } = stack(keys, hs, last.current.assign, last.current.cols, colW));
+  } else {
+    ({ pos, height, colW } = layout(hs, w));
+    const cols = Math.max(1, Math.floor((w + GAP) / (MIN_COL + GAP)));
+    last.current = { w, cols, colW, assign: new Map(keys.map((k, i) => [k, Math.round(pos[i]!.left / (colW + GAP))])) };
+  }
   const ready = width > 0;
 
   return (
