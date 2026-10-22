@@ -93,6 +93,9 @@ function Root() {
   );
 }
 
+/** 主页背景固定中性灰，不随上次打开的工作区变色 */
+const HOME_BG = '#8d8d86';
+
 function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   const { settings, workspaceId, view } = useApp();
   const workspaces = useVisibleWorkspaces();
@@ -113,7 +116,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
 
   return (
     <div className={`relative isolate flex h-full overflow-hidden ${bar ? 'flex-col' : right ? 'flex-row-reverse' : ''}`} style={{ '--ws-color': wsColor } as React.CSSProperties}>
-      <PageBackground settings={settings} color={wsColor} />
+      <PageBackground settings={settings} color={view === 'home' ? HOME_BG : wsColor} />
       {!bar && <Nav current={current?.id} {...menu} />}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {pos === 'top' && <Nav current={current?.id} {...menu} />}

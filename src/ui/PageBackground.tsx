@@ -41,6 +41,6 @@ export function PageBackground({ settings, color }: { settings: Settings; color?
       </div>
     );
   }
-  // 主页和工作区用同一个渐变（主页沿用当前工作区的颜色）
+  // 主页和工作区用同一个渐变（主页由调用方传入固定中性色）
   return <WorkspaceBackdrop color={color} />;
 }
