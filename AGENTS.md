@@ -13,7 +13,7 @@ Chrome / Edge MV3 扩展：一次性导入浏览器书签，重组为「工作�
 
 ## 技术栈
 - WXT 0.21 + TypeScript（strict）+ Vite；React 19
-- UI：Kumo（`@cloudflare/kumo`）+ Tailwind CSS v4；图标 `@phosphor-icons/react`（Kumo 配套）；明暗主题跟随系统（`<html data-mode>`）
+- UI：Kumo（`@cloudflare/kumo`）+ Tailwind CSS v4；图标统一用 `lucide-react`（不传 size 时写 `size="1em"` 跟随字号；品牌标志在 src/ui/brandIcons.tsx；`@phosphor-icons/react` 只是 Kumo 的 peer 依赖，业务代码不要再引用）；明暗主题跟随系统（`<html data-mode>`）
 - 存储：Dexie（IndexedDB）为事实来源；设置放 `chrome.storage.local`
 - 测试：Vitest（单测）；Playwright（E2E，M2 起）
 - 包管理：pnpm
