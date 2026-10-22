@@ -60,28 +60,38 @@ async function run(db: NavillDB) {
       remote = JSON.parse(await gunzip(await download(stateFile))) as RemoteState;
     }
     if (remote || outboxCount > 0 || !stateFile) {
+      // 快照前记下时间：此后本机产生的改动（outbox 里 updatedAt ≥ since）不在这次上传里，要留到下一轮
+      let since = Date.now();
       const local = await snapshot(db);
       const tombs = await db.tombstones.toArray();
       const m = mergeStates(local, tombs, remote?.data, remote?.tombstones ?? []);
       await db.transaction('rw', db.tables, async () => {
+        // 快照之后本机又改过的实体不写回，免得合并结果盖掉新改动
+        const touched = new Set((await db.outbox.where('updatedAt').aboveOrEqual(since).toArray()).map((o) => o.id));
+        const fresh = (e: string, id: string) => !touched.has(`${e}:${id}`);
         for (const e of SYNC_ENTITIES) {
           const table = db[e] as unknown as { bulkPut(r: unknown[]): Promise<unknown>; bulkDelete(ids: string[]): Promise<void> };
-          if (m.puts[e]?.length) await table.bulkPut(m.puts[e]!);
-          if (m.deletes[e]?.length) await table.bulkDelete(m.deletes[e]!);
+          const puts = (m.puts[e] ?? []).filter((r) => fresh(e, (r as { id: string }).id));
+          const dels = (m.deletes[e] ?? []).filter((id) => fresh(e, id));
+          if (puts.length) await table.bulkPut(puts);
+          if (dels.length) await table.bulkDelete(dels);
         }
+        const keep = (await db.tombstones.toArray()).filter((t) => !fresh(t.entity, t.entityId));
         await db.tombstones.clear();
-        await db.tombstones.bulkPut(m.tombstones);
+        await db.tombstones.bulkPut([...m.tombstones.filter((t) => fresh(t.entity, t.entityId)), ...keep]);
       });
       // 各设备各自建的「待整理」合并成一个（合并产生的改动随下面一起上传）
       if ((await db.workspaces.where('source').equals('inbox').count()) > 1) {
         await mergeInboxes(db);
+        since = Date.now();
         m.merged = await snapshot(db);
         m.tombstones = await db.tombstones.toArray();
       }
       const state: RemoteState = { format: 'navill-state', version: 2, savedAt: Date.now(), deviceId: dev, data: m.merged, tombstones: m.tombstones };
       const saved = await upload(STATE_FILE, await gzip(JSON.stringify(state)), stateFile);
       await db.meta.put({ key: 'remoteStateModified', value: saved.modifiedTime });
-      await db.outbox.clear();
+      // 只清掉已包含在这次上传里的改动；同步途中的新改动留在 outbox，下一轮再传
+      await db.outbox.where('updatedAt').below(since).delete();
     }
 
     // 1b. 设置：整体比较修改时间，新的一方覆盖另一方（本机项不同步）
