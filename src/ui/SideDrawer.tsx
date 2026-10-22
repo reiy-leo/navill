@@ -1,5 +1,5 @@
 import { Button } from '@cloudflare/kumo';
-import { ArrowClockwise, X } from '@phosphor-icons/react';
+import { RotateCw, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { tr } from '@/src/i18n';
@@ -49,9 +49,9 @@ export function SideDrawer({ open, onClose, onRefresh, title, children }: { open
           <div className="flex items-center gap-1">
             {onRefresh && (
               <Button variant="ghost" shape="square" size="sm" aria-label={tr('刷新')} title={tr('刷新')} onClick={() => { setSpin((n) => n + 1); onRefresh(); }}
-                icon={<ArrowClockwise key={spin} className={spin ? 'animate-[spin_0.5s_ease-out_1]' : ''} />} />
+                icon={<RotateCw size="1em" key={spin} className={spin ? 'animate-[spin_0.5s_ease-out_1]' : ''} />} />
             )}
-            <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />
+            <Button variant="ghost" shape="square" size="sm" icon={<X size="1em" />} aria-label={tr('关闭')} onClick={onClose} />
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">{children}</div>

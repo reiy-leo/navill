@@ -1,6 +1,6 @@
 import { splitEmoji } from '@/src/lib/emoji';
 import { Badge, Banner, Button, Checkbox, Input, Loader, Surface, Text } from '@cloudflare/kumo';
-import { ArrowLeft, Check } from '@phosphor-icons/react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { MAX_WORKSPACES, db } from '@/src/db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -86,7 +86,7 @@ export default function ImportPreview({
     return (
       <main className="mx-auto max-w-3xl p-8">
         <Banner variant="error" description={error} />
-        <Button className="mt-4" icon={<ArrowLeft />} onClick={onCancel}>
+        <Button className="mt-4" icon={<ArrowLeft size="1em" />} onClick={onCancel}>
           {tr('返回')}
         </Button>
       </main>
@@ -103,7 +103,7 @@ export default function ImportPreview({
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" shape="square" icon={<ArrowLeft />} onClick={onCancel} aria-label={tr('返回')} />
+        <Button variant="ghost" shape="square" icon={<ArrowLeft size="1em" />} onClick={onCancel} aria-label={tr('返回')} />
         <Text variant="heading" size="lg" as="h1">
           {dedupe ? tr('重新导入预览') : tr('导入预览')}
         </Text>
@@ -171,7 +171,7 @@ export default function ImportPreview({
 
       <div className="flex justify-end gap-2">
         <Button onClick={onCancel}>{tr('取消')}</Button>
-        <Button variant="primary" icon={<Check />} loading={busy} onClick={() => void confirm()} disabled={stats.bookmarks === 0}>
+        <Button variant="primary" icon={<Check size="1em" />} loading={busy} onClick={() => void confirm()} disabled={stats.bookmarks === 0}>
           {tr('确认导入')}
         </Button>
       </div>

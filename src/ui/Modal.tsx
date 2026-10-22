@@ -1,5 +1,5 @@
 import { Button, Dialog } from '@cloudflare/kumo';
-import { X } from '@phosphor-icons/react';
+import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { tr } from '@/src/i18n';
@@ -20,7 +20,7 @@ export function Modal({
       <Dialog size={size} className="flex max-h-[85vh] flex-col p-6">
         <div className={hideTitle ? 'absolute right-3 top-3 z-10' : 'mb-4 flex items-center justify-between gap-4'}>
           <Dialog.Title className={hideTitle ? 'sr-only' : 'text-lg font-semibold'}>{title}</Dialog.Title>
-          {!form && <Button variant="ghost" shape="square" size="sm" icon={<X />} aria-label={tr('关闭')} onClick={onClose} />}
+          {!form && <Button variant="ghost" shape="square" size="sm" icon={<X size="1em" />} aria-label={tr('关闭')} onClick={onClose} />}
         </div>
         {header && <div className="mb-4 shrink-0">{header}</div>}
         {/* 负外边距 + 内边距：给输入框的 ring（box-shadow）留出空间，避免被 overflow 裁掉 */}

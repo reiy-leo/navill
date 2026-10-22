@@ -1,6 +1,6 @@
 import { Masonry, MasonryItem } from './Masonry';
 import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
-import { FolderPlus, Plus, Tray } from '@phosphor-icons/react';
+import { FolderPlus, Inbox, Plus } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PALETTE, db } from '@/src/db';
 import { createBookmark, createDrawer, movePlacement, placeInOrder, reorderDrawers, setWorkspaceView } from '@/src/lib/store';
@@ -89,15 +89,15 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <div className="nv-ws-tools flex items-center gap-0.5">
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
-        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
+        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus size="1em" />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
+        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size="1em" />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
         </div>
         <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} onCreate={(n, c) => void createNew(n, c)} />
       </div>
 
       {top.length === 0 && drawers.length === 0 ? (
         <Empty
-          icon={<Tray size={40} />}
+          icon={<Inbox size={40} />}
           title={workspace.source === 'inbox' ? tr('都整理好了') : tr('这个工作区还是空的')}
           description={workspace.source === 'inbox' ? tr('没有待整理的书签。') : tr('添加书签、新建抽屉，或从其他工作区「整理」过来。')}
         />

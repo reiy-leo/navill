@@ -1,5 +1,5 @@
 import { Button } from '@cloudflare/kumo';
-import { LinkBreak } from '@phosphor-icons/react';
+import { Unlink } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/db';
 import { detachAlias, unmount } from '@/src/lib/store';
@@ -32,7 +32,7 @@ export function AliasesPanel() {
         {data?.groups.map(({ g, from, to }) => (
           <div key={g.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="flex-1">{from} <span className="text-kumo-subtle">{tr('→ 挂载到 →')}</span> {to}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void unmount(db, g.id)}>{tr('解除挂载')}</Button>
+            <Button size="xs" icon={<Unlink size="1em" />} onClick={() => void unmount(db, g.id)}>{tr('解除挂载')}</Button>
           </div>
         ))}
       </section>
@@ -42,7 +42,7 @@ export function AliasesPanel() {
           <div key={a.id} className="flex items-center gap-2 border-b border-kumo-line py-2 text-sm">
             <span className="min-w-0 flex-1 truncate">{b?.title}</span>
             <span className="text-xs text-kumo-subtle">{where}</span>
-            <Button size="xs" icon={<LinkBreak />} onClick={() => void detachAlias(db, a.id)}>{tr('转为独立书签')}</Button>
+            <Button size="xs" icon={<Unlink size="1em" />} onClick={() => void detachAlias(db, a.id)}>{tr('转为独立书签')}</Button>
           </div>
         ))}
       </section>

@@ -1,5 +1,6 @@
 import { Button } from '@cloudflare/kumo';
-import { Bug, GithubLogo, House } from '@phosphor-icons/react';
+import { Bug, House } from 'lucide-react';
+import { GithubLogo } from '@/src/ui/brandIcons';
 import { Modal } from './Modal';
 import { tr } from '@/src/i18n';
 
@@ -12,9 +13,9 @@ import { Intro } from './Intro';
 export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const m = browser.runtime.getManifest() as { version: string; version_name?: string };
   const links = [
-    { href: HOMEPAGE, icon: <House />, label: tr('主页') },
+    { href: HOMEPAGE, icon: <House size="1em" />, label: tr('主页') },
     { href: REPO, icon: <GithubLogo />, label: 'GitHub' },
-    { href: `${REPO}/issues`, icon: <Bug />, label: tr('反馈') },
+    { href: `${REPO}/issues`, icon: <Bug size="1em" />, label: tr('反馈') },
   ];
   return (
     <Modal open={open} onClose={onClose} title={tr('关于')} size="base" hideTitle>

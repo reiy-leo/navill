@@ -1,6 +1,6 @@
 import { ShareDialog } from './ShareDialog';
 import { localizeNames } from '@/src/lib/presetNames';
-import { Check, Plus, Trash } from '@phosphor-icons/react';
+import { Check, Plus, Trash2 } from 'lucide-react';
 import { iconParts, limitIcon, MAX_ICON_EMOJIS } from '@/src/lib/emoji';
 import { clipWidth, NAME_MAX_WIDTH } from '@/src/lib/textWidth';
 import { Button, Input, InputArea, Tabs } from '@cloudflare/kumo';
@@ -269,7 +269,7 @@ function BookmarkDialog({ title, okText, initial, onSubmit, onClose }: { title: 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1 text-sm font-medium">{tr('关联链接')}<InfoTip>{tr('同一个书签的其他地址，如 GitHub、文档、社交账号。添加后悬停书签会滑出它们的图标，点击即可打开。')}</InfoTip></span>
-              <Button size="sm" variant="ghost" icon={<Plus />} onClick={() => setForm({ ...form, links: [...form.links, { url: '', title: '' }] })}>{tr('添加')}</Button>
+              <Button size="sm" variant="ghost" icon={<Plus size="1em" />} onClick={() => setForm({ ...form, links: [...form.links, { url: '', title: '' }] })}>{tr('添加')}</Button>
             </div>
             {form.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -277,7 +277,7 @@ function BookmarkDialog({ title, okText, initial, onSubmit, onClose }: { title: 
                   <div className="w-32 shrink-0"><HistoryAutocomplete enabled={history.granted} className="rounded-r-none focus-within:z-10" placeholder={tr('名称')} ariaLabel={tr('关联链接名称')} value={l.title} onChange={(title) => setLink(i, { title })} onPick={(s) => setLink(i, { url: s.url, title: s.title || l.title })} /></div>
                   <div className="-ml-px min-w-0 flex-1"><HistoryAutocomplete enabled={history.granted} className="rounded-l-none focus-within:z-10" placeholder="https://" ariaLabel={tr('关联链接地址')} value={l.url} onChange={(url) => setLink(i, { url })} onPick={(s) => setLink(i, { url: s.url, title: l.title.trim() ? l.title : s.title })} /></div>
                 </div>
-                <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除关联链接')} onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
+                <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除关联链接')} onClick={() => setForm({ ...form, links: form.links.filter((_, j) => j !== i) })} />
               </div>
             ))}
           </div>
@@ -424,7 +424,7 @@ function TagsDialog({ ids, onClose }: { ids: string[]; onClose: () => void }) {
                     : 'border-kumo-line text-kumo-default hover:bg-kumo-tint'
               }`}
             >
-              {on && <Check size={14} weight="bold" />}
+              {on && <Check size={14} strokeWidth={3} />}
               <span>#{t.name}</span>
             </button>
           );

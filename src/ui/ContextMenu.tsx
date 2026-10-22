@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, type Icon } from '@phosphor-icons/react';
+import { Check, type LucideIcon } from 'lucide-react';
 
 export interface MenuItem {
   label?: string;
-  icon?: Icon;
+  icon?: LucideIcon;
   danger?: boolean;
   disabled?: boolean;
   divider?: boolean;

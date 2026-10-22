@@ -1,5 +1,5 @@
 import { Popover, Tooltip } from '@cloudflare/kumo';
-import { X } from '@phosphor-icons/react';
+import { X } from 'lucide-react';
 import { db } from '@/src/db';
 import { updateBookmark } from '@/src/lib/store';
 import { useRef, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react';

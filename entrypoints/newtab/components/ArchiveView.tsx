@@ -1,5 +1,5 @@
 import { Button, Empty } from '@cloudflare/kumo';
-import { Archive, ArrowCounterClockwise, Trash, Tray } from '@phosphor-icons/react';
+import { Archive, Inbox, RotateCcw, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/db';
 import { archiveBookmark, archiveDrawer, deleteBookmarkEverywhere, deleteDrawer } from '@/src/lib/store';
@@ -46,13 +46,13 @@ export function ArchiveView() {
           <ul className="flex flex-col">
             {drawers.map(({ drawer: d, workspace, count }) => (
               <li key={d.id} className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-kumo-tint">
-                <Tray size={20} className="text-kumo-subtle" />
+                <Inbox size={20} className="text-kumo-subtle" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm">{d.name}</div>
                   <div className="truncate text-xs text-kumo-subtle">{workspace} · {count} {tr('个书签 · 归档于')} {new Date(d.archivedAt!).toLocaleDateString(dateLocale)}</div>
                 </div>
-                <Button size="sm" icon={<ArrowCounterClockwise />} onClick={() => void archiveDrawer(db, d.id, false)}>{tr('恢复')}</Button>
-                <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除抽屉')} onClick={async () => {
+                <Button size="sm" icon={<RotateCcw size="1em" />} onClick={() => void archiveDrawer(db, d.id, false)}>{tr('恢复')}</Button>
+                <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除抽屉')} onClick={async () => {
                   if (await dialogs.confirm({ title: tr('删除「{0}」？', d.name), description: tr('抽屉连同其中 {0} 个书签一起删除。原书签有分身时，由分身接任。', count), okText: tr('删除'), danger: true })) await deleteDrawer(db, d.id);
                 }} />
               </li>
@@ -71,8 +71,8 @@ export function ArchiveView() {
                 <div className="truncate text-sm">{it.bookmark.title}</div>
                 <div className="truncate text-xs text-kumo-subtle">{hostOf(it.bookmark.url)} {tr('· 归档于')} {new Date(it.bookmark.archivedAt!).toLocaleDateString(dateLocale)}</div>
               </div>
-              <Button size="sm" icon={<ArrowCounterClockwise />} onClick={() => void archiveBookmark(db, it.bookmark.id, false)}>{tr('恢复')}</Button>
-              <Button size="sm" variant="ghost" shape="square" icon={<Trash />} aria-label={tr('删除书签')} onClick={async () => {
+              <Button size="sm" icon={<RotateCcw size="1em" />} onClick={() => void archiveBookmark(db, it.bookmark.id, false)}>{tr('恢复')}</Button>
+              <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除书签')} onClick={async () => {
                 if (await dialogs.confirm({ title: tr('彻底删除「{0}」？', it.bookmark.title), description: tr('原书签及全部分身都会删除，不可恢复。'), okText: tr('删除'), danger: true })) await deleteBookmarkEverywhere(db, it.bookmark.id);
               }} />
             </li>

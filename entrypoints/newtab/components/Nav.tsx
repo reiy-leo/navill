@@ -1,5 +1,5 @@
 import { Tooltip } from '@cloudflare/kumo';
-import { CaretLeft, CaretRight, House, PencilSimple, ShareNetwork, Shapes, Smiley, TextAa, Trash, WarningCircle } from '@phosphor-icons/react';
+import { CaseSensitive, ChevronLeft, ChevronRight, CircleAlert, House, Pencil, Shapes, Share2, Smile, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
@@ -54,19 +54,19 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   const ctx = (e: React.MouseEvent, w: Workspace) =>
     menu(e, [
-      { label: tr('编辑'), icon: PencilSimple, onSelect: () => dialogs.editWorkspace(w.id) },
-      { label: tr('分享…'), icon: ShareNetwork, onSelect: () => dialogs.share('workspace', w.id, w.name) },
+      { label: tr('编辑'), icon: Pencil, onSelect: () => dialogs.editWorkspace(w.id) },
+      { label: tr('分享…'), icon: Share2, onSelect: () => dialogs.share('workspace', w.id, w.name) },
       { divider: true },
-      { label: w.adult ? tr('取消 18+') : tr('标记为 18+'), icon: WarningCircle, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
+      { label: w.adult ? tr('取消 18+') : tr('标记为 18+'), icon: CircleAlert, onSelect: () => void updateWorkspace(db, w.id, { adult: !w.adult }) },
       ...(label === 'icon' ? [
         { divider: true },
-        ...([['emoji', 'Emoji', Smiley], ['lucide', tr('线性图标'), Shapes], ['char', tr('字符'), TextAa]] as const).map(([v, l, icon]) => ({
+        ...([['emoji', 'Emoji', Smile], ['lucide', tr('线性图标'), Shapes], ['char', tr('字符'), CaseSensitive]] as const).map(([v, l, icon]) => ({
           label: l, icon, checked: settings.workspaceIconStyle === v, onSelect: () => void updateSettings({ workspaceIconStyle: v }),
         })),
       ] : []),
       { divider: true },
       {
-        label: tr('删除'), icon: Trash, danger: true, disabled: w.source === 'inbox',
+        label: tr('删除'), icon: Trash2, danger: true, disabled: w.source === 'inbox',
         onSelect: async () => {
           if (await dialogs.confirm({ title: tr('删除工作区「{0}」？', w.name), description: tr('其中的全部抽屉与书签都会删除（有分身的书签由分身接任）。'), okText: tr('删除'), danger: true })) {
             await deleteWorkspace(db, w.id);
@@ -181,12 +181,12 @@ function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?:
       </div>
       {edge.left && (
         <button type="button" aria-label={tr('向左滚动')} className={`${arrow} left-0.5 -translate-x-1 group-hover:translate-x-0`} onClick={() => by(-1)}>
-          <CaretLeft size={14} weight="bold" />
+          <ChevronLeft size={14} strokeWidth={2.5} />
         </button>
       )}
       {edge.right && (
         <button type="button" aria-label={tr('向右滚动')} className={`${arrow} right-0.5 translate-x-1 group-hover:translate-x-0`} onClick={() => by(1)}>
-          <CaretRight size={14} weight="bold" />
+          <ChevronRight size={14} strokeWidth={2.5} />
         </button>
       )}
     </div>
@@ -263,7 +263,7 @@ function HomeItem({ active, label, horizontal, onClick }: { active: boolean; lab
     <button type="button" onClick={onClick} aria-label={tr('主页')} data-active={active || undefined}
       className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${horizontal ? '' : 'w-full'} ${
         active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`}>
-      {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} weight={active ? 'fill' : 'regular'} /></span>}
+      {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} strokeWidth={active ? 2.5 : 2} /></span>}
       {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>{tr('主页')}</span>}
     </button>
   );

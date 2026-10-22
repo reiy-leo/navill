@@ -1,5 +1,5 @@
 import { Popover } from '@cloudflare/kumo';
-import { Info } from '@phosphor-icons/react';
+import { Info } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { tr } from '@/src/i18n';

@@ -1,5 +1,5 @@
 import { Button, Input, Select } from '@cloudflare/kumo';
-import { BookmarkSimple, Check, MagnifyingGlass } from '@phosphor-icons/react';
+import { BookmarkPlus, Check, Search } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db, type Bookmark } from '@/src/db';
@@ -82,14 +82,14 @@ function Popup() {
           {targets && (
             <Select aria-label={tr('收藏到')} size="sm" className="w-full" value={target} items={targets} onValueChange={(v) => v && setTarget(v as string)} />
           )}
-          <Button size="sm" variant="primary" icon={saved ? <Check /> : <BookmarkSimple />} disabled={saved} onClick={() => void save()}>
+          <Button size="sm" variant="primary" icon={saved ? <Check size="1em" /> : <BookmarkPlus size="1em" />} disabled={saved} onClick={() => void save()}>
             {saved ? tr('已收藏') : already ? tr('再收藏一份') : tr('收藏当前页')}
           </Button>
         </section>
       )}
 
       <div className="relative">
-        <MagnifyingGlass className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-kumo-subtle" size={14} />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-kumo-subtle" size={14} />
         <Input
           autoFocus
           size="sm"

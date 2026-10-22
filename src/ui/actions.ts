@@ -1,6 +1,4 @@
-import {
-  Archive, ArrowSquareOut, ArrowsOutCardinal, Copy, LinkBreak, PencilSimple, Tag, Trash, Eye, ArrowCounterClockwise,
-} from '@phosphor-icons/react';
+import { Archive, Copy, ExternalLink, Eye, Move, Pencil, RotateCcw, Tag, Trash2, Unlink } from 'lucide-react';
 import { db } from '@/src/db';
 import {
   archiveBookmark, createAlias, deleteBookmarkEverywhere, detachAlias, movePlacement, removePlacement,
@@ -54,7 +52,7 @@ export async function moveTo(d: Dialogs, placementIds: string[]) {
 export function bookmarkMenu(
   item: Item, d: Dialogs, settings: Settings, extra: { onReveal?: (item: Item) => void } = {},
 ): MenuItem[] {
-  const open: MenuItem = { label: tr('在新标签页打开'), icon: ArrowSquareOut, onSelect: () => void openItem(item, settings, { shiftKey: true }) };
+  const open: MenuItem = { label: tr('在新标签页打开'), icon: ExternalLink, onSelect: () => void openItem(item, settings, { shiftKey: true }) };
   if (item.mountedFrom) {
     return [
       open,
@@ -67,9 +65,9 @@ export function bookmarkMenu(
     return [
       open,
       { divider: true },
-      { label: tr('恢复'), icon: ArrowCounterClockwise, onSelect: () => void archiveBookmark(db, item.bookmark.id, false) },
+      { label: tr('恢复'), icon: RotateCcw, onSelect: () => void archiveBookmark(db, item.bookmark.id, false) },
       { divider: true },
-      { label: tr('彻底删除'), icon: Trash, danger: true, onSelect: () => void deleteForever(d, item) },
+      { label: tr('彻底删除'), icon: Trash2, danger: true, onSelect: () => void deleteForever(d, item) },
     ];
   }
   if (item.placement.isAlias) {
@@ -77,23 +75,23 @@ export function bookmarkMenu(
       open,
       { divider: true },
       { label: tr('分身到…'), icon: Copy, onSelect: () => void aliasTo(d, [item.bookmark.id]) },
-      { label: tr('移动'), icon: ArrowsOutCardinal, onSelect: () => void moveTo(d, [item.placement.id]) },
-      { label: tr('转为独立书签'), icon: LinkBreak, onSelect: () => void detachAlias(db, item.placement.id) },
+      { label: tr('移动'), icon: Move, onSelect: () => void moveTo(d, [item.placement.id]) },
+      { label: tr('转为独立书签'), icon: Unlink, onSelect: () => void detachAlias(db, item.placement.id) },
       { divider: true },
-      { label: tr('删除'), icon: Trash, danger: true, onSelect: () => void askDelete(d, item) },
+      { label: tr('删除'), icon: Trash2, danger: true, onSelect: () => void askDelete(d, item) },
     ];
   }
   return [
     open,
     { divider: true },
-    { label: tr('编辑'), icon: PencilSimple, onSelect: () => d.editBookmark(item.bookmark.id) },
+    { label: tr('编辑'), icon: Pencil, onSelect: () => d.editBookmark(item.bookmark.id) },
     { label: tr('标签…'), icon: Tag, onSelect: () => d.editTags([item.bookmark.id]) },
     { divider: true },
     { label: tr('分身到…'), icon: Copy, onSelect: () => void aliasTo(d, [item.bookmark.id]) },
-    { label: tr('移动'), icon: ArrowsOutCardinal, onSelect: () => void moveTo(d, [item.placement.id]) },
+    { label: tr('移动'), icon: Move, onSelect: () => void moveTo(d, [item.placement.id]) },
     { label: tr('归档'), icon: Archive, onSelect: () => void archiveBookmark(db, item.bookmark.id) },
     { divider: true },
-    { label: tr('删除'), icon: Trash, danger: true, onSelect: () => void askDelete(d, item) },
+    { label: tr('删除'), icon: Trash2, danger: true, onSelect: () => void askDelete(d, item) },
   ];
 }
 

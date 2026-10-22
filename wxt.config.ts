@@ -30,6 +30,7 @@ export default defineConfig({
         groups: [
           { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 30 },
           { name: 'ui-kit', test: /node_modules[\\/](@cloudflare[\\/]kumo|@base-ui)/, priority: 20 },
+          // kumo 内部仍用 Phosphor（peer 依赖），单独成块
           { name: 'icons', test: /node_modules[\\/]@phosphor-icons/, priority: 20 },
           // lucide 图标保持按需单独加载，不并入 vendor
           { name: 'vendor', test: (id: string) => /node_modules/.test(id) && !/lucide-react/.test(id), priority: 10 },

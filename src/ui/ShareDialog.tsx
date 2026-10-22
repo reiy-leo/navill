@@ -1,5 +1,6 @@
 import { Banner, Button, Input } from '@cloudflare/kumo';
-import { ArrowSquareOut, Copy, GoogleLogo } from '@phosphor-icons/react';
+import { Copy, ExternalLink } from 'lucide-react';
+import { GoogleLogo } from '@/src/ui/brandIcons';
 import { useEffect, useState } from 'react';
 import { storage } from 'wxt/utils/storage';
 import { db } from '@/src/db';
@@ -102,8 +103,8 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
               <img src={SITE_ICON} alt="" className="size-16 rounded-2xl" />
               <span className="w-full truncate text-center text-xs text-kumo-subtle" title={share.url}>{share.url.replace(/^https:\/\//, "")}</span>
               <div className="flex gap-1">
-                <Button size="sm" shape="square" icon={<Copy />} aria-label={tr('复制链接')} title={tr('复制链接')} onClick={() => void copyLink(share.url)} />
-                <Button size="sm" shape="square" icon={<ArrowSquareOut />} aria-label={tr('打开分享页')} title={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: share.url })} />
+                <Button size="sm" shape="square" icon={<Copy size="1em" />} aria-label={tr('复制链接')} title={tr('复制链接')} onClick={() => void copyLink(share.url)} />
+                <Button size="sm" shape="square" icon={<ExternalLink size="1em" />} aria-label={tr('打开分享页')} title={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: share.url })} />
               </div>
             </div>
           </div>

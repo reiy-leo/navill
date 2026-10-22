@@ -1,5 +1,5 @@
 import { Checkbox } from '@cloudflare/kumo';
-import { Copy, LinkSimple, Star } from '@phosphor-icons/react';
+import { Copy, Link, Star } from 'lucide-react';
 import { memo, useId, useRef } from 'react';
 import { TAG_FAVORITE, db, type ViewMode } from '@/src/db';
 import { toggleTagOn } from '@/src/lib/store';
@@ -96,7 +96,7 @@ const BookmarkItem = memo(function BookmarkItem({
   const selected = selection.has(p.id);
   const fav = b.tagIds.includes(TAG_FAVORITE);
   const badge = mountedFrom ? (
-    <LinkSimple size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('挂载')} />
+    <Link size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('挂载')} />
   ) : p.isAlias ? (
     <Copy size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('分身')} />
   ) : null;
@@ -198,7 +198,7 @@ const BookmarkItem = memo(function BookmarkItem({
             void toggleTagOn(db, [b.id], TAG_FAVORITE, !fav);
           }}
         >
-          <Star size={13} weight={fav ? 'fill' : 'regular'} />
+          <Star size={13} fill={fav ? 'currentColor' : 'none'} />
         </button>
       )}
     </a>

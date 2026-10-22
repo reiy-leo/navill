@@ -1,4 +1,4 @@
-import { CheckCircle, Info, WarningCircle, XCircle } from '@phosphor-icons/react';
+import { CircleAlert, CircleCheck, CircleX, Info } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import type { ToastPosition, ToastStyle } from '@/src/lib/settings';
@@ -57,7 +57,7 @@ const POS: Record<ToastPosition, string> = {
   'bottom-left': 'bottom-4 left-4 items-start flex-col-reverse',
 };
 
-const ICON = { success: CheckCircle, info: Info, warning: WarningCircle, error: XCircle };
+const ICON = { success: CircleCheck, info: Info, warning: CircleAlert, error: CircleX };
 const ICON_COLOR: Record<ToastType, string> = {
   success: 'text-kumo-success', info: 'text-kumo-info', warning: 'text-kumo-warning', error: 'text-kumo-danger',
 };
@@ -87,7 +87,7 @@ export function Toaster({ position, style }: { position: ToastPosition; style: T
         const Icon = ICON[t.type];
         return (
           <div key={t.id} className={boxClass(style, t.type)} onClick={() => dismissToast(t.id)}>
-            <Icon size={20} weight="fill" className={`shrink-0 ${style === 'dark' ? '' : ICON_COLOR[t.type]}`} />
+            <Icon size={20} className={`shrink-0 ${style === 'dark' ? '' : ICON_COLOR[t.type]}`} />
             <span className="min-w-0">{t.text}</span>
           </div>
         );

@@ -1,11 +1,11 @@
 import { Button, DropdownMenu, Tooltip } from '@cloudflare/kumo';
-import { Check, Columns, GridFour, Kanban, Rows, SortAscending, SquaresFour, Layout } from '@phosphor-icons/react';
+import { ArrowUpNarrowWide, Check, Columns2, Grid2x2, Kanban, LayoutGrid, PanelsTopLeft, Rows3 } from 'lucide-react';
 import type { SortMode, ViewMode } from '@/src/db';
 import type { Arrange } from '@/src/lib/settings';
 
 import { tr } from '@/src/i18n';
 export const VIEW_LABEL: Record<ViewMode, string> = { icon: tr('图标'), row: tr('行'), tile: tr('平铺'), bento: 'Bento' };
-const VIEW_ICON = { icon: SquaresFour, row: Rows, tile: GridFour, bento: Layout } as const;
+const VIEW_ICON = { icon: LayoutGrid, row: Rows3, tile: Grid2x2, bento: PanelsTopLeft } as const;
 export const SORT_LABEL: Record<SortMode, string> = {
   smart: tr('智能'), manual: tr('手动'), 'name-asc': tr('名称升序'), 'name-desc': tr('名称降序'), 'clicks-asc': tr('点击次数升序'), 'clicks-desc': tr('点击次数降序'),
 };
@@ -15,7 +15,7 @@ export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inhe
   return (
     <DropdownMenu>
       <Tooltip content={tr('视图：{0}{1}', VIEW_LABEL[value], inherited ? ' · 跟随工作区' : '')} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon />} aria-label={tr('视图：{0}', VIEW_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon size="1em" />} aria-label={tr('视图：{0}', VIEW_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(VIEW_LABEL) as ViewMode[]).map((v) => (
@@ -37,7 +37,7 @@ export function SortMenu({ value, onChange }: { value: SortMode; onChange: (v: S
   return (
     <DropdownMenu>
       <Tooltip content={tr('排序：{0}', SORT_LABEL[value])} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<SortAscending />} aria-label={tr('排序：{0}', SORT_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<ArrowUpNarrowWide size="1em" />} aria-label={tr('排序：{0}', SORT_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(SORT_LABEL) as SortMode[]).map((v) => (
@@ -51,7 +51,7 @@ export function SortMenu({ value, onChange }: { value: SortMode; onChange: (v: S
 }
 
 export const ARRANGE_LABEL: Record<Arrange, string> = { strip: tr('横条'), masonry: tr('瀑布'), bento: tr('便当'), board: tr('看板') };
-const ARRANGE_ICON = { strip: Rows, masonry: Columns, bento: Layout, board: Kanban } as const;
+const ARRANGE_ICON = { strip: Rows3, masonry: Columns2, bento: PanelsTopLeft, board: Kanban } as const;
 
 /** 工作区标题栏的「排列」按钮：切换抽屉排列方式 */
 export function ArrangeMenu({ value, onChange }: { value: Arrange; onChange: (v: Arrange) => void }) {
@@ -59,7 +59,7 @@ export function ArrangeMenu({ value, onChange }: { value: Arrange; onChange: (v:
   return (
     <DropdownMenu>
       <Tooltip content={tr('排列：{0}', ARRANGE_LABEL[value])} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon />} aria-label={tr('排列：{0}', ARRANGE_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon size="1em" />} aria-label={tr('排列：{0}', ARRANGE_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(ARRANGE_LABEL) as Arrange[]).map((v) => (

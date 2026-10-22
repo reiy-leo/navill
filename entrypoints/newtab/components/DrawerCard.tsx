@@ -1,6 +1,5 @@
 import { Button, DropdownMenu, Input, LayerCard, Tooltip } from '@cloudflare/kumo';
-import {
-  ArrowSquareOut, ArrowsOutCardinal, Copy, DotsThree, Plus, Shuffle, Trash, WarningCircle, Package, LinkBreak, Archive, ShareNetwork, Palette } from '@phosphor-icons/react';
+import { Archive, CircleAlert, Copy, Ellipsis, ExternalLink, Move, Package, Palette, Plus, Share2, Shuffle, Trash2, Unlink } from 'lucide-react';
 import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { useTone } from '@/src/ui/colors';
 import { DrawerColorPopover } from '@/src/ui/ColorPicker';
@@ -124,25 +123,25 @@ export const DrawerCard = memo(function DrawerCard({
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
         <DrawerColorPopover anchor={moreBtn} open={colorOpen} onOpenChange={setColorOpen} value={drawer.color} follow={workspace.color} onChange={(color) => void updateDrawer(db, drawer.id, { color })} />
         <DropdownMenu onOpenChange={setMenuOpen}>
-          <DropdownMenu.Trigger render={<Button ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<DotsThree weight="bold" />} aria-label={tr('更多')} />} />
+          <DropdownMenu.Trigger render={<Button ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<Ellipsis size="1em" strokeWidth={2.5} />} aria-label={tr('更多')} />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (
-              <DropdownMenu.Item icon={ArrowSquareOut} onClick={() => void openAll(all)}>{tr('全部打开')}</DropdownMenu.Item>
+              <DropdownMenu.Item icon={ExternalLink} onClick={() => void openAll(all)}>{tr('全部打开')}</DropdownMenu.Item>
             )}
             <DropdownMenu.Item icon={Plus} onClick={() => void addBookmark()}>{tr('新建书签')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Palette} onClick={() => setTimeout(() => setColorOpen(true), 0)}>{tr('指定颜色')}</DropdownMenu.Item>
-            <DropdownMenu.Item icon={ShareNetwork} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>{tr('分享…')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={Share2} onClick={() => dialogs.share('drawer', drawer.id, drawer.name)}>{tr('分享…')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>{tr('创建分身')}</DropdownMenu.Item>
             {groups.map((g) => (
-              <DropdownMenu.Item key={g.group.id} icon={LinkBreak} onClick={() => void unmount(db, g.group.id)}>{tr('解除挂载「')}{g.drawer.name}」</DropdownMenu.Item>
+              <DropdownMenu.Item key={g.group.id} icon={Unlink} onClick={() => void unmount(db, g.group.id)}>{tr('解除挂载「')}{g.drawer.name}」</DropdownMenu.Item>
             ))}
             <DropdownMenu.Separator />
-            <DropdownMenu.Item icon={ArrowsOutCardinal} onClick={async () => {
+            <DropdownMenu.Item icon={Move} onClick={async () => {
               const t = await dialogs.pickTarget({ title: tr('移动抽屉到工作区…'), workspacesOnly: true });
               if (t) await moveDrawer(db, drawer.id, t.workspaceId);
             }}>{tr('移动到…')}</DropdownMenu.Item>
-            <DropdownMenu.Item icon={WarningCircle} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? tr('取消 18+') : tr('标记为 18+')}</DropdownMenu.Item>
+            <DropdownMenu.Item icon={CircleAlert} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? tr('取消 18+') : tr('标记为 18+')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>{tr('打乱')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Archive} onClick={() => void archiveDrawer(db, drawer.id)}>{tr('归档')}</DropdownMenu.Item>
@@ -150,7 +149,7 @@ export const DrawerCard = memo(function DrawerCard({
               if (await dialogs.confirm({ title: tr('解散「{0}」？', drawer.name), description: tr('抽屉会删除，其中的书签移到工作区顶层。'), okText: tr('解散') })) await dissolveDrawer(db, drawer.id);
             }}>{tr('解散')}</DropdownMenu.Item>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item icon={Trash} variant="danger" onClick={async () => {
+            <DropdownMenu.Item icon={Trash2} variant="danger" onClick={async () => {
               if (await dialogs.confirm({ title: tr('删除「{0}」？', drawer.name), description: tr('抽屉连同其中 {0} 个书签一起删除。原书签有分身时，由分身接任。', items.length), okText: tr('删除'), danger: true })) await deleteDrawer(db, drawer.id);
             }}>{tr('删除')}</DropdownMenu.Item>
           </DropdownMenu.Content>

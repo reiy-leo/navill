@@ -1,5 +1,5 @@
 import { Checkbox, Empty, Loader } from '@cloudflare/kumo';
-import { MagnifyingGlass } from '@phosphor-icons/react';
+import { Search } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db } from '@/src/db';
@@ -43,7 +43,7 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
         <Checkbox label={tr('包含归档')} checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
       </div>
       {hits.length === 0 ? (
-        <Empty icon={<MagnifyingGlass size={40} />} title={tr('没有找到')} description={tr('换个关键词，或切换到「默认」场景在全部工作区中搜索。')} />
+        <Empty icon={<Search size={40} />} title={tr('没有找到')} description={tr('换个关键词，或切换到「默认」场景在全部工作区中搜索。')} />
       ) : (
         <ul className="flex flex-col">
           {hits.map((h, i) => (

@@ -1,7 +1,6 @@
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
-import { Archive, CheckSquare, Plus, CloudArrowUp, CloudCheck, CloudSlash, CloudWarning, ShareNetwork, Storefront, CopySimple, GearSix, Info, MagnifyingGlass } from '@phosphor-icons/react';
+import { Archive, CloudAlert, CloudCheck, CloudOff, CloudUpload, Copy, Ellipsis, Info, Plus, Search, SettingsIcon, Share2, SquareCheck, Store } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Ellipsis, Search } from 'lucide-react';
 import { AboutDialog } from '@/src/ui/AboutDialog';
 import { useApp, useQuery, useSelection } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -19,7 +18,7 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
   const { settings, setPanel } = useApp();
   const { organize, setOrganize } = useSelection();
   const sync = useSyncStatus();
-  const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudSlash : sync.state === 'error' ? CloudWarning : sync.state === 'syncing' ? CloudArrowUp : CloudCheck;
+  const SyncIcon = !settings.sync.enabled || sync.state === 'signed-out' ? CloudOff : sync.state === 'error' ? CloudAlert : sync.state === 'syncing' ? CloudUpload : CloudCheck;
   const syncLabel = !settings.sync.enabled ? tr('同步未开启') : sync.state === 'error' ? tr('同步失败') : sync.state === 'syncing' ? tr('正在同步…') : sync.lastSyncAt ? tr('已同步 {0}', new Date(sync.lastSyncAt).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })) : tr('同步');
   const [about, setAbout] = useState(false);
   const contentAlign = align ?? (side === 'bottom' ? 'end' : 'start');
@@ -30,15 +29,15 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
       <DropdownMenu.Trigger render={<Button variant={organize ? 'secondary' : 'ghost'} size="xs" shape="square" className={organize ? undefined : NAV_BTN} icon={<Ellipsis size={14} />} aria-label={tr('更多操作')} title={tr('更多操作')} />} />
       <DropdownMenu.Content side={side} align={contentAlign}>
         <DropdownMenu.Item icon={Plus} onClick={onNewWorkspace}>{tr('新建工作区')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={CheckSquare} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={SquareCheck} onClick={() => setOrganize(!organize)}>{organize ? tr('退出整理') : tr('开始整理')}</DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={Archive} onClick={() => setPanel('archive')}>{tr('归档')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={CopySimple} onClick={() => setPanel('aliases')}>{tr('分身')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={ShareNetwork} onClick={() => setPanel('shares')}>{tr('分享')}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={Storefront} onClick={() => setPanel('market')}>{tr('市场')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Copy} onClick={() => setPanel('aliases')}>{tr('分身')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Share2} onClick={() => setPanel('shares')}>{tr('分享')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={Store} onClick={() => setPanel('market')}>{tr('市场')}</DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item icon={SyncIcon} onClick={() => onSettings('sync')}>{syncLabel}</DropdownMenu.Item>
-        <DropdownMenu.Item icon={GearSix} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
+        <DropdownMenu.Item icon={SettingsIcon} onClick={() => onSettings()}>{tr('设置')}</DropdownMenu.Item>
         <DropdownMenu.Item icon={Info} onClick={() => setAbout(true)}>{tr('关于')}</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
@@ -61,7 +60,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       <Dialog size="lg" className="flex max-h-[75vh] flex-col gap-3 p-4">
         <Dialog.Title className="sr-only">{tr('搜索书签')}</Dialog.Title>
         <div className="relative">
-          <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-kumo-subtle" size={18} />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-kumo-subtle" size={18} />
           <Input ref={ref} size="lg" className="w-full pl-10" placeholder={tr('搜索书签，#标签 筛选')} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={tr('搜索')} autoFocus />
         </div>
         {query.trim() && <div className="-m-1 min-h-0 flex-1 overflow-y-auto p-1"><SearchResults onOpen={onClose} /></div>}

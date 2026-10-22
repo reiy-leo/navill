@@ -1,5 +1,5 @@
 import { Button, Empty, Loader } from '@cloudflare/kumo';
-import { ArrowRight, Star } from '@phosphor-icons/react';
+import { ArrowRight, Star } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { TAG_FAVORITE, db } from '@/src/db';
