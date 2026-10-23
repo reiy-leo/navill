@@ -1,7 +1,7 @@
 import { Checkbox, Empty, Loader } from '@cloudflare/kumo';
-import { Search } from 'lucide-react';
+import { FolderOpen, Search } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { db } from '@/src/db';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
@@ -10,11 +10,12 @@ import { BookmarkIcon, hostOf } from '@/src/ui/icons';
 import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
 import { useApp, useQuery, useSelection } from '@/src/ui/state';
-import { search, visibilityOf } from '@/src/lib/view';
+import { search, searchDrawers, visibilityOf, type DrawerHit } from '@/src/lib/view';
+import { revealDrawer } from '@/src/ui/reveal';
 
 import { tr } from '@/src/i18n';
 export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
-  const { mode, settings } = useApp();
+  const { mode, settings, selectWorkspace } = useApp();
   const { query } = useQuery();
   const { organize, selection, toggleSelect } = useSelection();
   const [archived, setArchived] = useState(false);
@@ -22,31 +23,61 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
   const menu = useContextMenu();
   const dialogs = useDialogs();
   const hits = useLiveQuery(() => search(db, query, visibilityOf(mode, archived)), [query, mode, archived]);
+  const drawerHits = useLiveQuery(() => searchDrawers(db, query, visibilityOf(mode)), [query, mode]);
+  const nd = drawerHits?.length ?? 0;
+  const total = nd + (hits?.length ?? 0);
   useEffect(() => setActive(0), [query]);
+  const goDrawer = useCallback((h: DrawerHit) => {
+    selectWorkspace(h.workspace.id);
+    revealDrawer(h.drawer.id);
+    onOpen?.();
+  }, [selectWorkspace, onOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!hits?.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, hits.length - 1)); }
+      if (!total) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, total - 1)); }
       if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-      if (e.key === 'Enter' && hits[active]) { e.preventDefault(); void openItem(hits[active]!.item, settings, e); onOpen?.(); }
+      if (e.key === 'Enter') {
+        const d = drawerHits?.[active];
+        const b = hits?.[active - nd];
+        if (d) { e.preventDefault(); goDrawer(d); }
+        else if (b) { e.preventDefault(); void openItem(b.item, settings, e); onOpen?.(); }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [hits, active, settings, onOpen]);
+  }, [hits, drawerHits, nd, total, active, settings, onOpen, goDrawer]);
 
-  if (!hits) return <div className="flex justify-center p-12"><Loader /></div>;
+  if (!hits || !drawerHits) return <div className="flex justify-center p-12"><Loader /></div>;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-kumo-subtle">{hits.length} {tr('个结果 · 场景「')}{mode?.name}」</span>
+        <span className="text-sm text-kumo-subtle">{total} {tr('个结果 · 场景「')}{mode?.name}」</span>
         <Checkbox label={tr('包含归档')} checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
       </div>
-      {hits.length === 0 ? (
+      {total === 0 ? (
         <Empty icon={<Search size={40} />} title={tr('没有找到')} description={tr('换个关键词，或切换到「默认」场景在全部工作区中搜索。')} />
       ) : (
         <ul className="flex flex-col">
-          {hits.map((h, i) => (
+          {drawerHits.map((h, i) => (
+            <li key={`d-${h.drawer.id}`}>
+              <button
+                type="button"
+                className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-kumo-default ${i === active ? 'bg-kumo-tint' : 'hover:bg-kumo-tint'}`}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => goDrawer(h)}
+              >
+                <FolderOpen size={20} className="shrink-0 text-kumo-subtle" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm">{h.drawer.name}</div>
+                  {h.drawer.description && <div className="truncate text-xs text-kumo-subtle">{h.drawer.description}</div>}
+                </div>
+                <span className="shrink-0 text-xs text-kumo-subtle">{tr('抽屉')} · {h.workspace.name}</span>
+              </button>
+            </li>
+          ))}
+          {hits.map((h, j) => { const i = j + nd; return (
             <li key={h.item.placement.id}>
               <a
                 href={h.item.bookmark.url}
@@ -68,7 +99,7 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
                 <span className="shrink-0 text-xs text-kumo-subtle">{h.workspace.name}{h.drawer ? ` / ${h.drawer.name}` : ''}</span>
               </a>
             </li>
-          ))}
+          ); })}
         </ul>
       )}
     </div>

@@ -15,6 +15,7 @@
  "设置": "Settings",
  "搜索书签": "Search bookmarks",
  "搜索书签，#标签 筛选": "Search bookmarks, #tag to filter",
+ "搜索书签和抽屉，#标签 筛选": "Search bookmarks and drawers, #tag to filter",
  "归档是空的": "Archive is empty",
  "在书签右键菜单或抽屉的 ⋯ 菜单中选择「归档」，它会从工作区里隐藏，集中放在这里。": "Choose “Archive” from a bookmark's context menu or a drawer's ⋯ menu to hide it from the workspace and keep it here.",
  "抽屉": "Drawer",

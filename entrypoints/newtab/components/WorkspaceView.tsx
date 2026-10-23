@@ -1,3 +1,4 @@
+import { revealDrawer } from '@/src/ui/reveal';
 import { Masonry, MasonryItem } from './Masonry';
 import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
 import { FolderPlus, Inbox, Plus } from 'lucide-react';
@@ -41,7 +42,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     const src = item.mountedFrom?.drawer;
     if (!src) return;
     selectWorkspace(src.workspaceId);
-    setTimeout(() => document.getElementById(`drawer-${src.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+    revealDrawer(src.id);
   }, [selectWorkspace]);
 
   if (data === undefined) return <div className="flex justify-center p-12"><Loader /></div>;

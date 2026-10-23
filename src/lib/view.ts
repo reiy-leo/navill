@@ -150,6 +150,27 @@ export async function search(db: NavillDB, query: string, v: Visibility, limit =
     .slice(0, limit);
 }
 
+export interface DrawerHit { drawer: Drawer; workspace: Workspace }
+
+/** 搜索抽屉：名称 + 说明；带 `#标签` 时不搜抽屉；归档的抽屉不在工作区显示，不参与 */
+export async function searchDrawers(db: NavillDB, query: string, v: Visibility, limit = 20): Promise<DrawerHit[]> {
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0 || tokens.some((t) => t.startsWith('#'))) return [];
+  const [workspaces, drawers] = await Promise.all([db.workspaces.toArray(), db.drawers.toArray()]);
+  const wsMap = new Map(localizeNames(workspaces).map((w) => [w.id, w]));
+  const visible: Visibility = { ...v, includeArchived: false };
+  const hits: DrawerHit[] = [];
+  for (const drawer of localizeNames(drawers)) {
+    const workspace = wsMap.get(drawer.workspaceId);
+    if (!workspace || !workspaceVisible(workspace, visible) || !drawerVisible(drawer, visible)) continue;
+    const hay = `${drawer.name}\n${drawer.description ?? ''}`.toLowerCase();
+    if (tokens.every((t) => hay.includes(t))) hits.push({ drawer, workspace });
+  }
+  return hits
+    .sort((a, b) => Number(!a.drawer.name.toLowerCase().startsWith(tokens[0]!)) - Number(!b.drawer.name.toLowerCase().startsWith(tokens[0]!)) || a.workspace.order - b.workspace.order || a.drawer.order - b.drawer.order)
+    .slice(0, limit);
+}
+
 /** 带某个标签（按 id）的书签，每个书签取一个可见位置，原书签优先；按打开次数、标题排序 */
 export async function taggedItems(db: NavillDB, tagId: string, v: Visibility): Promise<Item[]> {
   const [pick, bookmarks] = await Promise.all([visiblePlacementPicker(db, v), db.bookmarks.where('tagIds').equals(tagId).toArray()]);

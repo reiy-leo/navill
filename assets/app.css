@@ -195,3 +195,10 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 
 /* 工作区标题行右侧图标：小一号 */
 .nv-ws-tools [data-kumo-component='Button'] svg { width: 14px; height: 14px; }
+
+/* 搜索结果跳到抽屉：边框闪一下（src/ui/reveal.ts） */
+.nv-flash { animation: nv-flash 1.8s ease-out; }
+@keyframes nv-flash {
+  0%, 45% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-kumo-brand) 70%, transparent); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
