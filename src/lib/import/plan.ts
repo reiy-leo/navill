@@ -62,14 +62,18 @@ const ROOT_LABEL: Record<'bookmark_bar' | 'other' | 'mobile', string> = {
 export const PATH_SEPARATOR = ' / ';
 const UNTITLED_FOLDER = tr('未命名文件夹');
 
-const isFolder = (n: BookmarkNode) => !n.url;
+type Node = BookmarkNode & { type?: 'bookmark' | 'folder' | 'separator' };
+/** Firefox 节点带 type；分隔线的 url 是 "data:"，不能当书签 */
+const isFolder = (n: Node) => (n.type ? n.type === 'folder' : !n.url);
+/** 能导入的书签：排除文件夹、分隔线、Firefox 的智能书签（place: 查询） */
+const isBookmark = (n: Node) => !isFolder(n) && n.type !== 'separator' && !/^(place|data):/i.test(n.url ?? '');
 
 function toBookmark(n: BookmarkNode): PlannedBookmark {
   return { title: n.title || n.url!, url: n.url!, sourceNodeId: n.id, dateAdded: n.dateAdded };
 }
 
 export function countBookmarks(n: BookmarkNode): number {
-  if (!isFolder(n)) return 1;
+  if (!isFolder(n)) return isBookmark(n) ? 1 : 0;
   return (n.children ?? []).reduce((sum, c) => sum + countBookmarks(c), 0);
 }
 
@@ -79,7 +83,7 @@ function flattenDrawers(folder: BookmarkNode, prefix: string[] = []): PlannedDra
   for (const child of folder.children ?? []) {
     if (!isFolder(child)) continue;
     const path = [...prefix, child.title.trim() || UNTITLED_FOLDER];
-    const bookmarks = (child.children ?? []).filter((c) => !isFolder(c)).map(toBookmark);
+    const bookmarks = (child.children ?? []).filter(isBookmark).map(toBookmark);
     if (bookmarks.length > 0) {
       out.push({ key: `drawer:${child.id}`, name: path.join(PATH_SEPARATOR), path, bookmarks });
     }
@@ -89,7 +93,7 @@ function flattenDrawers(folder: BookmarkNode, prefix: string[] = []): PlannedDra
 }
 
 function workspaceFrom(node: BookmarkNode, name: string, source: PlanSource): PlannedWorkspace | null {
-  const topLevel = (node.children ?? []).filter((c) => !isFolder(c)).map(toBookmark);
+  const topLevel = (node.children ?? []).filter(isBookmark).map(toBookmark);
   const drawers = flattenDrawers(node);
   if (topLevel.length === 0 && drawers.length === 0) return null;
   const parsed = splitEmoji(name);
@@ -122,9 +126,9 @@ export function buildImportPlan(root: BookmarkNode, opts: PlanOptions = {}): Imp
       continue;
     }
 
-    const loose = (node.children ?? []).filter((c) => !isFolder(c)).map(toBookmark);
+    const loose = (node.children ?? []).filter(isBookmark).map(toBookmark);
     if (loose.length > 0) {
-      const label = kind === 'unknown' ? node.title : ROOT_LABEL[source];
+      const label = kind === 'unknown' ? node.title : node.id === 'menu________' ? tr('书签菜单') : ROOT_LABEL[source];
       plan.inbox.push({ key: `inbox:${node.id}`, name: label, path: [label], bookmarks: loose });
     }
     for (const folder of node.children ?? []) {

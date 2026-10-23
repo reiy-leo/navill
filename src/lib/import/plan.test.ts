@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bm, folder, root } from '../test-tree';
+import type { BookmarkNode } from '../edge-workspace';
 import { buildImportPlan, planStats } from './plan';
 
 const tree = root([
@@ -83,5 +84,31 @@ describe('buildImportPlan', () => {
     const after = planStats(p);
     expect(before.workspaces - after.workspaces).toBe(1);
     expect(before.bookmarks - after.bookmarks).toBe(4);
+  });
+});
+
+describe('Firefox 书签树', () => {
+  const ff = (id: string, title: string, children: BookmarkNode[]) => ({ ...folder(id, title, children), type: 'folder' }) as BookmarkNode;
+  const sep = (id: string) => ({ id, title: '', url: 'data:', type: 'separator' }) as unknown as BookmarkNode;
+  const link = (id: string, url = `https://ff.example/${id}`) => ({ ...bm(id, id, url), type: 'bookmark' }) as BookmarkNode;
+  const tree = folder('root________', '', [
+    ff('menu________', 'Bookmarks Menu', [ff('m1', 'Mozilla Firefox', [link('m-a')]), sep('s1'), link('m-b')]),
+    ff('toolbar_____', 'Bookmarks Toolbar', [ff('t1', '工作', [link('a'), sep('s2'), link('b'), link('q', 'place:sort=8&maxResults=10')]), sep('s3'), link('loose')]),
+    ff('unfiled_____', 'Other Bookmarks', [link('o1'), sep('s4')]),
+    ff('mobile______', 'Mobile Bookmarks', []),
+  ]);
+
+  it('跳过分隔线和 place: 智能书签，工具栏按书签栏处理', () => {
+    const plan = buildImportPlan(tree);
+    expect(plan.workspaces.map((w) => w.name)).toEqual(['工作']);
+    expect(plan.workspaces[0]!.topLevel.map((b) => b.url)).toEqual(['https://ff.example/a', 'https://ff.example/b']);
+    expect(plan.inbox.map((d) => d.bookmarks.map((b) => b.url))).toEqual([['https://ff.example/loose']]);
+    expect(plan.available).toEqual({ other: 3, mobile: 0 });
+  });
+
+  it('勾选其他书签后，书签菜单单独成「书签菜单」抽屉', () => {
+    const plan = buildImportPlan(tree, { includeOther: true });
+    expect(plan.inbox.map((d) => d.name)).toEqual(['书签菜单', '书签栏', '其他书签']);
+    expect(plan.workspaces.map((w) => w.name)).toEqual(['Mozilla Firefox', '工作']);
   });
 });

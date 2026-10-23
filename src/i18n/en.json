@@ -610,5 +610,6 @@
  "藕荷": "Lotus Root",
  "无法处理": "Unprocessable",
  "需要在 Firefox 中允许 Navill 传输书签数据": "Allow Navill to transmit bookmark data in Firefox first",
- "需要授权 Navill 访问这个服务器并传输书签数据": "Navill needs permission to access this server and transmit bookmark data"
+ "需要授权 Navill 访问这个服务器并传输书签数据": "Navill needs permission to access this server and transmit bookmark data",
+ "书签菜单": "Bookmarks menu"
 }

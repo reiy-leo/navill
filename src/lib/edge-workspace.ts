@@ -18,6 +18,10 @@ export function classifyRoot(node: BookmarkNode): RootKind {
   if (ft === 'mobile') return 'mobile';
   if (ft === 'managed') return 'managed';
   if (!ft) {
+    // Firefox 的根目录用固定的 12 位 GUID；「书签菜单」按其他书签处理（默认不导入，预览里可勾选）
+    if (node.id === 'toolbar_____') return 'bookmark_bar';
+    if (node.id === 'unfiled_____' || node.id === 'menu________') return 'other';
+    if (node.id === 'mobile______') return 'mobile';
     if (node.id === '1') return 'bookmark_bar';
     if (node.id === '2') return 'other';
     if (node.id === '3') return 'mobile';
