@@ -1,6 +1,6 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronDown, Circle, CircleCheck, PartyPopper, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Circle, CircleCheck, PartyPopper, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { db } from '@/src/db';
 import { allDone, doneCount, hideOnboarding, markDone, ONBOARDING_TASKS, showOnboarding, type OnboardingTask } from '@/src/lib/onboarding';
@@ -50,7 +50,8 @@ export function OnboardingCard({ onSearch, onSyncSettings, className = '' }: Pro
 function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props & { state: ReturnType<typeof useApp>['settings']['onboarding']; onOrganize: () => void }) {
   const { settings } = useApp();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === '1');
-  const [open, setOpen] = useState<OnboardingTask | null>(null);
+  // 默认展开第一个未完成的任务，让人一眼看到任务要做什么
+  const [open, setOpen] = useState<OnboardingTask | null>(() => ONBOARDING_TASKS.find((t) => !state.done[t]) ?? null);
   const toggle = (v: boolean) => { setCollapsed(v); localStorage.setItem(COLLAPSED_KEY, v ? '1' : '0'); };
   useDataDetection(state.done);
   const n = doneCount(state);
@@ -58,12 +59,12 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
   const mod = modKey();
 
   const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void }> = {
-    searchKey: { title: tr('用快捷键打开搜索'), hint: tr('在新标签页按 / 或 {0}L 打开搜索。', mod) },
-    omnibox: { title: tr('在地址栏里搜索'), hint: tr('在地址栏输入 nv 加空格，再输入关键词，直接搜索 Navill 里的书签。') },
+    searchKey: { title: tr('按 / 打开搜索'), hint: tr('在新标签页按 / 或 {0}L 打开搜索。', mod) },
+    omnibox: { title: tr('地址栏输入 nv 搜索'), hint: tr('在地址栏输入 nv 加空格，再输入关键词，直接搜索 Navill 里的书签。') },
     tagSearch: { title: tr('用 #标签 筛选'), hint: tr('在搜索框输入 # 和标签名，只看带这个标签的书签。'), go: () => onSearch('#') },
-    tagBookmark: { title: tr('给书签加标签'), hint: tr('右键书签选「标签…」，或在整理模式里批量设置。') },
-    bgOpen: { title: tr('在后台打开书签'), hint: tr('按住 {0} 点击书签，或用鼠标中键，在后台新标签打开，可以连开几个。', mod.replace(/\+$/, '')) },
-    organize: { title: tr('批量整理书签'), hint: tr('在整理模式里多选书签，批量移动或创建分身。'), go: onOrganize },
+    tagBookmark: { title: tr('给一个书签加标签'), hint: tr('右键书签选「标签…」，或在整理模式里批量设置。') },
+    bgOpen: { title: tr('{0}+点击，后台打开书签', mod.replace(/\+$/, '')), hint: tr('按住 {0} 点击书签，或用鼠标中键，在后台新标签打开，可以连开几个。', mod.replace(/\+$/, '')) },
+    organize: { title: tr('用整理模式批量移动'), hint: tr('在整理模式里多选书签，批量移动或创建分身。'), go: onOrganize },
     alias: { title: tr('创建一个分身'), hint: tr('同一个书签放进多个抽屉，改一处处处生效。右键书签选「分身到…」。') },
     syncKey: settings.sync.enabled
       ? { title: tr('用 {0}S 手动同步', mod), hint: tr('同步已开启，按 {0}S 立即同步一次。', mod) }
@@ -107,6 +108,7 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
               >
                 {done ? <CircleCheck size={16} className="shrink-0 text-kumo-brand" aria-label={tr('已完成')} /> : <Circle size={16} className="shrink-0 text-kumo-subtle" />}
                 <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                {!done && <ChevronRight size={14} className={`shrink-0 text-kumo-subtle transition-transform ${expanded ? 'rotate-90' : ''}`} />}
               </button>
               {expanded && <p className="pb-1.5 pl-8 pr-2 text-xs leading-relaxed text-kumo-subtle">{t.hint}</p>}
             </li>
