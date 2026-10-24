@@ -83,10 +83,10 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
         <h2 className="text-sm font-semibold">{tr('新手任务')}</h2>
         <span className="text-xs text-kumo-subtle">{n}/{total}</span>
         <span className="flex-1" />
-        <Tooltip content={tr('收起')} side="top">
+        <Tooltip content={tr('收起')} side="top" asChild>
           <Button variant="ghost" size="xs" shape="square" icon={<ChevronDown size="1em" />} aria-label={tr('收起')} onClick={() => toggle(true)} />
         </Tooltip>
-        <Tooltip content={tr('不再显示')} side="top">
+        <Tooltip content={tr('不再显示')} side="top" asChild>
           <Button variant="ghost" size="xs" shape="square" icon={<X size="1em" />} aria-label={tr('不再显示')} onClick={() => void hideOnboarding()} />
         </Tooltip>
       </header>
