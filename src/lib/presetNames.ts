@@ -5,6 +5,7 @@ import { tr, translationsOf } from '@/src/i18n';
  *（用户没改过），显示时换成当前语言；用户改过的名称原样显示。
  */
 const PRESET_KEYS: Record<string, string> = {
+  'ws-inbox': '待整理',
   'mode-default': '默认',
   'mode-work': '工作',
   'mode-home': '居家',
