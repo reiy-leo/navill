@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import en from './en.json';
+import { LANGS, langFromLocale } from './index';
 
 const walk = (dir: string): string[] => readdirSync(dir).flatMap((f) => {
   const p = join(dir, f);
@@ -19,5 +20,23 @@ describe('i18n', () => {
       }
     }
     expect(missing).toEqual([]);
+  });
+
+  const holes = (s: string) => (s.match(/\{\d+\}/g) ?? []).sort().join(',');
+  for (const code of Object.keys(LANGS).filter((c) => c !== 'zh' && c !== 'en')) {
+    it(`${code}.json 与 en.json 键一致、占位符一致`, () => {
+      const dict = JSON.parse(readFileSync(join('src/i18n', `${code}.json`), 'utf8')) as Record<string, string>;
+      expect(Object.keys(dict)).toEqual(Object.keys(en));
+      const bad = Object.entries(dict).filter(([k, v]) => !v.trim() || holes(v) !== holes(k)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+  }
+
+  it('浏览器语言映射', () => {
+    expect(langFromLocale('zh-TW')).toBe('zh');
+    expect(langFromLocale('pt-BR')).toBe('pt');
+    expect(langFromLocale('pt-PT')).toBe('pt');
+    expect(langFromLocale('in')).toBe('id');
+    expect(langFromLocale('ko')).toBe('en');
   });
 });

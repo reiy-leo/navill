@@ -74,7 +74,7 @@ export async function archiveBookmark(db: NavillDB, id: string, archived = true)
     const b = await db.bookmarks.get(id);
     if (!b) return;
     await patch<Bookmark>(db, 'bookmarks', id, { archivedAt: archived ? Date.now() : undefined });
-    log({ kind: archived ? 'archive' : 'restore', targetType: 'bookmark', targetId: id, summary: tr('{0}书签{1}', archived ? '归档' : '恢复', q(b.title)) });
+    log({ kind: archived ? 'archive' : 'restore', targetType: 'bookmark', targetId: id, summary: archived ? tr('归档书签{0}', q(b.title)) : tr('恢复书签{0}', q(b.title)) });
   });
 }
 

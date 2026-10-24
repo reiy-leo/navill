@@ -14,7 +14,7 @@ export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inhe
   const Icon = VIEW_ICON[value];
   return (
     <DropdownMenu>
-      <Tooltip content={tr('视图：{0}{1}', VIEW_LABEL[value], inherited ? ' · 跟随工作区' : '')} side="bottom">
+      <Tooltip content={inherited ? tr('视图：{0} · 跟随工作区', VIEW_LABEL[value]) : tr('视图：{0}', VIEW_LABEL[value])} side="bottom">
         <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon size="1em" />} aria-label={tr('视图：{0}', VIEW_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>

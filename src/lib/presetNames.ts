@@ -1,5 +1,4 @@
-import en from '@/src/i18n/en.json';
-import { tr } from '@/src/i18n';
+import { tr, translationsOf } from '@/src/i18n';
 
 /**
  * 预设场景与内置标签的名称随界面语言切换：库里存的名称若仍是任一语言的预设名
@@ -14,13 +13,12 @@ const PRESET_KEYS: Record<string, string> = {
   'tag-favorite': '收藏',
   'tag-todo': '待办',
 };
-const dict = en as Record<string, string>;
 
 export function presetName(id: string, name: string): string {
   const key = PRESET_KEYS[id];
   if (!key) return name;
   const n = name.trim();
-  return n === key || n === dict[key] ? tr(key) : name;
+  return translationsOf(key).includes(n) ? tr(key) : name;
 }
 
 export function localizeNames<T extends { id: string; name: string }>(items: T[]): T[] {

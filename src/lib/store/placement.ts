@@ -37,7 +37,7 @@ export async function removePlacement(db: NavillDB, placementId: string) {
     const p = await db.placements.get(placementId);
     if (!p) return;
     const b = await db.bookmarks.get(p.bookmarkId);
-    log({ kind: 'delete', targetType: 'bookmark', targetId: p.bookmarkId, summary: tr('删除{0}{1}', p.isAlias ? '分身' : '书签', q(b?.title)) });
+    log({ kind: 'delete', targetType: 'bookmark', targetId: p.bookmarkId, summary: p.isAlias ? tr('删除分身{0}', q(b?.title)) : tr('删除书签{0}', q(b?.title)) });
     await del(db, 'placements', p.id);
     const rest = await db.placements.where('bookmarkId').equals(p.bookmarkId).toArray();
     if (rest.length === 0) {

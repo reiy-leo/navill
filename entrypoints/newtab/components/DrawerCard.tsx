@@ -134,7 +134,7 @@ export const DrawerCard = memo(function DrawerCard({
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Copy} onClick={() => void mount()}>{tr('创建分身')}</DropdownMenu.Item>
             {groups.map((g) => (
-              <DropdownMenu.Item key={g.group.id} icon={Unlink} onClick={() => void unmount(db, g.group.id)}>{tr('解除挂载「')}{g.drawer.name}」</DropdownMenu.Item>
+              <DropdownMenu.Item key={g.group.id} icon={Unlink} onClick={() => void unmount(db, g.group.id)}>{tr('解除挂载「{0}」', g.drawer.name)}</DropdownMenu.Item>
             ))}
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Move} onClick={async () => {

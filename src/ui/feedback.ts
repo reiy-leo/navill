@@ -14,16 +14,21 @@ export const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigato
 /** 快捷键修饰键的显示名 */
 export const modKey = () => (isMac() ? '⌘' : 'Ctrl+');
 
-const VERB: Partial<Record<string, string>> = { create: tr('新建'), edit: tr('修改'), delete: tr('删除'), move: tr('移动') };
+const COUNT: Partial<Record<string, (n: number) => string>> = {
+  create: (n) => tr('已新建 {0} 个书签', n),
+  edit: (n) => tr('已修改 {0} 个书签', n),
+  delete: (n) => tr('已删除 {0} 个书签', n),
+  move: (n) => tr('已移动 {0} 个书签', n),
+};
 
 /** 书签的新建 / 修改 / 删除 / 移动：按设置弹提醒；批量操作合并成一条 */
 export function useLogToasts(settings: Settings) {
   const ref = useRef(settings);
   ref.current = settings;
   useEffect(() => onLogged((e) => {
-    const verb = VERB[e.kind];
-    if (e.targetType !== 'bookmark' || !verb || !ref.current.toast.show[e.kind as ToastEvent]) return;
-    toast(e.summary, { group: `bm-${e.kind}`, format: (n) => tr('已{0} {1} 个书签', verb, n) });
+    const format = COUNT[e.kind];
+    if (e.targetType !== 'bookmark' || !format || !ref.current.toast.show[e.kind as ToastEvent]) return;
+    toast(e.summary, { group: `bm-${e.kind}`, format });
   }), []);
 }
 

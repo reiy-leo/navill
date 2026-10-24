@@ -99,7 +99,7 @@ export function mergeLogs(...lists: LogEntry[][]): LogEntry[] {
 }
 
 /** 截断显示用的名称 */
-export const q = (s: string | undefined) => `「${(s ?? '').length > 40 ? `${s!.slice(0, 40)}…` : s ?? ''}」`;
+export const q = (s: string | undefined) => tr('「{0}」', (s ?? '').length > 40 ? `${s!.slice(0, 40)}…` : s ?? '');
 
 /** 按 UTC 月份分组（时间正序），用于按月上传 */
 export function groupByMonth<T extends { at: number }>(rows: T[]): Map<string, T[]>;

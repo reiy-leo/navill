@@ -53,7 +53,7 @@ export function SearchResults({ onOpen }: { onOpen?: () => void } = {}) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-kumo-subtle">{total} {tr('个结果 · 场景「')}{mode?.name}」</span>
+        <span className="text-sm text-kumo-subtle">{tr('{0} 个结果 · 场景「{1}」', total, mode?.name ?? '')}</span>
         <Checkbox label={tr('包含归档')} checked={archived} onCheckedChange={(v) => setArchived(Boolean(v))} />
       </div>
       {total === 0 ? (

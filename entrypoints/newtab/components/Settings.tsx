@@ -30,7 +30,7 @@ import { clearIconCache } from '@/src/lib/icons/fetcher';
 import { removeHistory, requestHistory } from '@/src/lib/suggest';
 import { setHistoryGranted, useHistoryPermission } from '@/src/ui/HistoryAutocomplete';
 
-import { dateLocale, getLangSetting, setLanguage, tr } from '@/src/i18n';
+import { dateLocale, getLangSetting, LANGS, setLanguage, tr, type LangSetting } from '@/src/i18n';
 export type Tab = 'general' | 'look' | 'modes' | 'tags' | 'sync' | 'toast' | 'keys' | 'data';
 
 const TABS: Tab[] = ['general', 'look', 'modes', 'tags', 'sync', 'toast', 'keys', 'data'];
@@ -145,7 +145,7 @@ function General() {
   return (
     <div>
       <Section title={tr('语言')}>
-      <Row label={tr('界面语言')}><Pick label={tr('界面语言')} value={getLangSetting()} items={{ auto: tr('跟随浏览器'), zh: '中文', en: 'English' }} onChange={(v) => void setLanguage(v)} /></Row>
+      <Row label={tr('界面语言')}><Pick label={tr('界面语言')} value={getLangSetting()} items={{ auto: tr('跟随浏览器'), ...Object.fromEntries(Object.entries(LANGS).map(([k, v]) => [k, v.name])) } as Record<LangSetting, string>} onChange={(v) => void setLanguage(v)} /></Row>
       </Section>
       <Section title={tr('打开')}>
       <Row label={tr('默认进入的工作区')}><Pick label={tr('默认工作区')} value={settings.startWorkspace} items={wsItems} onChange={(startWorkspace) => set({ startWorkspace })} /></Row>

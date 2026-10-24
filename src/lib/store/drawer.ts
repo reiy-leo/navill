@@ -46,7 +46,7 @@ export async function archiveDrawer(db: NavillDB, id: string, archived = true) {
     const d = await db.drawers.get(id);
     if (!d) return;
     await patch<Drawer>(db, 'drawers', id, { archivedAt: archived ? Date.now() : undefined });
-    log({ kind: archived ? 'archive' : 'restore', targetType: 'drawer', targetId: id, summary: tr('{0}抽屉{1}', archived ? '归档' : '恢复', q(d.name)) });
+    log({ kind: archived ? 'archive' : 'restore', targetType: 'drawer', targetId: id, summary: archived ? tr('归档抽屉{0}', q(d.name)) : tr('恢复抽屉{0}', q(d.name)) });
   });
 }
 

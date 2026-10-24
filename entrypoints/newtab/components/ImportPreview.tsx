@@ -118,12 +118,12 @@ export default function ImportPreview({
       {(plan.available.other > 0 || plan.available.mobile > 0 || includeOther || includeMobile) && (
         <Surface className="flex flex-col gap-2 rounded-lg p-4">
           {(includeOther || plan.available.other > 0) && <Checkbox
-            label={tr('同时导入「其他书签」{0}', includeOther ? '' : ` · ${plan.available.other} 个`)}
+            label={tr('同时导入「其他书签」{0}', includeOther ? '' : tr(' · {0} 个', plan.available.other))}
             checked={includeOther}
             onCheckedChange={(v) => setIncludeOther(Boolean(v))}
           />}
           {(includeMobile || plan.available.mobile > 0) && <Checkbox
-            label={tr('同时导入「移动设备书签」{0}', includeMobile ? '' : ` · ${plan.available.mobile} 个`)}
+            label={tr('同时导入「移动设备书签」{0}', includeMobile ? '' : tr(' · {0} 个', plan.available.mobile))}
             checked={includeMobile}
             onCheckedChange={(v) => setIncludeMobile(Boolean(v))}
           />}
