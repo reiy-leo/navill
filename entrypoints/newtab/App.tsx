@@ -17,6 +17,7 @@ import { MarketView } from './components/MarketView';
 import { SharesView } from './components/SharesView';
 import { SearchDialog } from './components/AppMenu';
 import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
+import { OnboardingCard } from '@/src/ui/OnboardingCard';
 import { shortcutSync, useLogToasts, useShortcuts } from '@/src/ui/feedback';
 import { Toaster } from '@/src/ui/toast';
 import type { Tab } from './components/Settings';
@@ -101,7 +102,9 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
   const workspaces = useVisibleWorkspaces();
   const [settingsOpen, setSettingsOpen] = useState<Tab | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const openSearch = useCallback(() => setSearchOpen(true), []);
+  const [searchPrefill, setSearchPrefill] = useState<string>();
+  const openSearch = useCallback(() => { setSearchPrefill(undefined); setSearchOpen(true); }, []);
+  const openSearchWith = useCallback((q?: string) => { setSearchPrefill(q); setSearchOpen(true); }, []);
   const latest = useRef(settings);
   latest.current = settings;
   const sync = useCallback(() => void shortcutSync(db, latest.current), []);
@@ -130,8 +133,12 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
       <OrganizeBar />
       {/* 场景切换固定在页面右下角；侧边栏在右侧时移到左下角、底部横条时上移，避开应用菜单 */}
       <div className={`fixed bottom-4 z-20 ${right ? 'left-4' : 'right-4'} ${pos === 'bottom' ? 'bottom-16' : ''}`}><ModeSwitcher side="top" /></div>
+      {/* 新手任务浮在场景切换上方，同一角 */}
+      <div className={`fixed z-20 flex flex-col ${right ? 'left-4 items-start' : 'right-4 items-end'} ${pos === 'bottom' ? 'bottom-28' : 'bottom-16'}`}>
+        <OnboardingCard onSearch={openSearchWith} onSyncSettings={() => setSettingsOpen('sync')} />
+      </div>
       {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
-      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SearchDialog open={searchOpen} prefill={searchPrefill} onClose={() => setSearchOpen(false)} />
       <PanelDrawer />
     </div>
   );

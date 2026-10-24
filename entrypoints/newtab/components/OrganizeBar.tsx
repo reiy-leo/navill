@@ -1,3 +1,4 @@
+import { markDone } from '@/src/lib/onboarding';
 import { Button } from '@cloudflare/kumo';
 import { Archive, Copy, Move, Tag, Trash2, X } from 'lucide-react';
 import { db } from '@/src/db';
@@ -18,8 +19,8 @@ export function OrganizeBar() {
   return (
     <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-kumo-line bg-kumo-elevated px-3 py-2 shadow-lg">
       <span className="px-2 text-sm">{n ? tr('已选 {0} 个', n) : tr('点击书签进行选择')}</span>
-      <Button size="sm" icon={<Move size="1em" />} disabled={!n} onClick={async () => { await moveTo(dialogs, ids); clearSelection(); }}>{tr('移动到…')}</Button>
-      <Button size="sm" icon={<Copy size="1em" />} disabled={!n} onClick={async () => { await aliasTo(dialogs, await bookmarkIds()); clearSelection(); }}>{tr('创建分身到…')}</Button>
+      <Button size="sm" icon={<Move size="1em" />} disabled={!n} onClick={async () => { if (await moveTo(dialogs, ids)) void markDone('organize'); clearSelection(); }}>{tr('移动到…')}</Button>
+      <Button size="sm" icon={<Copy size="1em" />} disabled={!n} onClick={async () => { if (await aliasTo(dialogs, await bookmarkIds())) void markDone('organize'); clearSelection(); }}>{tr('创建分身到…')}</Button>
       <Button size="sm" icon={<Tag size="1em" />} disabled={!n} onClick={async () => dialogs.editTags(await bookmarkIds())}>{tr('标签…')}</Button>
       <Button size="sm" icon={<Archive size="1em" />} disabled={!n} onClick={async () => { for (const id of await bookmarkIds()) await archiveBookmark(db, id); clearSelection(); }}>{tr('归档')}</Button>
       <Button size="sm" variant="secondary-destructive" icon={<Trash2 size="1em" />} disabled={!n} onClick={async () => {

@@ -34,7 +34,12 @@ export interface Settings {
     logs: boolean;
   };
   toast: ToastSettings;
+  /** 新手任务进度（随设置同步，见 src/lib/onboarding.ts） */
+  onboarding: OnboardingState;
 }
+
+/** 新手任务：done 为任务 id → 完成时间；hidden 为用户关掉了卡片 */
+export interface OnboardingState { done: Record<string, number>; hidden: boolean }
 
 export type ToastPosition = 'top-center' | 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left' | 'bottom-center';
 export type ToastStyle = 'plain' | 'tinted' | 'dark' | 'pill';
@@ -67,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   currentModeId: MODE_DEFAULT,
   sync: { enabled: false, intervalMinutes: 15, logs: false },
   toast: DEFAULT_TOAST,
+  onboarding: { done: {}, hidden: false },
 };
 
 export const settingsItem = storage.defineItem<Settings>('local:settings', { fallback: DEFAULT_SETTINGS });
@@ -80,6 +86,7 @@ export async function getSettings(): Promise<Settings> {
     navPosition: s.navPosition ?? (legacy === 'sidebar' ? 'left' : 'top'),
     sync: { ...DEFAULT_SETTINGS.sync, ...s.sync },
     toast: { ...DEFAULT_TOAST, ...s.toast, show: { ...DEFAULT_TOAST.show, ...s.toast?.show } },
+    onboarding: { done: { ...s.onboarding?.done }, hidden: Boolean(s.onboarding?.hidden) },
   };
 }
 

@@ -3,7 +3,8 @@ import { snapshot } from '../io/backup';
 import { deviceId } from '../store/core';
 import { ensureSeed, mergeInboxes } from '../store/seed';
 import { recount } from '../store/counts';
-import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem } from '../settings';
+import { applyRemoteSettings, getSettings, settingsModifiedItem, syncedPart, syncStatusItem, updateSettings, type OnboardingState } from '../settings';
+import { mergeOnboarding, sameOnboarding } from '../onboarding';
 import { signIn } from './auth';
 import { gunzip, gzip } from './drive';
 import { backend, connectWebdav, disconnect, isConnected, syncProviderItem, type Backend, type RemoteFile } from './backend';
@@ -130,7 +131,7 @@ async function run(db: NavillDB) {
 }
 
 async function syncSettings(db: NavillDB, { download, upload }: Backend, file: RemoteFile | undefined) {
-  const localAt = await settingsModifiedItem.getValue();
+  let localAt = await settingsModifiedItem.getValue();
   const lastSeen = (await db.meta.get('settingsRemoteModified'))?.value as string | undefined;
   let remoteAt = ((await db.meta.get('settingsRemoteSavedAt'))?.value as number | undefined) ?? 0;
   if (file && file.modifiedTime !== lastSeen) {
@@ -138,9 +139,17 @@ async function syncSettings(db: NavillDB, { download, upload }: Backend, file: R
     remoteAt = remote.savedAt;
     await db.meta.put({ key: 'settingsRemoteModified', value: file.modifiedTime });
     await db.meta.put({ key: 'settingsRemoteSavedAt', value: remoteAt });
+    const local = await getSettings();
+    // 新手任务进度两边取并集，其余设置按修改时间新者胜
+    const onboarding = mergeOnboarding(local.onboarding, remote.settings.onboarding as OnboardingState | undefined);
     if (remoteAt > localAt) {
-      await applyRemoteSettings(remote.settings, remoteAt);
-      return;
+      await applyRemoteSettings({ ...remote.settings, onboarding }, remoteAt);
+      if (sameOnboarding(onboarding, remote.settings.onboarding as OnboardingState | undefined)) return;
+      localAt = Date.now(); // 本机有云端没有的完成记录：合并后再传上去
+      await settingsModifiedItem.setValue(localAt);
+    } else if (!sameOnboarding(onboarding, local.onboarding)) {
+      await updateSettings({ onboarding });
+      localAt = await settingsModifiedItem.getValue();
     }
   }
   if (file && localAt <= remoteAt) return;

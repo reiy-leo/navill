@@ -2,6 +2,7 @@ import { db } from '@/src/db';
 import { recordOpen } from '@/src/lib/store';
 import type { Settings } from '@/src/lib/settings';
 import type { Item } from '@/src/lib/view';
+import { markDone } from '@/src/lib/onboarding';
 
 /** 打开书签并计数。Ctrl/⌘/中键 = 后台新标签，Shift = 新标签前台 */
 export async function openItem(
@@ -14,7 +15,7 @@ export async function openItem(
   const bookmark = { ...item.bookmark, url: urlOverride ?? item.bookmark.url };
   await recordOpen(db, bookmark.id, placement.id);
   let mode = settings.openMode;
-  if (e?.ctrlKey || e?.metaKey || e?.button === 1) mode = 'background';
+  if (e?.ctrlKey || e?.metaKey || e?.button === 1) { mode = 'background'; void markDone('bgOpen'); }
   else if (e?.shiftKey) mode = 'new';
   if (context === 'popup') {
     if (mode === 'current') {

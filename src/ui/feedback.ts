@@ -7,6 +7,7 @@ import { pendingChanges, syncNow } from '@/src/lib/sync/engine';
 import { SHORTCUT_SYNC_TEXT, shortcutSyncDecision } from '@/src/lib/sync/shortcut';
 import { toast } from './toast';
 import { ensureBookmarksConsent } from '@/src/lib/consent';
+import { markDone } from '@/src/lib/onboarding';
 
 import { tr } from '@/src/i18n';
 export const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -42,6 +43,7 @@ export async function shortcutSync(db: NavillDB, settings: Settings) {
     lastSyncAt: status.lastSyncAt,
     pending: await pendingChanges(db),
   });
+  if (decision !== 'signed-out' && decision !== 'off') void markDone('syncKey');
   if (decision !== 'run') {
     toast(SHORTCUT_SYNC_TEXT[decision], { type: 'info', group: 'sync-skip' });
     return;
@@ -67,13 +69,14 @@ export function useShortcuts(h: { onSearch: () => void; onSync: () => void }) {
         e.stopPropagation();
         if (e.repeat) return;
         if (k === 's') ref.current.onSync();
-        else ref.current.onSearch();
+        else { ref.current.onSearch(); void markDone('searchKey'); }
         return;
       }
       const t = e.target as HTMLElement;
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && !['INPUT', 'TEXTAREA'].includes(t.tagName) && !t.isContentEditable) {
         e.preventDefault();
         ref.current.onSearch();
+        void markDone('searchKey');
       }
     };
     window.addEventListener('keydown', onKey, { capture: true });

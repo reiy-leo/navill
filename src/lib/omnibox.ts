@@ -2,6 +2,7 @@ import { db } from '@/src/db';
 import { getSettings } from './settings';
 import { recordOpen } from './store';
 import { search, visibilityOf } from './view';
+import { markDone } from './onboarding';
 
 import { tr } from '@/src/i18n';
 /** 地址栏输入 nv + 空格，搜索 Navill 里的书签和关联链接 */
@@ -48,6 +49,7 @@ export function setupOmnibox() {
       let t = last.find((x) => x.url === text);
       if (!t) t = (await find(text))[0]?.t;
       if (!t) return;
+      void markDone('omnibox');
       await recordOpen(db, t.bookmarkId, t.placementId).catch(() => {});
       if (disposition === 'currentTab') {
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true });

@@ -36,16 +36,18 @@ export async function askDelete(d: Dialogs, item: Item) {
   if (choice === 'all') await deleteBookmarkEverywhere(db, item.bookmark.id);
 }
 
-export async function aliasTo(d: Dialogs, bookmarkIds: string[]) {
+export async function aliasTo(d: Dialogs, bookmarkIds: string[]): Promise<boolean> {
   const t = await d.pickTarget({ title: tr('分身到…'), allowTop: true });
-  if (!t) return;
+  if (!t) return false;
   for (const id of bookmarkIds) await createAlias(db, id, t.workspaceId, t.drawerId);
+  return true;
 }
 
-export async function moveTo(d: Dialogs, placementIds: string[]) {
+export async function moveTo(d: Dialogs, placementIds: string[]): Promise<boolean> {
   const t = await d.pickTarget({ title: tr('移动到…'), allowTop: true });
-  if (!t) return;
+  if (!t) return false;
   for (const id of placementIds) await movePlacement(db, id, t.workspaceId, t.drawerId);
+  return true;
 }
 
 /** 书签 / 分身 / 挂载书签的右键菜单 */

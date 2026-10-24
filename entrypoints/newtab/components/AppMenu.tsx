@@ -1,3 +1,4 @@
+import { isTagQuery, markDone } from '@/src/lib/onboarding';
 import { Button, Dialog, DropdownMenu, Input } from '@cloudflare/kumo';
 import { Archive, CloudAlert, CloudCheck, CloudOff, CloudUpload, Copy, Ellipsis, Info, Plus, Search, SettingsIcon, Share2, SquareCheck, Store } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -47,14 +48,16 @@ export function AppMenu({ onSearch, onSettings, onNewWorkspace, side = 'bottom',
 }
 
 /** 屏幕中间的搜索框；按 / 或 ⌘L / Ctrl+L 打开，Esc 关闭 */
-export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function SearchDialog({ open, onClose, prefill }: { open: boolean; onClose: () => void; prefill?: string }) {
   const { query, setQuery } = useQuery();
   const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (open && isTagQuery(query)) void markDone('tagSearch'); }, [open, query]);
   useEffect(() => {
     if (!open) { setQuery(''); return; }
+    if (prefill) setQuery(prefill);
     const t = setTimeout(() => ref.current?.focus(), 30);
     return () => clearTimeout(t);
-  }, [open, setQuery]);
+  }, [open, setQuery, prefill]);
   return (
     <Dialog.Root open={open} onOpenChange={(o: boolean) => !o && onClose()}>
       <Dialog size="lg" className="flex max-h-[75vh] flex-col gap-3 p-4">
