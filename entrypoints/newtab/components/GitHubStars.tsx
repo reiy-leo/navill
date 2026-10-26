@@ -107,7 +107,7 @@ export function GitHubStars() {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
           {list.map((s) => (
-            <div key={s.url} className="nv-drawer group relative flex flex-col gap-1 rounded-xl p-3">
+            <div key={s.url} className="group relative flex flex-col gap-1 rounded-xl bg-kumo-elevated/75 p-3 ring-1 ring-kumo-line backdrop-blur-sm">
               <a href={s.url} target="_blank" rel="noopener noreferrer" className="truncate pr-6 text-sm font-medium hover:underline">{s.fullName}</a>
               {s.description && <p className="line-clamp-2 text-xs text-kumo-subtle">{s.description}</p>}
               <div className="mt-auto flex items-center justify-between pt-1">
