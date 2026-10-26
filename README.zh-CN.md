@@ -24,7 +24,7 @@
 ## 安装
 
 - **Chrome**：[Chrome 应用商店](https://chromewebstore.google.com/detail/navill/lphobabkijoeabbjphfafflimnjgpdfb)
-- **Edge**：Edge 加载项商店（搜 Navill），也可以从 Chrome 应用商店装
+- **Edge**：[Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/navill/gibnfncjbimhkiepbgoddljaekgfenlc)，也可以从 Chrome 应用商店装
 - **Firefox 140 及以上**：[Firefox 附加组件](https://addons.mozilla.org/zh-CN/firefox/addon/navill/)
 
 测试版在 [GitHub Releases](https://github.com/reiy-leo/navill/releases)。

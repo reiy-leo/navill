@@ -3,7 +3,7 @@
 | Browser | Where |
 | --- | --- |
 | Chrome (and other Chromium browsers) | [Chrome Web Store](https://chromewebstore.google.com/detail/navill/lphobabkijoeabbjphfafflimnjgpdfb) |
-| Microsoft Edge | Microsoft Edge Add-ons (search "Navill"), or install from the Chrome Web Store |
+| Microsoft Edge | [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/navill/gibnfncjbimhkiepbgoddljaekgfenlc), or install from the Chrome Web Store |
 | Firefox 140+ | [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/navill/) |
 
 After installing, open a new tab. Navill takes over the new tab page and shows the welcome screen.

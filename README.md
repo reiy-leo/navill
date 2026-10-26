@@ -24,7 +24,7 @@ A new tab page for people with too many bookmarks. Import your browser bookmarks
 ## Install
 
 - **Chrome**: [Chrome Web Store](https://chromewebstore.google.com/detail/navill/lphobabkijoeabbjphfafflimnjgpdfb)
-- **Edge**: Microsoft Edge Add-ons (search "Navill"), or install from the Chrome Web Store
+- **Edge**: [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/navill/gibnfncjbimhkiepbgoddljaekgfenlc), or install from the Chrome Web Store
 - **Firefox 140+**: [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/navill/)
 
 Test builds are on [GitHub Releases](https://github.com/reiy-leo/navill/releases).
