@@ -36,6 +36,8 @@ if (typeof document !== 'undefined') {
     const d = state.drag;
     if (!d || !state.over) return;
     const t = e.target as Element | null;
+    // 目标节点刚被重渲染移除（比如空抽屉的「拖书签到这里」提示被占位替换）时，事件仍落在这个脱离文档的节点上，不能当作拖出
+    if (t && !t.isConnected) return;
     if (!t?.closest?.(`[data-sort-kind="${d.kind}"]`)) set({ ...state, over: null });
   });
 }
@@ -221,7 +223,8 @@ export function useSortable<T>({
       if (!dd || !accept(e)) return;
       e.preventDefault();
       if (state.over?.list !== L.list) {
-        if (!settled(e)) return;
+        // 空列表没有别的项会被挪动，不需要等动画稳定
+        if (rest(L.rows, dd.id).length > 0 && !settled(e)) return;
         lastTarget.current = null;
         markMove(e);
         set({ ...state, over: { list: L.list, index: rest(L.rows, dd.id).length } });
