@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   drawerHead: 'show',
   arrange: {},
   navPosition: 'top',
-  navLabel: 'name',
+  navLabel: 'both',
   workspaceIconStyle: 'emoji',
   surface: 'tint',
   background: 'gradient',
