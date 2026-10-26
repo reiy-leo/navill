@@ -1,0 +1,46 @@
+# 手动重试：只把某个正式版 tag 提交到 Chrome Web Store（Release 里 Chrome 那步失败时用，不会重复提交 Edge / AMO）。
+name: Chrome Web Store 重试
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '正式版 tag，例如 v0.1.17'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cws:
+    runs-on: ${{ vars.CI_RUNNER == 'github' && 'ubuntu-latest' || fromJSON('["self-hosted","celesto-micro"]') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 获取 Google 访问令牌
+        id: gauth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.CWS_WIF_PROVIDER }}
+          service_account: ${{ secrets.CWS_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          create_credentials_file: false
+      - name: 提交 Chrome Web Store
+        env:
+          CWS_TOKEN: ${{ steps.gauth.outputs.access_token }}
+          CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          WXT_EXTENSION_KEY=none pnpm zip
+          node -e 'if(require("./.output/chrome-mv3/manifest.json").key){console.error("商店包不应包含 key");process.exit(1)}'
+          scripts/cws-publish.sh ".output/navill-${TAG#v}-chrome.zip"
