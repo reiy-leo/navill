@@ -1,7 +1,10 @@
-# 手动重试：只把某个正式版 tag 提交到 Chrome Web Store（Release 里 Chrome 那步失败时用，不会重复提交 Edge / AMO）。
+# 手动重试：只把某个正式版提交到 Chrome Web Store（Release 里 Chrome 那步失败时用，不会重复提交 Edge / AMO）。
+# 两种触发：Actions 页手动运行并填 tag（如 v0.1.17）；或推一个 cws-v0.1.17 这样的 tag。
 name: Chrome Web Store 重试
 
 on:
+  push:
+    tags: ['cws-v*']
   workflow_dispatch:
     inputs:
       tag:
@@ -16,9 +19,17 @@ jobs:
   cws:
     runs-on: ${{ vars.CI_RUNNER == 'github' && 'ubuntu-latest' || fromJSON('["self-hosted","celesto-micro"]') }}
     steps:
+      - name: 确定版本
+        id: v
+        env:
+          RAW: ${{ inputs.tag || github.ref_name }}
+        run: |
+          T="${RAW#cws-}"
+          echo "tag=$T" >> "$GITHUB_OUTPUT"
+          echo "version=${T#v}" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ steps.v.outputs.tag }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -39,8 +50,7 @@ jobs:
           CWS_TOKEN: ${{ steps.gauth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
           CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
-          TAG: ${{ inputs.tag }}
         run: |
           WXT_EXTENSION_KEY=none pnpm zip
           node -e 'if(require("./.output/chrome-mv3/manifest.json").key){console.error("商店包不应包含 key");process.exit(1)}'
-          scripts/cws-publish.sh ".output/navill-${TAG#v}-chrome.zip"
+          scripts/cws-publish.sh ".output/navill-${{ steps.v.outputs.version }}-chrome.zip"
