@@ -26,7 +26,9 @@ If the browser has no bookmarks, the welcome screen offers:
 
 ## Inbox
 
-Inbox always exists and sits at the end of the workspace list. It can't be renamed or deleted. **Save current page** in the toolbar popup puts pages here.
+Inbox always exists and sits at the end of the workspace list. It can't be renamed or deleted. **Save current page** in the toolbar popup puts pages here by default.
+
+To save the page you're on, click the Navill toolbar icon or press **Alt+Shift+D**. You can edit the title, pick a workspace or drawer, and press Enter to save. The popup remembers where you saved last time. Want ⌘D / Ctrl+D instead? Change it in your browser's extension shortcuts (`chrome://extensions/shortcuts`, `edge://extensions/shortcuts`, or Firefox's add-on manager → Manage Extension Shortcuts).
 
 ## Getting-started tasks
 

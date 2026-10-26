@@ -44,13 +44,16 @@ export default defineConfig({
     homepage_url: 'https://navill.rei8t.dev',
     default_locale: 'zh_CN',
     // favicon 是 Chromium 专属权限（_favicon 接口），Firefox 不认
-    permissions: ['bookmarks', 'storage', 'unlimitedStorage', ...(browser === 'firefox' ? [] : ['favicon']), 'identity', 'alarms'],
+    permissions: ['bookmarks', 'storage', 'unlimitedStorage', ...(browser === 'firefox' ? [] : ['favicon']), 'identity', 'alarms', 'activeTab'],
     host_permissions: ['https://www.googleapis.com/*', 'https://icon.horse/*', 'https://www.google.com/s2/*', 'https://*.gstatic.com/*', 'https://navill.rei8t.dev/*'],
     // 可选：读取网页自身的高清图标（apple-touch-icon / manifest），在 设置 → 通用 里授权
     optional_host_permissions: ['<all_urls>'],
     // 可选：新建 / 编辑书签时用浏览记录自动补全
     optional_permissions: ['history'],
     action: { default_title: 'Navill' },
+    // activeTab：点图标或按快捷键打开弹窗时，才能读到当前页的网址和标题（收藏当前页）
+    // 快捷键默认 Alt+Shift+D；⌘D / Ctrl+D 归浏览器，用户可在浏览器的扩展快捷键设置里自己改
+    commands: { _execute_action: { suggested_key: { default: 'Alt+Shift+D', mac: 'Alt+Shift+D' } } },
     // 地址栏输入 nv + 空格搜索 Navill 书签
     omnibox: { keyword: 'nv' },
     ...(browser === 'firefox'

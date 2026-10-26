@@ -11,6 +11,8 @@ import { openItem } from '@/src/ui/open';
 import { AppStateProvider, useApp } from '@/src/ui/state';
 
 import { tr } from '@/src/i18n';
+const LAST_TARGET_KEY = 'navill-popup-target';
+
 export default function App() {
   return (
     <AppStateProvider>
@@ -26,11 +28,12 @@ function Popup() {
   const [tab, setTab] = useState<{ title: string; url: string } | null>(null);
   const [target, setTarget] = useState<string>('');
   const [saved, setSaved] = useState(false);
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     void ensureSeed(db);
     void browser.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
-      if (t?.url && /^https?:/.test(t.url)) setTab({ title: t.title ?? t.url, url: t.url });
+      if (t?.url && /^https?:/.test(t.url)) { setTab({ title: t.title ?? t.url, url: t.url }); setTitle(t.title ?? t.url); }
     });
   }, []);
 
@@ -46,7 +49,11 @@ function Popup() {
     return items;
   }, []);
   useEffect(() => {
-    if (!target && targets) setTarget(Object.keys(targets)[0] ?? '');
+    // 默认选上次收藏的位置（本机记住），位置已删就退回第一个
+    if (!target && targets) {
+      const last = localStorage.getItem(LAST_TARGET_KEY);
+      setTarget(last && last in targets ? last : (Object.keys(targets)[0] ?? ''));
+    }
   }, [targets, target]);
 
   const already = useLiveQuery(async () => (tab ? (await db.bookmarks.where('url').equals(tab.url).count()) > 0 : false), [tab?.url]);
@@ -64,9 +71,10 @@ function Popup() {
   }, [q, visibility]);
 
   const save = async () => {
-    if (!tab || !target) return;
+    if (!tab || !target || saved) return;
     const [wid, did] = target.split('|');
-    await createBookmark(db, { url: tab.url, title: tab.title }, wid!, did || null);
+    localStorage.setItem(LAST_TARGET_KEY, target);
+    await createBookmark(db, { url: tab.url, title: title.trim() || tab.title }, wid!, did || null);
     setSaved(true);
     setTimeout(() => window.close(), 700);
   };
@@ -77,7 +85,11 @@ function Popup() {
         <section className="flex flex-col gap-2 rounded-xl border border-kumo-line bg-kumo-elevated p-2.5">
           <div className="flex items-center gap-2">
             <BookmarkIcon url={tab.url} size={16} />
-            <span className="min-w-0 flex-1 truncate text-sm">{tab.title}</span>
+            <Input
+              autoFocus size="sm" className="min-w-0 flex-1" aria-label={tr('名称')} value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void save(); } }}
+            />
           </div>
           {targets && (
             <Select aria-label={tr('收藏到')} size="sm" className="w-full" value={target} items={targets} onValueChange={(v) => v && setTarget(v as string)} />
@@ -91,7 +103,7 @@ function Popup() {
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-kumo-subtle" size={14} />
         <Input
-          autoFocus
+          autoFocus={!tab}
           size="sm"
           className="w-full rounded-lg pl-7"
           placeholder={tr('搜索书签，#标签 筛选')}
