@@ -1,34 +1,40 @@
 # Navill
 
-Chrome / Edge 扩展：一次性导入浏览器书签，按「工作区 → 抽屉 → 书签」重新组织，作为新标签页导航使用；支持分身、分身书签组，数据通过 Google Drive 同步。
+**English** | [中文](README.zh-CN.md)
 
-> 状态：v0.1.0，M0–M5 已实现（导入、工作区/抽屉/书签、分身与分身书签组、场景、标签、归档、导入导出、Google Drive 同步）。完整计划见 [docs/PLAN.md](docs/PLAN.md)。
+A new tab page for people with too many bookmarks. Import your browser bookmarks once, then reorganize them as **Workspace → Drawer → Bookmark**.
 
-## 本地构建
+- **Workspaces and drawers**: split bookmarks by purpose, with several views and layouts
+- **Aliases**: put the same bookmark in several places; edit once, it changes everywhere
+- **Modes**: show only the workspaces and drawers you need right now, such as Work or Talk
+- **Tags and favorites**: filter with `#tag`, keep favorites and most-used bookmarks on Home
+- **Fast search**: press `/` on the new tab page, or type `nv` in the address bar
+- **Sync** through your own Google Drive or WebDAV server; no account, no data collection
+- **Share** a drawer or workspace, and install others' from the market in one click
 
-需要 Node 22+ 与 pnpm 10+。
+<p>
+  <img src="assets/store/navill-screenshot-1-1280x800-en.png" width="49%" alt="Workspace">
+  <img src="assets/store/navill-screenshot-2-1280x800-en.png" width="49%" alt="Home">
+</p>
+<p>
+  <img src="assets/store/navill-screenshot-3-1280x800-en.png" width="49%" alt="Market">
+  <img src="assets/store/navill-screenshot-4-1280x800-en.png" width="49%" alt="Settings">
+</p>
 
-```bash
-pnpm install
-pnpm build         # Chrome → .output/chrome-mv3
-pnpm build:edge    # Edge   → .output/edge-mv3
-pnpm dev           # 开发模式，热更新
-pnpm zip           # 打包上架用 zip
-```
+## Install
 
-加载：打开 `chrome://extensions`（Edge 为 `edge://extensions`），开启「开发者模式」，点「加载已解压的扩展程序」，选择对应的 `.output/*-mv3` 目录。
+- **Chrome**: [Chrome Web Store](https://chromewebstore.google.com/detail/navill/lphobabkijoeabbjphfafflimnjgpdfb)
+- **Edge**: Microsoft Edge Add-ons (search "Navill"), or install from the Chrome Web Store
+- **Firefox 140+**: [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/navill/)
 
-## Google Drive 同步配置
+Test builds are on [GitHub Releases](https://github.com/reiy-leo/navill/releases).
 
-1. Google Cloud Console 新建 OAuth 客户端（类型：Web 应用），启用 Google Drive API，OAuth 同意屏幕只加 `drive.appdata` scope。
-2. 已获授权的重定向 URI：Chrome、Edge 各加一个 `https://<扩展 ID>.chromiumapp.org/`（设置 → 同步页会显示本机扩展的回调地址）。
-3. 复制 `.env.example` 为 `.env`，如需用自己的 Google OAuth 客户端可填 `WXT_GOOGLE_CLIENT_ID`（默认内置正式 ID）；想让本地加载的扩展 ID 固定，可再填 `WXT_EXTENSION_KEY`（manifest key）。
-4. 重新 `pnpm build`。
+## Docs
 
-## 技术栈
+Everything else is in the **[Wiki](https://github.com/reiy-leo/navill/wiki)**: [Getting Started](https://github.com/reiy-leo/navill/wiki/Getting-Started) · [Workspaces and Drawers](https://github.com/reiy-leo/navill/wiki/Workspaces-and-Drawers) · [Aliases](https://github.com/reiy-leo/navill/wiki/Aliases) · [Modes](https://github.com/reiy-leo/navill/wiki/Modes) · [Search and Shortcuts](https://github.com/reiy-leo/navill/wiki/Search-and-Shortcuts) · [Sync](https://github.com/reiy-leo/navill/wiki/Sync) · [Privacy and Permissions](https://github.com/reiy-leo/navill/wiki/Privacy-and-Permissions) · [Building and Development](https://github.com/reiy-leo/navill/wiki/Building-and-Development).
 
-WXT · TypeScript · React · [Kumo](https://www.npmjs.com/package/@cloudflare/kumo) · Tailwind CSS v4 · Dexie (IndexedDB) · Vitest
+Wiki sources live in [`wiki/`](wiki/) (English at the root, Chinese in `wiki/zh/`) and sync on every push.
 
-## 许可
+## License
 
 MIT
