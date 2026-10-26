@@ -52,9 +52,10 @@ export function LinkStrip({ item, children, placement = 'replace', max = 5, alig
     style: { transitionDelay: `${i * 25}ms` },
   });
 
+  // 容器不接收指针事件：空白处的点击、右键落到下面的书签上；图标自己用 SHOW 打开 pointer-events
   const strip = (
     <span
-      className={`flex items-center gap-0.5 ${align === 'center' ? 'justify-center' : ''} ${
+      className={`pointer-events-none flex items-center gap-0.5 ${align === 'center' ? 'justify-center' : ''} ${
         placement === 'replace' ? 'absolute inset-0' : 'absolute right-0 top-1/2 -translate-y-1/2 rounded-md bg-kumo-tint pl-1'
       }`}
       onClick={stop}
