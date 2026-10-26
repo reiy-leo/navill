@@ -649,5 +649,15 @@
  "已新建 {0} 个书签": "Created {0} bookmarks",
  "已修改 {0} 个书签": "Edited {0} bookmarks",
  "已删除 {0} 个书签": "Deleted {0} bookmarks",
- "已移动 {0} 个书签": "Moved {0} bookmarks"
+ "已移动 {0} 个书签": "Moved {0} bookmarks",
+ "GitHub Star": "GitHub Stars",
+ "GitHub 用户名": "GitHub username",
+ "改 GitHub 用户名": "Change GitHub username",
+ "忽略": "Dismiss",
+ "把「{0}」放到…": "Put “{0}” in…",
+ "填上 GitHub 用户名，新 star 的仓库会出现在这里，一键加进 Navill。": "Enter your GitHub username. Repos you star will show up here, ready to add to Navill in one click.",
+ "最近 star 的仓库都已经在 Navill 里了。": "Your recent stars are all in Navill already.",
+ "找不到 GitHub 用户「{0}」（404 未找到）": "GitHub user “{0}” not found (404 Not Found)",
+ "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Too many GitHub requests. Try again later ({0} rate limited).",
+ "读取 GitHub star 失败：{0}": "Couldn't load GitHub stars: {0}"
 }

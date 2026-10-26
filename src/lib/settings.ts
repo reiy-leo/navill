@@ -36,6 +36,8 @@ export interface Settings {
   toast: ToastSettings;
   /** 新手任务进度（随设置同步，见 src/lib/onboarding.ts） */
   onboarding: OnboardingState;
+  /** 主页「GitHub Star」读这个用户的公开 star；空 = 未设置（随设置同步） */
+  githubUser: string;
 }
 
 /** 新手任务：done 为任务 id → 完成时间；hidden 为用户关掉了卡片 */
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sync: { enabled: false, intervalMinutes: 15, logs: false },
   toast: DEFAULT_TOAST,
   onboarding: { done: {}, hidden: false },
+  githubUser: '',
 };
 
 export const settingsItem = storage.defineItem<Settings>('local:settings', { fallback: DEFAULT_SETTINGS });

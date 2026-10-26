@@ -649,5 +649,15 @@
  "已新建 {0} 个书签": "{0} bookmark dibuat",
  "已修改 {0} 个书签": "{0} bookmark diubah",
  "已删除 {0} 个书签": "{0} bookmark dihapus",
- "已移动 {0} 个书签": "{0} bookmark dipindahkan"
+ "已移动 {0} 个书签": "{0} bookmark dipindahkan",
+ "GitHub Star": "Bintang GitHub",
+ "GitHub 用户名": "Nama pengguna GitHub",
+ "改 GitHub 用户名": "Ubah nama pengguna GitHub",
+ "忽略": "Abaikan",
+ "把「{0}」放到…": "Taruh “{0}” di…",
+ "填上 GitHub 用户名，新 star 的仓库会出现在这里，一键加进 Navill。": "Masukkan nama pengguna GitHub. Repo yang kamu beri bintang akan muncul di sini dan bisa ditambahkan ke Navill dengan sekali klik.",
+ "最近 star 的仓库都已经在 Navill 里了。": "Semua repo yang baru kamu beri bintang sudah ada di Navill.",
+ "找不到 GitHub 用户「{0}」（404 未找到）": "Pengguna GitHub “{0}” tidak ditemukan (404 Tidak Ditemukan)",
+ "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Terlalu banyak permintaan ke GitHub. Coba lagi nanti ({0} batas permintaan).",
+ "读取 GitHub star 失败：{0}": "Gagal memuat bintang GitHub: {0}"
 }

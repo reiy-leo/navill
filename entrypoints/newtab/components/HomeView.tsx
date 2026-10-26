@@ -8,6 +8,7 @@ import { mostOpened, taggedItems, visibilityOf } from '@/src/lib/view';
 import { HistoryHint } from '@/src/ui/HistoryAutocomplete';
 import { useInstallShare } from '@/src/ui/installShare';
 import { useApp } from '@/src/ui/state';
+import { GitHubStars } from './GitHubStars';
 import { Items } from './Items';
 
 import { tr } from '@/src/i18n';
@@ -48,6 +49,8 @@ export function HomeView() {
           <Items items={top} view="icon" strip />
         </section>
       )}
+
+      <GitHubStars />
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

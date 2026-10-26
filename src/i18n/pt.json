@@ -649,5 +649,15 @@
  "已新建 {0} 个书签": "{0} favoritos criados",
  "已修改 {0} 个书签": "{0} favoritos editados",
  "已删除 {0} 个书签": "{0} favoritos excluídos",
- "已移动 {0} 个书签": "{0} favoritos movidos"
+ "已移动 {0} 个书签": "{0} favoritos movidos",
+ "GitHub Star": "Estrelas do GitHub",
+ "GitHub 用户名": "Usuário do GitHub",
+ "改 GitHub 用户名": "Alterar usuário do GitHub",
+ "忽略": "Dispensar",
+ "把「{0}」放到…": "Colocar “{0}” em…",
+ "填上 GitHub 用户名，新 star 的仓库会出现在这里，一键加进 Navill。": "Digite seu usuário do GitHub. Os repositórios que você marcar com estrela aparecem aqui para adicionar ao Navill com um clique.",
+ "最近 star 的仓库都已经在 Navill 里了。": "Suas estrelas recentes já estão todas no Navill.",
+ "找不到 GitHub 用户「{0}」（404 未找到）": "Usuário do GitHub “{0}” não encontrado (404 Não encontrado)",
+ "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Muitas solicitações ao GitHub. Tente mais tarde ({0} limite de taxa).",
+ "读取 GitHub star 失败：{0}": "Não foi possível carregar as estrelas do GitHub: {0}"
 }

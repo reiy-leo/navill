@@ -649,5 +649,15 @@
  "已新建 {0} 个书签": "{0} Lesezeichen erstellt",
  "已修改 {0} 个书签": "{0} Lesezeichen bearbeitet",
  "已删除 {0} 个书签": "{0} Lesezeichen gelöscht",
- "已移动 {0} 个书签": "{0} Lesezeichen verschoben"
+ "已移动 {0} 个书签": "{0} Lesezeichen verschoben",
+ "GitHub Star": "GitHub-Sterne",
+ "GitHub 用户名": "GitHub-Benutzername",
+ "改 GitHub 用户名": "GitHub-Benutzernamen ändern",
+ "忽略": "Ausblenden",
+ "把「{0}」放到…": "„{0}“ ablegen in…",
+ "填上 GitHub 用户名，新 star 的仓库会出现在这里，一键加进 Navill。": "Gib deinen GitHub-Benutzernamen ein. Repos mit Stern erscheinen hier und lassen sich mit einem Klick zu Navill hinzufügen.",
+ "最近 star 的仓库都已经在 Navill 里了。": "Deine letzten Sterne sind schon alle in Navill.",
+ "找不到 GitHub 用户「{0}」（404 未找到）": "GitHub-Benutzer „{0}“ nicht gefunden (404 Nicht gefunden)",
+ "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Zu viele GitHub-Anfragen. Versuche es später erneut ({0} Ratenlimit).",
+ "读取 GitHub star 失败：{0}": "GitHub-Sterne konnten nicht geladen werden: {0}"
 }
