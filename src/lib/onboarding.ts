@@ -4,7 +4,7 @@ import { getSettings, updateSettings, type OnboardingState } from './settings';
  * 新手任务：主页右下角的浮动清单。不阻断使用，完成状态只由检测自动勾选（不能手动勾），
  * 进度随设置同步，多台设备的完成记录取并集；全部完成后卡片不再显示。
  */
-export const ONBOARDING_TASKS = ['searchKey', 'omnibox', 'tagSearch', 'tagBookmark', 'bgOpen', 'organize', 'alias', 'syncKey', 'dataOwn'] as const;
+export const ONBOARDING_TASKS = ['searchKey', 'omnibox', 'tagSearch', 'tagBookmark', 'bgOpen', 'organize', 'alias', 'syncKey', 'savePage', 'dataOwn'] as const;
 export type OnboardingTask = (typeof ONBOARDING_TASKS)[number];
 
 export const EMPTY_ONBOARDING: OnboardingState = { done: {}, hidden: false };

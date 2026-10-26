@@ -487,11 +487,31 @@ function Kbd({ children }: { children: ReactNode }) {
   return <kbd className="rounded-md border border-kumo-line bg-kumo-recessed px-2 py-0.5 font-mono text-sm">{children}</kbd>;
 }
 
+/** 打开浏览器的扩展快捷键设置页：Firefox 有专门的接口，Chrome / Edge 打开 chrome://extensions/shortcuts（Edge 会自动转到 edge://） */
+async function openShortcutSettings() {
+  const cmds = browser.commands as typeof browser.commands & { openShortcutSettings?: () => Promise<void> };
+  if (cmds.openShortcutSettings) return cmds.openShortcutSettings();
+  await browser.tabs.create({ url: 'chrome://extensions/shortcuts' });
+}
+
 function Shortcuts() {
   const mod = isMac() ? '⌘' : 'Ctrl';
   const combo = (k: string) => (isMac() ? `${mod}${k}` : `${mod}+${k}`);
+  // 收藏弹窗的快捷键由浏览器管理，这里只读出来显示
+  const [saveKey, setSaveKey] = useState<string | null>(null);
+  useEffect(() => {
+    void browser.commands.getAll().then((cs) => setSaveKey(cs.find((c) => c.name === '_execute_action')?.shortcut || null)).catch(() => {});
+  }, []);
   return (
     <div className="flex flex-col gap-1">
+      <Section title={tr('收藏当前页')}>
+      <Row label={tr('打开收藏弹窗')} info={tr('在任意网页按这个快捷键，或点工具栏的 Navill 图标，就能收藏这个网页。想用 {0}，点「修改」去浏览器里改。', combo('D'))}>
+        <div className="flex items-center gap-2">
+          {saveKey ? <Kbd>{saveKey}</Kbd> : <span className="text-sm text-kumo-subtle">{tr('未设置')}</span>}
+          <Button size="sm" onClick={() => void openShortcutSettings()}>{tr('修改')}</Button>
+        </div>
+      </Row>
+      </Section>
       <Section title={tr('同步')}>
       <Row label={tr('立即同步')} info={tr('3 分钟内同步过，或没有需要上传的改动时跳过并提醒；同步未开启或未登录时也会提醒')}><Kbd>{combo('S')}</Kbd></Row>
       </Section>

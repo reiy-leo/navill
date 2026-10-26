@@ -14,11 +14,13 @@ const COLLAPSED_KEY = 'navill-onboarding-collapsed';
 interface Props {
   onSearch: (prefill?: string) => void;
   onSyncSettings: () => void;
+  /** 打开 设置 → 快捷键 */
+  onKeySettings: () => void;
   className?: string;
 }
 
 /** 主页右下角浮动的新手任务卡片：任务完成由检测自动勾选，点击任务跳转或展开说明；全部完成后不再显示 */
-export function OnboardingCard({ onSearch, onSyncSettings, className = '' }: Props) {
+export function OnboardingCard({ onSearch, onSyncSettings, onKeySettings, className = '' }: Props) {
   const { settings, ready } = useApp();
   const { setOrganize } = useSelection();
   const state = settings.onboarding;
@@ -44,10 +46,10 @@ export function OnboardingCard({ onSearch, onSyncSettings, className = '' }: Pro
     );
   }
   if (!visible) return null;
-  return <Card state={state} onSearch={onSearch} onSyncSettings={onSyncSettings} onOrganize={() => setOrganize(true)} className={className} />;
+  return <Card state={state} onSearch={onSearch} onSyncSettings={onSyncSettings} onKeySettings={onKeySettings} onOrganize={() => setOrganize(true)} className={className} />;
 }
 
-function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props & { state: ReturnType<typeof useApp>['settings']['onboarding']; onOrganize: () => void }) {
+function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, className }: Props & { state: ReturnType<typeof useApp>['settings']['onboarding']; onOrganize: () => void }) {
   const { settings } = useApp();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === '1');
   // 默认展开第一个未完成的任务，让人一眼看到任务要做什么
@@ -69,6 +71,8 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
     syncKey: settings.sync.enabled
       ? { title: tr('用 {0}S 手动同步', mod), hint: tr('同步已开启，按 {0}S 立即同步一次。', mod) }
       : { title: tr('用 {0}S 手动同步', mod), hint: tr('先在设置里开启同步，之后按 {0}S 立即同步。', mod), go: onSyncSettings },
+    // 在弹窗里收藏过一次就算完成；点开跳到 设置 → 快捷键，可以改成 ⌘D / Ctrl+D
+    savePage: { title: tr('收藏正在看的网页'), hint: tr('在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。'), go: onKeySettings },
     // 点了「了解为什么」就算完成
     dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
   };

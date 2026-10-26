@@ -135,7 +135,7 @@ function Main({ onReimport }: { onReimport: (s: 'browser' | 'html') => void }) {
       <div className={`fixed bottom-4 z-20 ${right ? 'left-4' : 'right-4'} ${pos === 'bottom' ? 'bottom-16' : ''}`}><ModeSwitcher side="top" /></div>
       {/* 新手任务浮在场景切换上方，同一角 */}
       <div className={`fixed z-20 flex flex-col ${right ? 'left-4 items-start' : 'right-4 items-end'} ${pos === 'bottom' ? 'bottom-28' : 'bottom-16'}`}>
-        <OnboardingCard onSearch={openSearchWith} onSyncSettings={() => setSettingsOpen('sync')} />
+        <OnboardingCard onSearch={openSearchWith} onSyncSettings={() => setSettingsOpen('sync')} onKeySettings={() => setSettingsOpen('keys')} />
       </div>
       {settingsOpen && <SettingsDialog open initialTab={settingsOpen} onClose={() => setSettingsOpen(null)} onReimport={onReimport} />}
       <SearchDialog open={searchOpen} prefill={searchPrefill} onClose={() => setSearchOpen(false)} />

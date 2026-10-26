@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db, type Bookmark } from '@/src/db';
 import { createBookmark, ensureSeed } from '@/src/lib/store';
+import { markDone } from '@/src/lib/onboarding';
 import { bookmarkVisible, search, type Item } from '@/src/lib/view';
 import { BookmarkIcon, hostOf } from '@/src/ui/icons';
 import { ModeSwitcher } from '@/src/ui/ModeSwitcher';
@@ -75,6 +76,7 @@ function Popup() {
     const [wid, did] = target.split('|');
     localStorage.setItem(LAST_TARGET_KEY, target);
     await createBookmark(db, { url: tab.url, title: title.trim() || tab.title }, wid!, did || null);
+    await markDone('savePage');
     setSaved(true);
     setTimeout(() => window.close(), 700);
   };
