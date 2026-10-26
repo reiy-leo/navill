@@ -1,13 +1,13 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronDown, ChevronRight, Circle, CircleCheck, PartyPopper, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Circle, CircleCheck, ExternalLink, PartyPopper, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { db } from '@/src/db';
-import { allDone, doneCount, hideOnboarding, markDone, ONBOARDING_TASKS, showOnboarding, type OnboardingTask } from '@/src/lib/onboarding';
+import { allDone, dataOwnUrl, doneCount, hideOnboarding, markDone, ONBOARDING_TASKS, showOnboarding, type OnboardingTask } from '@/src/lib/onboarding';
 import { modKey } from './feedback';
 import { useApp, useSelection } from './state';
 
-import { tr } from '@/src/i18n';
+import { lang, tr } from '@/src/i18n';
 
 const COLLAPSED_KEY = 'navill-onboarding-collapsed';
 
@@ -58,7 +58,7 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
   const total = ONBOARDING_TASKS.length;
   const mod = modKey();
 
-  const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void }> = {
+  const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void; link?: { url: string; label: string } }> = {
     searchKey: { title: tr('按 / 打开搜索'), hint: tr('在新标签页按 / 或 {0}L 打开搜索。', mod) },
     omnibox: { title: tr('地址栏输入 nv 搜索'), hint: tr('在地址栏输入 nv 加空格，再输入关键词，直接搜索 Navill 里的书签。') },
     tagSearch: { title: tr('用 #标签 筛选'), hint: tr('在搜索框输入 # 和标签名，只看带这个标签的书签。'), go: () => onSearch('#') },
@@ -69,6 +69,8 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
     syncKey: settings.sync.enabled
       ? { title: tr('用 {0}S 手动同步', mod), hint: tr('同步已开启，按 {0}S 立即同步一次。', mod) }
       : { title: tr('用 {0}S 手动同步', mod), hint: tr('先在设置里开启同步，之后按 {0}S 立即同步。', mod), go: onSyncSettings },
+    // 点了「了解为什么」就算完成
+    dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
   };
 
   if (collapsed) {
@@ -110,7 +112,22 @@ function Card({ state, onSearch, onSyncSettings, onOrganize, className }: Props 
                 <span className="min-w-0 flex-1 truncate">{t.title}</span>
                 {!done && <ChevronRight size={14} className={`shrink-0 text-kumo-subtle transition-transform ${expanded ? 'rotate-90' : ''}`} />}
               </button>
-              {expanded && <p className="pb-1.5 pl-8 pr-2 text-xs leading-relaxed text-kumo-subtle">{t.hint}</p>}
+              {expanded && (
+                <div className="flex items-start gap-1 pb-1.5 pl-8 pr-1">
+                  <p className="min-w-0 flex-1 pr-1 text-xs leading-relaxed text-kumo-subtle">{t.hint}</p>
+                  {t.link && (
+                    <Tooltip content={t.link.label} side="top" asChild>
+                      <a
+                        href={t.link.url} target="_blank" rel="noopener noreferrer" aria-label={t.link.label}
+                        className="flex size-6 shrink-0 items-center justify-center rounded-md text-kumo-brand hover:bg-kumo-tint"
+                        onClick={() => void markDone(id)}
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    </Tooltip>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
