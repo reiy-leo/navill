@@ -90,7 +90,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     return (
       <nav ref={navRef} {...sort.container} className="relative flex items-center gap-2 pl-11 pr-20 py-1">
         <div className="shrink-0">{home}</div>
-        <OverlapStrip label={label}>{wsItems}</OverlapStrip>
+        <OverlapStrip label={label} activeKey={view === 'workspace' ? current : view}>{wsItems}</OverlapStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
         </div>
@@ -111,6 +111,9 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
 
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FADE = 32;
+
 /** 重叠卡片条：至少重叠 MIN_OVERLAP，每张卡至少露出 REVEAL（只显示图标时露出 REVEAL_ICON） */
 const GAP = 6;
 const MIN_OVERLAP = 8;
@@ -129,7 +132,7 @@ function tilt(id: string, index: number) {
  * 顶部/底部工作区条：放得下就留间距平铺；放不下时卡片互相叠压，
  * 重叠量在 [MIN_OVERLAP, 卡宽 − REVEAL] 之间，按各卡宽度分配。叠到上限仍放不下才允许横向滚动。
  */
-function OverlapStrip({ children, label }: { children: ReactNode; label: 'both' | 'icon' | 'name' }) {
+function OverlapStrip({ children, label, activeKey }: { children: ReactNode; label: 'both' | 'icon' | 'name'; activeKey?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
   const [scroll, setScroll] = useState(false);
@@ -166,13 +169,32 @@ function OverlapStrip({ children, label }: { children: ReactNode; label: 'both' 
     const ro = new ResizeObserver(layout);
     ro.observe(el);
     for (const c of el.children) ro.observe(c);
-    return () => ro.disconnect();
+    // 叠到上限仍放不下时的兜底：纵向滚轮转横向
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => { ro.disconnect(); el.removeEventListener('wheel', onWheel); };
   }, [layout, count]);
+
+  // 兜底滚动时，当前工作区滚入视野
+  useEffect(() => {
+    const el = ref.current;
+    const item = el?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!scroll || !el || !item) return;
+    const l = item.offsetLeft - FADE, r = item.offsetLeft + item.offsetWidth + FADE - el.clientWidth;
+    const to = l < el.scrollLeft ? l : r > el.scrollLeft ? r : null;
+    if (to !== null) el.scrollTo({ left: Math.max(0, to), behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }, [scroll, activeKey]);
+  const mask = scroll ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)` : undefined;
 
   return (
     <div
       ref={ref}
       className={`relative flex h-12 min-w-0 flex-1 items-center [justify-content:safe_center] ${scroll ? 'overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : ''}`}
+      style={{ maskImage: mask, WebkitMaskImage: mask }}
     >
       {children}
     </div>
