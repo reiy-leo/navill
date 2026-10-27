@@ -7,6 +7,7 @@ import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, upd
 import { workspaceVisible } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
+import { inkOn, useTone } from '@/src/ui/colors';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { AppMenu } from './AppMenu';
@@ -110,6 +111,8 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
+/** 只显示图标时，顶部卡片就是一个图标块 */
+const CARD_ICON = 34;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FADE = 32;
@@ -209,6 +212,9 @@ function NavItem({
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void;
 }) {
   const [over, setOver] = useState(false);
+  // 顶部/底部的卡片用工作区颜色铺满；只显示图标时卡片就是图标本身
+  const tone = useTone(w.color) ?? '#8d8d86';
+  const card = horizontal && angle !== undefined;
   // 名称被截断时才在提示里显示全名
   const nameEl = useRef<HTMLSpanElement>(null);
   const [cut, setCut] = useState(false);
@@ -246,16 +252,17 @@ function NavItem({
       }}
       data-flip={w.id}
       data-flip-ws=""
-      style={angle !== undefined ? ({ '--nv-tilt': `${angle}deg` } as React.CSSProperties) : undefined}
-      className={`group flex shrink-0 items-center gap-2 px-2 py-1.5 text-left text-sm ${horizontal ? 'nv-ws-card rounded-lg' : 'w-full rounded-md'} ${
-        active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'
+      style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone, background: tone, color: inkOn(tone) } as React.CSSProperties) : undefined}
+      className={`group flex shrink-0 items-center text-left text-sm ${card
+        ? `nv-ws-card rounded-lg ${label === 'icon' ? 'p-0' : label === 'both' ? 'gap-1.5 py-0.5 pl-0.5 pr-2' : 'px-2.5 py-1'} ${active ? 'font-semibold' : ''}`
+        : `gap-2 px-2 py-1.5 ${horizontal ? 'rounded-md' : 'w-full rounded-md'} ${active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       aria-label={w.name}
       data-active={active || undefined}
     >
       {label !== 'name' && (
-        <span className={`shrink-0 transition-opacity duration-150 ${active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
-          <WorkspaceIcon ws={w} size={ICON} />
+        <span className={`flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
+          <WorkspaceIcon ws={w} size={card ? (label === 'icon' ? CARD_ICON : ICON + 4) : ICON} />
         </span>
       )}
       {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}

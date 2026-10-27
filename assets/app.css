@@ -165,14 +165,15 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
    用独立的 rotate/translate 属性，不和拖拽排序 FLIP 用的 transform 冲突 */
 .nv-ws-card {
   position: relative;
-  background: var(--color-kumo-elevated);
-  box-shadow: 0 1px 2px rgb(0 0 0 / .08), 0 0 0 1px var(--color-kumo-line);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 0 0 1px rgb(0 0 0 / .06);
   rotate: var(--nv-tilt, 0deg);
   transform-origin: 50% 100%;
   transition: rotate .15s ease-out, translate .15s ease-out, box-shadow .15s ease-out, color .15s;
 }
-.nv-ws-card[data-active] { z-index: 20; rotate: 0deg; box-shadow: 0 2px 6px rgb(0 0 0 / .12), 0 0 0 1px var(--color-kumo-line); }
-.nv-ws-card:hover, .nv-ws-card:focus-visible { z-index: 30; rotate: 0deg; translate: 0 -2px; box-shadow: 0 4px 10px rgb(0 0 0 / .14), 0 0 0 1px var(--color-kumo-line); }
+.nv-ws-card[data-active] { z-index: 20; rotate: 0deg; box-shadow: 0 0 0 2px var(--color-kumo-base), 0 0 0 4px var(--nv-tone), 0 3px 8px rgb(0 0 0 / .18); }
+.nv-ws-card:hover, .nv-ws-card:focus-visible { z-index: 30; rotate: 0deg; translate: 0 -2px; }
+.nv-ws-card:hover:not([data-active]), .nv-ws-card:focus-visible:not([data-active]) { box-shadow: 0 4px 10px rgb(0 0 0 / .2), 0 0 0 1px rgb(0 0 0 / .06); }
 @media (prefers-reduced-motion: reduce) { .nv-ws-card { transition: none; } }
 
 /* 页面背景：纯色与图片遮罩（设置 → 外观 → 背景） */
