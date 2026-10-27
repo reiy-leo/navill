@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Couleur de tiroir aléatoire",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "Les nouveaux tiroirs reçoivent automatiquement une couleur au hasard, sans choix",
  "所有抽屉随机换色": "Couleurs aléatoires pour tous les tiroirs",
- "给现有的每个抽屉随机指定一个颜色": "Donne une couleur aléatoire à chaque tiroir existant"
+ "给现有的每个抽屉随机指定一个颜色": "Donne une couleur aléatoire à chaque tiroir existant",
+ "新建分区": "Nouvelle section",
+ "新分区": "Nouvelle section",
+ "新建分区{0}": "Section {0} créée",
+ "解散分区{0}": "Section {0} dissoute",
+ "解散分区「{0}」？": "Dissoudre la section « {0} » ?",
+ "分区会去掉，其中的抽屉留在工作区里。": "La section disparaît. Ses tiroirs restent dans l’espace de travail.",
+ "分区名称": "Nom de la section",
+ "展开分区": "Déplier la section",
+ "折叠分区": "Replier la section",
+ "上移": "Monter",
+ "下移": "Descendre",
+ "拖抽屉到这里": "Glissez des tiroirs ici",
+ "{0} 个抽屉": "{0} tiroirs"
 }

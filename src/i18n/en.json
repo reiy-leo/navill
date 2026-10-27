@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Random drawer color",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "New drawers get a random color automatically, with no color to pick",
  "所有抽屉随机换色": "Randomize all drawer colors",
- "给现有的每个抽屉随机指定一个颜色": "Give every existing drawer a random color"
+ "给现有的每个抽屉随机指定一个颜色": "Give every existing drawer a random color",
+ "新建分区": "New section",
+ "新分区": "New section",
+ "新建分区{0}": "Created section {0}",
+ "解散分区{0}": "Dissolved section {0}",
+ "解散分区「{0}」？": "Dissolve section “{0}”?",
+ "分区会去掉，其中的抽屉留在工作区里。": "The section goes away. Its drawers stay in the workspace.",
+ "分区名称": "Section name",
+ "展开分区": "Expand section",
+ "折叠分区": "Collapse section",
+ "上移": "Move up",
+ "下移": "Move down",
+ "拖抽屉到这里": "Drag drawers here",
+ "{0} 个抽屉": "{0} drawers"
 }

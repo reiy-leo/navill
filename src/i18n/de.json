@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Zufällige Schubladenfarbe",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "Neue Schubladen bekommen automatisch eine zufällige Farbe, ohne Auswahl",
  "所有抽屉随机换色": "Alle Schubladen zufällig färben",
- "给现有的每个抽屉随机指定一个颜色": "Jeder vorhandenen Schublade eine zufällige Farbe geben"
+ "给现有的每个抽屉随机指定一个颜色": "Jeder vorhandenen Schublade eine zufällige Farbe geben",
+ "新建分区": "Neuer Abschnitt",
+ "新分区": "Neuer Abschnitt",
+ "新建分区{0}": "Abschnitt {0} erstellt",
+ "解散分区{0}": "Abschnitt {0} aufgelöst",
+ "解散分区「{0}」？": "Abschnitt „{0}“ auflösen?",
+ "分区会去掉，其中的抽屉留在工作区里。": "Der Abschnitt verschwindet, seine Schubladen bleiben im Arbeitsbereich.",
+ "分区名称": "Abschnittsname",
+ "展开分区": "Abschnitt aufklappen",
+ "折叠分区": "Abschnitt zuklappen",
+ "上移": "Nach oben",
+ "下移": "Nach unten",
+ "拖抽屉到这里": "Schubladen hierher ziehen",
+ "{0} 个抽屉": "{0} Schubladen"
 }

@@ -73,14 +73,15 @@ function lucideFromEmoji(emoji?: string): string {
   return 'folder';
 }
 
-export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'> & { glyph?: string }; size?: number; style?: 'emoji' | 'lucide' | 'char' }) {
+/** plain：不画色块，字形用当前文字颜色（放在已着色的卡片里时用） */
+export function WorkspaceIcon({ ws, size = 24, style, plain = false }: { ws: Pick<Workspace, 'name' | 'emoji' | 'lucide' | 'color'> & { glyph?: string }; size?: number; style?: 'emoji' | 'lucide' | 'char'; plain?: boolean }) {
   const global = useIconStyle();
   const mode = style ?? global;
   const bg = useTone(ws.color) ?? '#8d8d86';
   const lucide = mode === 'lucide' ? ws.lucide || lucideFromEmoji(ws.emoji) : undefined;
   if (lucide) {
     return (
-      <span className="inline-flex shrink-0 items-center justify-center rounded-md" style={{ width: size, height: size, background: bg, color: inkOn(bg) }}>
+      <span className="inline-flex shrink-0 items-center justify-center rounded-md" style={{ width: size, height: size, background: plain ? 'transparent' : bg, color: plain ? undefined : inkOn(bg) }}>
         <DynamicIcon name={lucide as IconName} size={Math.round(size * 0.6)} strokeWidth={2} />
       </span>
     );
@@ -91,8 +92,8 @@ export function WorkspaceIcon({ ws, size = 24, style }: { ws: Pick<Workspace, 'n
       className="inline-flex shrink-0 items-center justify-center rounded-md font-semibold"
       style={{
         width: size, height: size, fontSize: emoji ? size * (iconCount(emoji) > 1 ? 0.46 : 0.7) : size * (Array.from(charIcon(ws)).length > 1 ? 0.36 : 0.5),
-        background: emoji ? 'transparent' : bg,
-        color: emoji ? undefined : inkOn(bg),
+        background: emoji || plain ? 'transparent' : bg,
+        color: emoji || plain ? undefined : inkOn(bg),
       }}
     >
       {tight(emoji ? iconParts(emoji) : Array.from(charIcon(ws)), emoji ? '-0.16em' : '-0.08em')}

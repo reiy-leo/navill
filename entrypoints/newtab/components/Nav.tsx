@@ -7,7 +7,7 @@ import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, upd
 import { workspaceVisible } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
-import { inkOn, useTone } from '@/src/ui/colors';
+import { useTone } from '@/src/ui/colors';
 import { WorkspaceIcon } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { AppMenu } from './AppMenu';
@@ -252,7 +252,7 @@ function NavItem({
       }}
       data-flip={w.id}
       data-flip-ws=""
-      style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone, background: tone, color: inkOn(tone) } as React.CSSProperties) : undefined}
+      style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone } as React.CSSProperties) : undefined}
       className={`group flex shrink-0 items-center text-left text-sm ${card
         ? `nv-ws-card rounded-lg ${label === 'icon' ? 'p-0' : label === 'both' ? 'gap-1.5 py-0.5 pl-0.5 pr-2' : 'px-2.5 py-1'} ${active ? 'font-semibold' : ''}`
         : `gap-2 px-2 py-1.5 ${horizontal ? 'rounded-md' : 'w-full rounded-md'} ${active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`
@@ -262,7 +262,7 @@ function NavItem({
     >
       {label !== 'name' && (
         <span className={`flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
-          <WorkspaceIcon ws={w} size={card ? (label === 'icon' ? CARD_ICON : ICON + 4) : ICON} />
+          <WorkspaceIcon ws={w} plain={card} size={card ? (label === 'icon' ? CARD_ICON : ICON) : ICON} />
         </span>
       )}
       {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}

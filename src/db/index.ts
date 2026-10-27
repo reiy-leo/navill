@@ -17,7 +17,10 @@ export interface Workspace {
   /** 字符图标：用户输入的 1–2 个字；为空时用名称首字 */ glyph?: string;
   color?: string; description?: string; order: number; viewMode: ViewMode;
   source: WorkspaceSource; sourceNodeId?: string; adult?: boolean; createdAt: number; updatedAt: number;
+  /** 分区：把抽屉分组，按数组顺序显示。存在工作区里（不单独建表），旧版本同步时也会原样保留 */
+  sections?: Section[];
 }
+export interface Section { id: string; name: string }
 export interface Drawer {
   id: string; workspaceId: string; name: string; path: string[]; order: number; collapsed: boolean;
   viewMode?: ViewMode; sortMode?: SortMode; adult?: boolean; sourceNodeId?: string;
@@ -25,6 +28,7 @@ export interface Drawer {
   /** 说明：悬停抽屉名称时显示 */ description?: string;
   /** 归档时间：归档的抽屉在工作区隐藏，集中到「归档」 */ archivedAt?: number; updatedAt: number;
   /** 内容区高度（px），底部拖拽手柄调整；为空时自适应。collapsed 已停用 */ height?: number;
+  /** 所在分区（工作区 sections 里的 id）；为空或分区已不存在时不属于任何分区 */ sectionId?: string;
 }
 /** 关联链接：同一个书签的其他方面（GitHub、文档、社交账号…） */
 export interface BookmarkLink { url: string; title?: string }

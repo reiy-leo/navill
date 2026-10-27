@@ -6,7 +6,7 @@ import { insertAfter } from './dnd';
  * 周围的项用 FLIP 平滑滑过去；松手落在占位处，取消则回到原位。
  * 仍用原生 HTML5 拖放（dataTransfer 照常带类型，导航栏等其它放置目标不受影响）。
  */
-export type SortKind = 'drawer' | 'bookmark' | 'workspace';
+export type SortKind = 'drawer' | 'bookmark' | 'workspace' | 'section';
 
 interface Drag { kind: SortKind; id: string; from: string; payload?: unknown }
 interface State { drag: Drag | null; over: { list: string; index: number } | null }

@@ -74,7 +74,7 @@ export async function moveDrawer(db: NavillDB, id: string, workspaceId: string) 
     const ws = await db.workspaces.get(workspaceId);
     log({ kind: 'move', targetType: 'drawer', targetId: id, summary: tr('抽屉{0}移动到工作区{1}', q(d.name), q(ws?.name)) });
     const siblings = await db.drawers.where('workspaceId').equals(workspaceId).toArray();
-    await patch<Drawer>(db, 'drawers', id, { workspaceId, order: siblings.reduce((m, x) => Math.max(m, x.order), -1) + 1 });
+    await patch<Drawer>(db, 'drawers', id, { workspaceId, sectionId: undefined, order: siblings.reduce((m, x) => Math.max(m, x.order), -1) + 1 });
     const ps = await db.placements.where('drawerId').equals(id).toArray();
     for (const p of ps) await patch<Placement>(db, 'placements', p.id, { workspaceId });
   });

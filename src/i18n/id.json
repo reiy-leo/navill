@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Warna laci acak",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "Laci baru otomatis mendapat warna acak, tanpa memilih",
  "所有抽屉随机换色": "Acak warna semua laci",
- "给现有的每个抽屉随机指定一个颜色": "Beri setiap laci yang ada warna acak"
+ "给现有的每个抽屉随机指定一个颜色": "Beri setiap laci yang ada warna acak",
+ "新建分区": "Bagian baru",
+ "新分区": "Bagian baru",
+ "新建分区{0}": "Bagian {0} dibuat",
+ "解散分区{0}": "Bagian {0} dibubarkan",
+ "解散分区「{0}」？": "Bubarkan bagian “{0}”?",
+ "分区会去掉，其中的抽屉留在工作区里。": "Bagian ini hilang. Lacinya tetap di ruang kerja.",
+ "分区名称": "Nama bagian",
+ "展开分区": "Bentangkan bagian",
+ "折叠分区": "Ciutkan bagian",
+ "上移": "Naikkan",
+ "下移": "Turunkan",
+ "拖抽屉到这里": "Seret laci ke sini",
+ "{0} 个抽屉": "{0} laci"
 }

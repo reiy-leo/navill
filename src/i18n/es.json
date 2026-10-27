@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Color aleatorio para cajones",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "Los cajones nuevos reciben un color al azar automáticamente, sin elegirlo",
  "所有抽屉随机换色": "Colores aleatorios para todos los cajones",
- "给现有的每个抽屉随机指定一个颜色": "Da un color aleatorio a cada cajón existente"
+ "给现有的每个抽屉随机指定一个颜色": "Da un color aleatorio a cada cajón existente",
+ "新建分区": "Nueva sección",
+ "新分区": "Nueva sección",
+ "新建分区{0}": "Sección {0} creada",
+ "解散分区{0}": "Sección {0} deshecha",
+ "解散分区「{0}」？": "¿Deshacer la sección «{0}»?",
+ "分区会去掉，其中的抽屉留在工作区里。": "La sección desaparece. Sus cajones se quedan en el espacio de trabajo.",
+ "分区名称": "Nombre de la sección",
+ "展开分区": "Expandir sección",
+ "折叠分区": "Contraer sección",
+ "上移": "Subir",
+ "下移": "Bajar",
+ "拖抽屉到这里": "Arrastra cajones aquí",
+ "{0} 个抽屉": "{0} cajones"
 }

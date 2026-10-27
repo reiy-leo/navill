@@ -8,3 +8,4 @@ export * from './mode';
 export * from './tag';
 export * from './bookmark';
 export * from './counts';
+export * from './section';

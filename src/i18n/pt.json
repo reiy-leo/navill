@@ -672,5 +672,18 @@
  "抽屉颜色随机": "Cor aleatória para gavetas",
  "打开后，新建抽屉不用选颜色，自动随机给一个": "Novas gavetas recebem uma cor aleatória automaticamente, sem escolher",
  "所有抽屉随机换色": "Cores aleatórias em todas as gavetas",
- "给现有的每个抽屉随机指定一个颜色": "Dá uma cor aleatória a cada gaveta existente"
+ "给现有的每个抽屉随机指定一个颜色": "Dá uma cor aleatória a cada gaveta existente",
+ "新建分区": "Nova seção",
+ "新分区": "Nova seção",
+ "新建分区{0}": "Seção {0} criada",
+ "解散分区{0}": "Seção {0} desfeita",
+ "解散分区「{0}」？": "Desfazer a seção “{0}”?",
+ "分区会去掉，其中的抽屉留在工作区里。": "A seção some. As gavetas dela ficam no espaço de trabalho.",
+ "分区名称": "Nome da seção",
+ "展开分区": "Expandir seção",
+ "折叠分区": "Recolher seção",
+ "上移": "Mover para cima",
+ "下移": "Mover para baixo",
+ "拖抽屉到这里": "Arraste gavetas para cá",
+ "{0} 个抽屉": "{0} gavetas"
 }
