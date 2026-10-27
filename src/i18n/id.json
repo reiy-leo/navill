@@ -685,5 +685,11 @@
  "上移": "Naikkan",
  "下移": "Turunkan",
  "拖抽屉到这里": "Seret laci ke sini",
- "{0} 个抽屉": "{0} laci"
+ "{0} 个抽屉": "{0} laci",
+ "分区{0}移动到工作区{1}": "Bagian {0} dipindah ke ruang kerja {1}",
+ "归档分区{0}": "Bagian {0} diarsipkan",
+ "移动分区到工作区…": "Pindahkan bagian ke ruang kerja…",
+ "把分区「{0}」分身到工作区…": "Buat alias bagian “{0}” di ruang kerja…",
+ "归档分区「{0}」？": "Arsipkan bagian “{0}”?",
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Semua laci di dalamnya diarsipkan dan bagian dihapus. Laci bisa dipulihkan dari arsip nanti."
 }

@@ -685,5 +685,11 @@
  "上移": "Subir",
  "下移": "Bajar",
  "拖抽屉到这里": "Arrastra cajones aquí",
- "{0} 个抽屉": "{0} cajones"
+ "{0} 个抽屉": "{0} cajones",
+ "分区{0}移动到工作区{1}": "Sección {0} movida al espacio de trabajo {1}",
+ "归档分区{0}": "Sección {0} archivada",
+ "移动分区到工作区…": "Mover sección al espacio de trabajo…",
+ "把分区「{0}」分身到工作区…": "Crear alias de la sección «{0}» en el espacio de trabajo…",
+ "归档分区「{0}」？": "¿Archivar la sección «{0}»?",
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Todos sus cajones se archivan y la sección desaparece. Puedes restaurar los cajones desde el archivo."
 }

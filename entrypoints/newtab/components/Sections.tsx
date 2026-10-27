@@ -1,7 +1,7 @@
-import { ChevronDown, ChevronRight, ChevronUp, Package } from 'lucide-react';
+import { Archive, ChevronDown, ChevronRight, ChevronUp, Copy, Move, Package } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { db, type Section, type Workspace } from '@/src/db';
-import { dissolveSection, renameSection, reorderSections, shiftSection } from '@/src/lib/store';
+import { archiveSection, cloneSectionTo, dissolveSection, moveSection, renameSection, reorderSections, shiftSection } from '@/src/lib/store';
 import type { DrawerData } from '@/src/lib/view';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
@@ -99,6 +99,29 @@ const SectionRegion = memo(function SectionRegion({
       { divider: true },
       { label: tr('上移'), icon: ChevronUp, disabled: index === 0, onSelect: () => void shiftSection(db, workspace.id, section.id, -1) },
       { label: tr('下移'), icon: ChevronDown, disabled: index === count - 1, onSelect: () => void shiftSection(db, workspace.id, section.id, 1) },
+      { divider: true },
+      {
+        label: tr('移动到…'), icon: Move,
+        onSelect: async () => {
+          const t = await dialogs.pickTarget({ title: tr('移动分区到工作区…'), workspacesOnly: true });
+          if (t && t.workspaceId !== workspace.id) await moveSection(db, workspace.id, section.id, t.workspaceId);
+        },
+      },
+      {
+        label: tr('分身到…'), icon: Copy,
+        onSelect: async () => {
+          const t = await dialogs.pickTarget({ title: tr('把分区「{0}」分身到工作区…', section.name), workspacesOnly: true });
+          if (t && t.workspaceId !== workspace.id) await cloneSectionTo(db, workspace.id, section.id, t.workspaceId);
+        },
+      },
+      {
+        label: tr('归档'), icon: Archive,
+        onSelect: async () => {
+          if (await dialogs.confirm({ title: tr('归档分区「{0}」？', section.name), description: tr('里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。'), okText: tr('归档') })) {
+            await archiveSection(db, workspace.id, section.id);
+          }
+        },
+      },
       { divider: true },
       {
         label: tr('解散'), icon: Package,

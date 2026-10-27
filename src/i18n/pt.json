@@ -459,7 +459,7 @@
  "这个书签还有 {0} 个分身。": "Este favorito tem {0} espelhos.",
  "仅删此处，由一个分身接任原书签": "Excluir só aqui; um espelho assume o lugar do original",
  "删除原书签及全部分身": "Excluir o original e todos os espelhos",
- "分身到…": "Espelhar em…",
+ "分身到…": "Criar espelho em…",
  "在新标签页打开": "Abrir em nova guia",
  "在源抽屉「{0}」中显示": "Mostrar na gaveta de origem “{0}”",
  "彻底删除": "Excluir permanentemente",
@@ -685,5 +685,11 @@
  "上移": "Mover para cima",
  "下移": "Mover para baixo",
  "拖抽屉到这里": "Arraste gavetas para cá",
- "{0} 个抽屉": "{0} gavetas"
+ "{0} 个抽屉": "{0} gavetas",
+ "分区{0}移动到工作区{1}": "Seção {0} movida para o espaço de trabalho {1}",
+ "归档分区{0}": "Seção {0} arquivada",
+ "移动分区到工作区…": "Mover seção para o espaço de trabalho…",
+ "把分区「{0}」分身到工作区…": "Criar espelho da seção “{0}” no espaço de trabalho…",
+ "归档分区「{0}」？": "Arquivar a seção “{0}”?",
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Todas as gavetas são arquivadas e a seção é removida. Você pode restaurar as gavetas pelo arquivo."
 }

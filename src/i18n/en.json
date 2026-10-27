@@ -685,5 +685,11 @@
  "上移": "Move up",
  "下移": "Move down",
  "拖抽屉到这里": "Drag drawers here",
- "{0} 个抽屉": "{0} drawers"
+ "{0} 个抽屉": "{0} drawers",
+ "分区{0}移动到工作区{1}": "Moved section {0} to workspace {1}",
+ "归档分区{0}": "Archived section {0}",
+ "移动分区到工作区…": "Move section to workspace…",
+ "把分区「{0}」分身到工作区…": "Alias section “{0}” to workspace…",
+ "归档分区「{0}」？": "Archive section “{0}”?",
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "All its drawers are archived and the section is removed. You can restore the drawers from the archive later."
 }
