@@ -661,5 +661,16 @@
  "最近 star 的仓库都已经在 Navill 里了。": "Deine letzten Sterne sind schon alle in Navill.",
  "找不到 GitHub 用户「{0}」（404 未找到）": "GitHub-Benutzer „{0}“ nicht gefunden (404 Nicht gefunden)",
  "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Zu viele GitHub-Anfragen. Versuche es später erneut ({0} Ratenlimit).",
- "读取 GitHub star 失败：{0}": "GitHub-Sterne konnten nicht geladen werden: {0}"
+ "读取 GitHub star 失败：{0}": "GitHub-Sterne konnten nicht geladen werden: {0}",
+ "颜色随机": "Zufällige Farbe",
+ "这个风格不显示抽屉颜色，换回「色调卡片」才能看到": "Dieser Stil zeigt keine Schubladenfarben. Wechsle zurück zu „Getönte Karten“, um sie zu sehen.",
+ "给所有抽屉随机换颜色？": "Allen Schubladen eine zufällige Farbe geben?",
+ "每个抽屉会随机拿到一个新颜色，原来的颜色不保留。": "Jede Schublade bekommt eine neue zufällige Farbe. Die alten Farben gehen verloren.",
+ "随机换色": "Zufällig färben",
+ "给 {0} 个抽屉随机换了颜色": "{0} Schubladen haben eine zufällige Farbe bekommen",
+ "不显示抽屉颜色": "Schubladenfarben werden nicht angezeigt",
+ "抽屉颜色随机": "Zufällige Schubladenfarbe",
+ "打开后，新建抽屉不用选颜色，自动随机给一个": "Neue Schubladen bekommen automatisch eine zufällige Farbe, ohne Auswahl",
+ "所有抽屉随机换色": "Alle Schubladen zufällig färben",
+ "给现有的每个抽屉随机指定一个颜色": "Jeder vorhandenen Schublade eine zufällige Farbe geben"
 }

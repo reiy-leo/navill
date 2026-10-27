@@ -19,6 +19,16 @@ export async function createDrawer(db: NavillDB, workspaceId: string, name: stri
   });
 }
 
+/** 给所有抽屉（含归档的）各随机指定一个颜色；pick 返回一个颜色值。返回改了几个 */
+export async function randomizeDrawerColors(db: NavillDB, pick: () => string): Promise<number> {
+  return logged(db, async (log) => {
+    const all = await db.drawers.toArray();
+    for (const d of all) await patch<Drawer>(db, 'drawers', d.id, { color: pick() });
+    if (all.length) log({ kind: 'edit', targetType: 'drawer', targetId: all[0]!.id, summary: tr('给 {0} 个抽屉随机换了颜色', all.length) });
+    return all.length;
+  });
+}
+
 export async function renameDrawer(db: NavillDB, id: string, name: string) {
   const n = name.trim();
   if (!n) return;

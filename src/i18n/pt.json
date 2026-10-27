@@ -661,5 +661,16 @@
  "最近 star 的仓库都已经在 Navill 里了。": "Suas estrelas recentes já estão todas no Navill.",
  "找不到 GitHub 用户「{0}」（404 未找到）": "Usuário do GitHub “{0}” não encontrado (404 Não encontrado)",
  "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Muitas solicitações ao GitHub. Tente mais tarde ({0} limite de taxa).",
- "读取 GitHub star 失败：{0}": "Não foi possível carregar as estrelas do GitHub: {0}"
+ "读取 GitHub star 失败：{0}": "Não foi possível carregar as estrelas do GitHub: {0}",
+ "颜色随机": "Cor aleatória",
+ "这个风格不显示抽屉颜色，换回「色调卡片」才能看到": "Este estilo não mostra as cores das gavetas. Volte para “Cartões coloridos” para vê-las.",
+ "给所有抽屉随机换颜色？": "Dar uma cor aleatória a todas as gavetas?",
+ "每个抽屉会随机拿到一个新颜色，原来的颜色不保留。": "Cada gaveta recebe uma nova cor aleatória. As cores antigas não são mantidas.",
+ "随机换色": "Cores aleatórias",
+ "给 {0} 个抽屉随机换了颜色": "{0} gavetas receberam uma cor aleatória",
+ "不显示抽屉颜色": "Não mostra as cores das gavetas",
+ "抽屉颜色随机": "Cor aleatória para gavetas",
+ "打开后，新建抽屉不用选颜色，自动随机给一个": "Novas gavetas recebem uma cor aleatória automaticamente, sem escolher",
+ "所有抽屉随机换色": "Cores aleatórias em todas as gavetas",
+ "给现有的每个抽屉随机指定一个颜色": "Dá uma cor aleatória a cada gaveta existente"
 }

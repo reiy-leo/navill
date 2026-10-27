@@ -22,6 +22,9 @@ export const COLOR_COLUMNS: PresetColor[][] = [
 ];
 
 export const PRESET_COLORS: PresetColor[] = COLOR_COLUMNS.flat();
+
+/** 从色板里随机取一个颜色（存 light 值） */
+export const randomPresetColor = () => PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)]!.light;
 const BY_LIGHT = new Map([...LEGACY_COLORS, ...PRESET_COLORS].map((c) => [c.light.toLowerCase(), c]));
 
 export const presetOf = (hex?: string) => (hex ? BY_LIGHT.get(hex.toLowerCase()) : undefined);

@@ -1,7 +1,7 @@
 import { InfoTip } from '@/src/ui/InfoTip';
 import { localizeNames } from '@/src/lib/presetNames';
 import { Badge, Banner, Button, Checkbox, Input, Select, Switch, Tabs } from '@cloudflare/kumo';
-import { Bell, CloudCog, Database, Download, FileUp, Keyboard, Layers, List, LogOut, type LucideIcon, Palette, Play, Plus, RefreshCw, Settings2, Smile, Tag, Trash2 } from 'lucide-react';
+import { Bell, CloudCog, Database, Dices, Download, FileUp, Keyboard, Layers, List, LogOut, type LucideIcon, Palette, Play, Plus, RefreshCw, Settings2, Smile, Tag, Trash2 } from 'lucide-react';
 import { GoogleLogo } from '@/src/ui/brandIcons';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -9,11 +9,12 @@ import { MODE_DEFAULT, db, type Mode } from '@/src/db';
 import { ModeIcon, modeLook } from '@/src/ui/ModeSwitcher';
 import { hasBingPermission, requestBingPermission } from '@/src/lib/bing';
 import { IconBox } from '@/src/ui/ColorPicker';
+import { randomPresetColor } from '@/src/ui/colors';
 import { LucidePicker } from '@/src/ui/LucidePicker';
 import { exportBackup, parseBackup, restoreBackup } from '@/src/lib/io/backup';
 import { exportNetscapeHtml } from '@/src/lib/io/html';
 import type { Settings as S, ToastEvent, ToastPosition, ToastStyle } from '@/src/lib/settings';
-import { clearOpenEvents, clearVisits, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, renameMode, renameTag, setModeLook, setShowAdult, setVisible } from '@/src/lib/store';
+import { clearOpenEvents, clearVisits, randomizeDrawerColors, seedFromHistory, parseWorkspaceIcons, createMode, createTag, deleteMode, deleteTag, renameMode, renameTag, setModeLook, setShowAdult, setVisible } from '@/src/lib/store';
 import { isConfigured, redirectUri } from '@/src/lib/sync/auth';
 import { connectWebdavAndLog, deleteRemoteData, disconnectSync, signInAndLog } from '@/src/lib/sync/engine';
 import { syncProviderItem, type SyncProvider } from '@/src/lib/sync/backend';
@@ -166,7 +167,19 @@ function General() {
 
 function Look() {
   const { settings, updateSettings } = useApp();
+  const dialogs = useDialogs();
   const set = (p: Partial<S>) => void updateSettings(p);
+  const noColor = settings.surface !== 'tint';
+  // 磨砂玻璃和无框漂浮不显示抽屉和工作区的颜色，切过去时提醒一下
+  const pickSurface = (surface: S['surface']) => {
+    set({ surface });
+    if (surface !== 'tint' && settings.surface === 'tint') toast(tr('这个风格不显示抽屉颜色，换回「色调卡片」才能看到'), { type: 'info' });
+  };
+  const randomizeAll = async () => {
+    if (!(await dialogs.confirm({ title: tr('给所有抽屉随机换颜色？'), description: tr('每个抽屉会随机拿到一个新颜色，原来的颜色不保留。'), okText: tr('随机换色') }))) return;
+    const n = await randomizeDrawerColors(db, randomPresetColor);
+    toast(tr('给 {0} 个抽屉随机换了颜色', n));
+  };
   // Bing 图片需要访问 bing.com：选择时申请权限，被拒绝就不切换
   const pickBackground = async (background: S['background']) => {
     if (background === 'bing' && !(await hasBingPermission()) && !(await requestBingPermission())) return;
@@ -176,7 +189,7 @@ function Look() {
     <div>
       <Section title={tr('主题')}>
       <Row label={tr('主题')}><Pick label={tr('主题')} value={settings.theme} items={{ system: tr('跟随系统'), light: tr('浅色'), dark: tr('深色') }} onChange={(theme) => set({ theme })} /></Row>
-      <Row label={tr('卡片风格')}><Pick label={tr('卡片风格')} value={settings.surface} items={{ tint: tr('色调卡片'), glass: tr('磨砂玻璃'), bare: tr('无框漂浮') }} onChange={(surface) => set({ surface })} /></Row>
+      <Row label={tr('卡片风格')} hint={noColor ? tr('不显示抽屉颜色') : undefined}><Pick label={tr('卡片风格')} value={settings.surface} items={{ tint: tr('色调卡片'), glass: tr('磨砂玻璃'), bare: tr('无框漂浮') }} onChange={pickSurface} /></Row>
       </Section>
       <Section title={tr('背景')}>
       <Row label={tr('背景')}><Pick label={tr('背景')} value={settings.background} items={{ plain: tr('纯色'), gradient: tr('颜色渐变'), bing: tr('Bing 每日图片') }} onChange={(background) => void pickBackground(background)} /></Row>
@@ -192,6 +205,12 @@ function Look() {
       <Section title={tr('抽屉')}>
       <Row label={tr('抽屉名显示')}><Pick label={tr('抽屉名显示')} value={settings.drawerName} items={{ full: tr('完整路径'), last: tr('仅末级') }} onChange={(drawerName) => set({ drawerName })} /></Row>
       <Row label={tr('抽屉标题栏')}><Pick label={tr('抽屉标题栏')} value={settings.drawerHead} items={{ peek: tr('悬停显示'), show: tr('始终显示') }} onChange={(drawerHead) => set({ drawerHead })} /></Row>
+      <Row label={tr('抽屉颜色随机')} info={tr('打开后，新建抽屉不用选颜色，自动随机给一个')}>
+        <Switch checked={settings.randomDrawerColor} aria-label={tr('抽屉颜色随机')} onClick={() => set({ randomDrawerColor: !settings.randomDrawerColor })} />
+      </Row>
+      <Row label={tr('所有抽屉随机换色')} info={tr('给现有的每个抽屉随机指定一个颜色')}>
+        <Button size="sm" icon={<Dices size="1em" />} onClick={() => void randomizeAll()}>{tr('随机换色')}</Button>
+      </Row>
       </Section>
     </div>
   );

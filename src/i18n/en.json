@@ -661,5 +661,16 @@
  "最近 star 的仓库都已经在 Navill 里了。": "Your recent stars are all in Navill already.",
  "找不到 GitHub 用户「{0}」（404 未找到）": "GitHub user “{0}” not found (404 Not Found)",
  "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Too many GitHub requests. Try again later ({0} rate limited).",
- "读取 GitHub star 失败：{0}": "Couldn't load GitHub stars: {0}"
+ "读取 GitHub star 失败：{0}": "Couldn't load GitHub stars: {0}",
+ "颜色随机": "Random color",
+ "这个风格不显示抽屉颜色，换回「色调卡片」才能看到": "This style doesn't show drawer colors. Switch back to “Tinted cards” to see them.",
+ "给所有抽屉随机换颜色？": "Give every drawer a random color?",
+ "每个抽屉会随机拿到一个新颜色，原来的颜色不保留。": "Each drawer gets a new random color. The old colors are not kept.",
+ "随机换色": "Randomize colors",
+ "给 {0} 个抽屉随机换了颜色": "Gave {0} drawers a random color",
+ "不显示抽屉颜色": "Drawer colors not shown",
+ "抽屉颜色随机": "Random drawer color",
+ "打开后，新建抽屉不用选颜色，自动随机给一个": "New drawers get a random color automatically, with no color to pick",
+ "所有抽屉随机换色": "Randomize all drawer colors",
+ "给现有的每个抽屉随机指定一个颜色": "Give every existing drawer a random color"
 }

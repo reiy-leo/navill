@@ -38,6 +38,8 @@ export interface Settings {
   onboarding: OnboardingState;
   /** 主页「GitHub Star」读这个用户的公开 star；空 = 未设置（随设置同步） */
   githubUser: string;
+  /** 新建抽屉时随机给一个色板颜色，不能手选（随设置同步） */
+  randomDrawerColor: boolean;
 }
 
 /** 新手任务：done 为任务 id → 完成时间；hidden 为用户关掉了卡片 */
@@ -76,6 +78,7 @@ export const DEFAULT_SETTINGS: Settings = {
   toast: DEFAULT_TOAST,
   onboarding: { done: {}, hidden: false },
   githubUser: '',
+  randomDrawerColor: false,
 };
 
 export const settingsItem = storage.defineItem<Settings>('local:settings', { fallback: DEFAULT_SETTINGS });

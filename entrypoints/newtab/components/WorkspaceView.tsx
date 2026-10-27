@@ -17,6 +17,7 @@ import { Bento } from './Bento';
 import { effectiveView } from '@/src/lib/view';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useShared } from '@/src/ui/useShared';
+import { randomPresetColor } from '@/src/ui/colors';
 import { NewDrawerPopover } from '@/src/ui/NewDrawerPopover';
 import { useFlip, useSortable } from './sortable';
 
@@ -54,7 +55,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const createNew = async (name: string, color: string) => {
     const vis = await dialogs.askVisibility(settings.currentModeId, tr('抽屉'));
     if (!vis) return;
-    await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, color !== base ? color : undefined);
+    const c = settings.randomDrawerColor ? randomPresetColor() : color !== base ? color : undefined;
+    await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, c);
   };
   const newBookmark = async () => {
     const nb = await dialogs.newBookmark();
@@ -93,7 +95,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus size="1em" />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
         <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size="1em" />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
         </div>
-        <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} onCreate={(n, c) => void createNew(n, c)} />
+        <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} random={settings.randomDrawerColor} onCreate={(n, c) => void createNew(n, c)} />
       </div>
 
       {top.length === 0 && drawers.length === 0 ? (

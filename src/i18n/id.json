@@ -661,5 +661,16 @@
  "最近 star 的仓库都已经在 Navill 里了。": "Semua repo yang baru kamu beri bintang sudah ada di Navill.",
  "找不到 GitHub 用户「{0}」（404 未找到）": "Pengguna GitHub “{0}” tidak ditemukan (404 Tidak Ditemukan)",
  "GitHub 请求太频繁，过一会儿再试（{0} 请求受限）": "Terlalu banyak permintaan ke GitHub. Coba lagi nanti ({0} batas permintaan).",
- "读取 GitHub star 失败：{0}": "Gagal memuat bintang GitHub: {0}"
+ "读取 GitHub star 失败：{0}": "Gagal memuat bintang GitHub: {0}",
+ "颜色随机": "Warna acak",
+ "这个风格不显示抽屉颜色，换回「色调卡片」才能看到": "Gaya ini tidak menampilkan warna laci. Kembali ke “Kartu berwarna” untuk melihatnya.",
+ "给所有抽屉随机换颜色？": "Beri semua laci warna acak?",
+ "每个抽屉会随机拿到一个新颜色，原来的颜色不保留。": "Setiap laci mendapat warna acak baru. Warna lama tidak disimpan.",
+ "随机换色": "Acak warna",
+ "给 {0} 个抽屉随机换了颜色": "{0} laci diberi warna acak",
+ "不显示抽屉颜色": "Warna laci tidak ditampilkan",
+ "抽屉颜色随机": "Warna laci acak",
+ "打开后，新建抽屉不用选颜色，自动随机给一个": "Laci baru otomatis mendapat warna acak, tanpa memilih",
+ "所有抽屉随机换色": "Acak warna semua laci",
+ "给现有的每个抽屉随机指定一个颜色": "Beri setiap laci yang ada warna acak"
 }
