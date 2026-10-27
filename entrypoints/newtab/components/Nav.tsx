@@ -261,7 +261,7 @@ function NavItem({
       data-active={active || undefined}
     >
       {label !== 'name' && (
-        <span className={`flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
+        <span className={`${card ? 'nv-ws-ico ' : ''}flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
           <WorkspaceIcon ws={w} plain={card} size={card ? (label === 'icon' ? CARD_ICON : ICON) : ICON} />
         </span>
       )}
