@@ -1,6 +1,8 @@
 import type { AliasGroup, NavillDB } from '@/src/db';
 import { del, put, uid } from './core';
 import { logged, q } from '../log';
+import { createDrawer } from './drawer';
+import { placeDrawerInSection } from './section';
 
 import { tr } from '@/src/i18n';
 /** 如果把 source 挂到 target，会不会形成循环（target 直接或间接挂载了 source 之后又被 source 挂载） */
@@ -64,4 +66,14 @@ export async function detachAlias(db: NavillDB, placementId: string) {
     const copy = await put(db, 'bookmarks', { ...b, id: uid(), openCount: 0, lastOpenedAt: undefined, createdAt: Date.now() });
     await put(db, 'placements', { ...p, bookmarkId: copy.id, isAlias: false });
   });
+}
+
+/** 分身到工作区（或其中某个分区）：那边建一个同名同色的新抽屉，挂载这个抽屉 */
+export async function aliasDrawerTo(db: NavillDB, sourceDrawerId: string, workspaceId: string, sectionId?: string | null) {
+  const src = await db.drawers.get(sourceDrawerId);
+  if (!src) return;
+  const d = await createDrawer(db, workspaceId, src.name, undefined, src.color, src.description);
+  if (sectionId) await placeDrawerInSection(db, d.id, sectionId, []);
+  await mountDrawer(db, sourceDrawerId, d.id);
+  return d;
 }

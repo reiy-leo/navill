@@ -22,7 +22,7 @@ export interface Target { workspaceId: string; drawerId: string | null; name?: s
 
 interface ConfirmOpts { title: string; description?: ReactNode; okText?: string; danger?: boolean }
 interface ChoiceOpts<T extends string> { title: string; description?: ReactNode; choices: Array<{ value: T; label: string; danger?: boolean }> }
-interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 选工作区时也能选它下面的分区 */ sections?: boolean; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
+interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 选工作区时也能选它下面的分区 */ sections?: boolean; /** 工作区行右侧的小字，默认「顶层」 */ topLabel?: string; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
 
 /** 新建结果；工作区另带图标三件套 */
 type CreateResult = { name: string; color: string; description: string; emoji?: string; lucide?: string; glyph?: string };
@@ -216,13 +216,13 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
           const known = new Set(sections.map((x) => x.id));
           const drawers = data.ds.filter((d: Drawer) => d.workspaceId === w.id && !exclude.has(d.id)).sort((a, b) => a.order - b.order);
           const inSec = (id: string | null) => drawers.filter((d) => (id === null ? !d.sectionId || !known.has(d.sectionId) : d.sectionId === id));
-          const pickSections = !!o.sections && o.workspacesOnly;
+          const pickSections = !!o.sections;
           // 分区：工作区名或分区名命中就整组显示；否则只显示命中的抽屉
           const groups = [{ s: null as null | { id: string; name: string }, list: inSec(null) }, ...sections.map((s) => ({ s, list: inSec(s.id) }))]
             .map(({ s, list }) => {
               const secHit = !!s && match(s.name);
               const shown = o.workspacesOnly ? [] : list.filter((d) => wsHit || secHit || match(d.name));
-              const visible = s ? (pickSections ? wsHit || secHit : shown.length > 0) : shown.length > 0;
+              const visible = s ? (pickSections ? wsHit || secHit || shown.length > 0 : shown.length > 0) : shown.length > 0;
               return { s, shown, visible };
             })
             .filter((g) => g.visible);
@@ -238,7 +238,7 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
                 <WorkspaceIcon ws={w} size={20} />
                 <span className="flex-1 truncate">{w.name}</span>
                 {picked(w.id, null) && <Check size={14} className="text-kumo-brand" />}
-                {canTop && !o.workspacesOnly && <span className="text-xs text-kumo-subtle">{tr('顶层')}</span>}
+                {canTop && !o.workspacesOnly && <span className="text-xs text-kumo-subtle">{o.topLabel ?? tr('顶层')}</span>}
               </button>
               {groups.map(({ s, shown }) => (
                 <div key={s?.id ?? ''}>

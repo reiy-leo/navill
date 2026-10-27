@@ -5,7 +5,7 @@ import { useTone } from '@/src/ui/colors';
 import { DrawerColorPopover } from '@/src/ui/ColorPicker';
 import { db, type Workspace } from '@/src/db';
 import {
-  AliasCycleError, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, placeInOrder, renameDrawer,
+  AliasCycleError, aliasDrawerTo, createBookmark, deleteDrawer, dissolveDrawer, mountDrawer, moveDrawer, placeInOrder, renameDrawer,
   shuffleDrawer, unmount, updateDrawer, archiveDrawer } from '@/src/lib/store';
 import { effectiveView, type DrawerData, type Item } from '@/src/lib/view';
 import { useDialogs } from '@/src/ui/dialogs';
@@ -59,10 +59,12 @@ export const DrawerCard = memo(function DrawerCard({
   };
 
   const mount = async () => {
-    const t = await dialogs.pickTarget({ title: tr('把「{0}」挂载到…', drawer.name), drawersOnly: true, excludeDrawerIds: [drawer.id] });
-    if (!t?.drawerId) return;
+    const t = await dialogs.pickTarget({ title: tr('把「{0}」分身到…', drawer.name), allowTop: true, sections: true, topLabel: tr('新抽屉'), excludeDrawerIds: [drawer.id] });
+    if (!t) return;
     try {
-      await mountDrawer(db, drawer.id, t.drawerId);
+      // 选工作区或分区：那边新建同名抽屉来挂载；选已有抽屉：挂载到它里面
+      if (t.drawerId) await mountDrawer(db, drawer.id, t.drawerId);
+      else await aliasDrawerTo(db, drawer.id, t.workspaceId, t.sectionId);
     } catch (e) {
       if (e instanceof AliasCycleError) await dialogs.confirm({ title: tr('不能这样挂载'), description: tr('目标抽屉已经直接或间接挂载了这个抽屉，会形成循环。'), okText: tr('知道了') });
       else throw e;

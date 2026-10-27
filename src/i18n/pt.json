@@ -695,5 +695,6 @@
  "筛选工作区、分区或抽屉": "Filtrar espaços de trabalho, seções ou gavetas",
  "移动抽屉到…": "Mover gaveta para…",
  "抽屉{0}移动到分区{1}": "Gaveta {0} movida para a seção {1}",
- "抽屉{0}移出分区": "Gaveta {0} tirada da seção"
+ "抽屉{0}移出分区": "Gaveta {0} tirada da seção",
+ "把「{0}」分身到…": "Criar espelho de “{0}” em…"
 }

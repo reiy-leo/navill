@@ -3,8 +3,7 @@ import { patch, tx, uid } from './core';
 import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';
-import { createDrawer } from './drawer';
-import { mountDrawer } from './alias';
+import { aliasDrawerTo } from './alias';
 
 const sectionsOf = async (db: NavillDB, workspaceId: string) => (await db.workspaces.get(workspaceId))?.sections ?? [];
 
@@ -95,11 +94,7 @@ export async function cloneSectionTo(db: NavillDB, workspaceId: string, id: stri
   const s = (await sectionsOf(db, workspaceId)).find((x) => x.id === id);
   if (!s) return;
   const ns = await createSection(db, targetId, s.name);
-  for (const d of await drawersIn(db, workspaceId, id)) {
-    const nd = await createDrawer(db, targetId, d.name, undefined, d.color, d.description);
-    await patch<Drawer>(db, 'drawers', nd.id, { sectionId: ns.id });
-    await mountDrawer(db, d.id, nd.id);
-  }
+  for (const d of await drawersIn(db, workspaceId, id)) await aliasDrawerTo(db, d.id, targetId, ns.id);
 }
 
 /** 归档：分区里的抽屉全部归档，分区本身去掉（恢复的抽屉回到工作区，不属于分区） */

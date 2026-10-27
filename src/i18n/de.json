@@ -695,5 +695,6 @@
  "筛选工作区、分区或抽屉": "Arbeitsbereiche, Abschnitte oder Schubladen filtern",
  "移动抽屉到…": "Schublade verschieben nach…",
  "抽屉{0}移动到分区{1}": "Schublade {0} in den Abschnitt {1} verschoben",
- "抽屉{0}移出分区": "Schublade {0} aus dem Abschnitt genommen"
+ "抽屉{0}移出分区": "Schublade {0} aus dem Abschnitt genommen",
+ "把「{0}」分身到…": "Alias von „{0}“ anlegen in…"
 }

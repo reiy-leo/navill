@@ -52,3 +52,16 @@ describe('分区', () => {
     expect((await db.drawers.get(b.id))!.archivedAt).toBeFalsy();
   });
 });
+
+describe('抽屉分身到工作区', () => {
+  it('那边新建同名抽屉并挂载，可放进分区', async () => {
+    const { a, other } = await setup();
+    const s = await createSection(db, other.id, '收集');
+    const { aliasDrawerTo } = await import('./index');
+    const nd = (await aliasDrawerTo(db, a.id, other.id, s.id))!;
+    expect(nd).toMatchObject({ workspaceId: other.id, name: 'A' });
+    expect((await db.drawers.get(nd.id))!.sectionId).toBe(s.id);
+    const data = (await loadWorkspace(db, other.id, visibilityOf(undefined)))!;
+    expect(data.drawers.find((d) => d.drawer.id === nd.id)!.mounted.map((i) => i.bookmark.title)).toEqual(['X']);
+  });
+});

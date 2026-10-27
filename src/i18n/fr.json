@@ -695,5 +695,6 @@
  "筛选工作区、分区或抽屉": "Filtrer les espaces de travail, sections ou tiroirs",
  "移动抽屉到…": "Déplacer le tiroir vers…",
  "抽屉{0}移动到分区{1}": "Tiroir {0} déplacé vers la section {1}",
- "抽屉{0}移出分区": "Tiroir {0} sorti de sa section"
+ "抽屉{0}移出分区": "Tiroir {0} sorti de sa section",
+ "把「{0}」分身到…": "Créer un alias de « {0} » dans…"
 }
