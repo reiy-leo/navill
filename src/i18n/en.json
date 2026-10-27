@@ -625,6 +625,8 @@
  "在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。": "On any web page, click the Navill toolbar icon or press the shortcut, pick a place, and press Enter. You can change the shortcut in Settings.",
  "你的数据你负责": "Your data, your responsibility",
  "书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。": "Your bookmarks live only on your devices and in your own cloud storage. If they're lost, Navill can't get them back.",
+ "添加你的 GitHub": "Add your GitHub",
+ "在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。": "Enter your username in the “GitHub Star” section on the home page. Newly starred repos show up there, ready to add to Navill in one click.",
  "了解为什么": "Learn why",
  "先在设置里开启同步，之后按 {0}S 立即同步。": "Turn on sync in Settings first, then press {0}S to sync now.",
  "收起": "Collapse",

@@ -6,6 +6,7 @@ import { db } from '@/src/db';
 import { tr } from '@/src/i18n';
 import { cleanUser, dismissStar, dismissedStars, fetchStars, GitHubError, normUrl, type Star } from '@/src/lib/github';
 import { createBookmark } from '@/src/lib/store';
+import { markDone } from '@/src/lib/onboarding';
 import { useDialogs } from '@/src/ui/dialogs';
 import { useApp } from '@/src/ui/state';
 
@@ -52,6 +53,9 @@ export function GitHubStars() {
     return new Set(all.map((b) => normUrl(b.url)));
   }, [stars]);
 
+  // 填过用户名（包括在别的设备上填的）就完成新手任务「添加你的 GitHub」
+  useEffect(() => { if (user) void markDone('github'); }, [user]);
+
   const save = async () => {
     const u = cleanUser(draft);
     if (!u) return;
@@ -72,7 +76,7 @@ export function GitHubStars() {
   const list = (stars ?? []).filter((s) => !dismissed.has(s.url) && !have?.has(normUrl(s.url))).slice(0, MAX);
 
   return (
-    <section className="flex flex-col gap-3">
+    <section id="nv-github-stars" className="flex flex-col gap-3">
       <div className="flex min-h-8 items-center justify-between gap-3">
         <h2 className="text-base font-medium">{tr('GitHub Star')}</h2>
         {showForm ? (

@@ -73,6 +73,8 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
       : { title: tr('用 {0}S 手动同步', mod), hint: tr('先在设置里开启同步，之后按 {0}S 立即同步。', mod), go: onSyncSettings },
     // 在弹窗里收藏过一次就算完成；点开跳到 设置 → 快捷键，可以改成 ⌘D / Ctrl+D
     savePage: { title: tr('收藏正在看的网页'), hint: tr('在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。'), go: onKeySettings },
+    // 主页「GitHub Star」栏保存过用户名就算完成；点开滚到那一栏并聚焦输入框
+    github: { title: tr('添加你的 GitHub'), hint: tr('在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。'), go: focusGitHub },
     // 点了「了解为什么」就算完成
     dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
   };
@@ -138,6 +140,13 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
       </ul>
     </section>
   );
+}
+
+/** 滚到主页的「GitHub Star」栏，有输入框就聚焦 */
+function focusGitHub() {
+  const el = document.getElementById('nv-github-stars');
+  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el?.querySelector('input')?.focus({ preventScroll: true });
 }
 
 /** 靠数据判断的任务：有带标签的书签、有分身 */

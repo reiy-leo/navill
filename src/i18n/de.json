@@ -625,6 +625,8 @@
  "在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。": "Klicke auf einer Seite auf das Navill-Symbol oder drücke das Tastenkürzel, wähle einen Ort und drücke Enter. Das Kürzel kannst du in den Einstellungen ändern.",
  "你的数据你负责": "Deine Daten, deine Verantwortung",
  "书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。": "Deine Lesezeichen liegen nur auf deinen Geräten und in deinem eigenen Cloud-Speicher. Gehen sie verloren, kann Navill sie nicht wiederherstellen.",
+ "添加你的 GitHub": "GitHub hinzufügen",
+ "在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。": "Gib deinen Benutzernamen im Bereich „GitHub Star“ auf der Startseite ein. Neu markierte Repos erscheinen dort und lassen sich mit einem Klick zu Navill hinzufügen.",
  "了解为什么": "Warum?",
  "先在设置里开启同步，之后按 {0}S 立即同步。": "Zuerst in den Einstellungen die Synchronisierung aktivieren, dann mit {0}S sofort synchronisieren.",
  "收起": "Einklappen",

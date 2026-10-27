@@ -625,6 +625,8 @@
  "在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。": "Di halaman mana pun, klik ikon Navill di toolbar atau tekan pintasan, pilih tempatnya, lalu tekan Enter. Pintasan bisa diubah di Pengaturan.",
  "你的数据你负责": "Datamu, tanggung jawabmu",
  "书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。": "Bookmark hanya tersimpan di perangkatmu dan penyimpanan cloud milikmu sendiri. Kalau hilang, Navill tidak bisa mengembalikannya.",
+ "添加你的 GitHub": "Tambahkan GitHub Anda",
+ "在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。": "Masukkan nama pengguna di bagian “GitHub Star” di beranda. Repo yang baru Anda beri bintang muncul di sana dan bisa ditambahkan ke Navill dengan sekali klik.",
  "了解为什么": "Pelajari alasannya",
  "先在设置里开启同步，之后按 {0}S 立即同步。": "Aktifkan sinkronisasi di Setelan terlebih dahulu, lalu tekan {0}S untuk menyinkronkan sekarang.",
  "收起": "Ciutkan",

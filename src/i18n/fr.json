@@ -625,6 +625,8 @@
  "在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。": "Sur n'importe quelle page, cliquez sur l'icône Navill ou appuyez sur le raccourci, choisissez l'emplacement et appuyez sur Entrée. Le raccourci se change dans les paramètres.",
  "你的数据你负责": "Vos données, votre responsabilité",
  "书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。": "Vos favoris restent uniquement sur vos appareils et dans votre propre stockage cloud. S'ils sont perdus, Navill ne peut pas les récupérer.",
+ "添加你的 GitHub": "Ajoutez votre GitHub",
+ "在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。": "Saisissez votre nom d’utilisateur dans la section « GitHub Star » de l’accueil. Les dépôts que vous étoilez y apparaissent, prêts à être ajoutés à Navill en un clic.",
  "了解为什么": "En savoir plus",
  "先在设置里开启同步，之后按 {0}S 立即同步。": "Activez d'abord la synchronisation dans les paramètres, puis appuyez sur {0}S pour synchroniser maintenant.",
  "收起": "Réduire",
