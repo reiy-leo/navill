@@ -1,7 +1,7 @@
 import { Tooltip } from '@cloudflare/kumo';
-import { CaseSensitive, ChevronLeft, ChevronRight, CircleAlert, House, Pencil, Shapes, Share2, Smile, Trash2 } from 'lucide-react';
+import { CaseSensitive, CircleAlert, House, Pencil, Shapes, Share2, Smile, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { MAX_WORKSPACES, PALETTE, db, type Workspace } from '@/src/db';
 import { createWorkspace, deleteWorkspace, movePlacement, reorderWorkspaces, updateWorkspace } from '@/src/lib/store';
 import { workspaceVisible } from '@/src/lib/view';
@@ -79,16 +79,18 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   let slot = 0;
   const ordered = workspaces.map((w) => (w.source === 'inbox' ? { w, ghost: false } : (({ t, ghost }) => ({ w: t, ghost }))(sort.rows[slot++]!)));
   const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
-  const items = [home, ...ordered.map(({ w, ghost }) => (
+  const wsItems = ordered.map(({ w, ghost }, i) => (
     <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
+      tilt={top ? tilt(w.id, i) : undefined}
       ghost={ghost} dnd={w.source === 'inbox' ? undefined : sort.bind(w.id)}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
-  ))];
+  ));
 
   if (top) {
     return (
-      <nav ref={navRef} {...sort.container} className="relative flex items-center pl-11 pr-20 py-1">
-        <ScrollStrip activeKey={view === 'workspace' ? current : view}>{items}</ScrollStrip>
+      <nav ref={navRef} {...sort.container} className="relative flex items-center gap-2 pl-11 pr-20 py-1">
+        <div className="shrink-0">{home}</div>
+        <OverlapStrip label={label}>{wsItems}</OverlapStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
         </div>
@@ -98,7 +100,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   return (
     <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 ${label === 'icon' ? 'pt-12 pb-20 w-16 items-center' : 'py-12'} ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{items}</div>
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{home}{wsItems}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} vertical={label === 'icon'} />
       </div>
@@ -109,94 +111,78 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
 
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FADE = 40;
+/** 重叠卡片条：至少重叠 MIN_OVERLAP，每张卡至少露出 REVEAL（只显示图标时露出 REVEAL_ICON） */
+const GAP = 6;
+const MIN_OVERLAP = 8;
+const REVEAL = 40;
+const REVEAL_ICON = 20;
+
+/** 按 id 算出固定的倾斜幅度（0.6°–2.5°），方向一左一右交替，像随手放下的卡片 */
+function tilt(id: string, index: number) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  const mag = 0.6 + ((h >>> 0) % 20) / 10.5;
+  return (index % 2 ? 1 : -1) * Math.round(mag * 10) / 10;
+}
 
 /**
- * 顶部工作区条：两端有溢出时渐隐遮罩 + 悬停浮现的小箭头；滚轮纵向转横向；平滑滚动，选中项自动滚入视野。
+ * 顶部/底部工作区条：放得下就留间距平铺；放不下时卡片互相叠压，
+ * 重叠量在 [MIN_OVERLAP, 卡宽 − REVEAL] 之间，按各卡宽度分配。叠到上限仍放不下才允许横向滚动。
  */
-function ScrollStrip({ children, activeKey }: { children: ReactNode; activeKey?: string }) {
+function OverlapStrip({ children, label }: { children: ReactNode; label: 'both' | 'icon' | 'name' }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
-  const [edge, setEdge] = useState({ left: false, right: false });
-  const measure = useCallback(() => {
+  const [scroll, setScroll] = useState(false);
+  const reveal = label === 'icon' ? REVEAL_ICON : REVEAL;
+  const layout = useCallback(() => {
     const el = ref.current;
     if (!el) return;
-    const left = el.scrollLeft > 1;
-    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
-    setEdge((e) => (e.left === left && e.right === right ? e : { left, right }));
-  }, []);
+    const kids = [...el.children] as HTMLElement[];
+    const n = kids.length;
+    const widths = kids.map((k) => k.offsetWidth);
+    const avail = el.clientWidth;
+    const sum = widths.reduce((a, b) => a + b, 0);
+    const caps = widths.map((_, i) => (i === 0 ? 0 : Math.max(0, widths[i - 1]! - reveal)));
+    let margins: number[];
+    if (n < 2 || sum + GAP * (n - 1) <= avail) margins = kids.map((_, i) => (i === 0 ? 0 : GAP));
+    else {
+      const need = sum - avail;
+      const at = (o: number) => caps.reduce((a, c, i) => a + (i === 0 ? 0 : Math.min(o, c)), 0);
+      // 重叠量 o 越大总重叠越多：二分出刚好放下的 o，再夹在上下限之间
+      let lo = 0, hi = Math.max(...caps, 0);
+      for (let k = 0; k < 24; k++) { const mid = (lo + hi) / 2; if (at(mid) < need) lo = mid; else hi = mid; }
+      const o = Math.max(MIN_OVERLAP, hi);
+      margins = caps.map((c, i) => (i === 0 ? 0 : -Math.min(o, Math.max(c, MIN_OVERLAP))));
+    }
+    kids.forEach((k, i) => { k.style.marginLeft = `${margins[i]}px`; });
+    const total = sum + margins.reduce((a, b) => a + b, 0);
+    setScroll(total > avail + 1);
+  }, [reveal]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    measure();
-    const ro = new ResizeObserver(measure);
+    layout();
+    const ro = new ResizeObserver(layout);
     ro.observe(el);
     for (const c of el.children) ro.observe(c);
-    // 纵向滚轮转横向（需要非 passive 监听才能阻止页面滚动）
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
-      e.preventDefault();
-      const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
-      // 连续滚动时累加目标位置：平滑滚动途中再次 scrollBy 会从当前位置重算，导致距离被吞掉
-      const max = el.scrollWidth - el.clientWidth;
-      const base = target !== null && Date.now() - lastWheel < 400 ? target : el.scrollLeft;
-      target = Math.max(0, Math.min(max, base + dy));
-      lastWheel = Date.now();
-      el.scrollTo({ left: target, behavior: Math.abs(dy) >= 50 && !reducedMotion() ? 'smooth' : 'auto' });
-    };
-    let target: number | null = null;
-    let lastWheel = 0;
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => { ro.disconnect(); el.removeEventListener('wheel', onWheel); };
-  }, [measure, count]);
+    return () => ro.disconnect();
+  }, [layout, count]);
 
-  // 选中的工作区平滑滚入视野（只滚这一条，不带动页面）
-  useEffect(() => {
-    const el = ref.current;
-    const item = el?.querySelector<HTMLElement>('[data-active="true"]');
-    if (!el || !item) return;
-    const l = item.offsetLeft - FADE;
-    const r = item.offsetLeft + item.offsetWidth + FADE - el.clientWidth;
-    const to = l < el.scrollLeft ? l : r > el.scrollLeft ? r : null;
-    if (to !== null) el.scrollTo({ left: Math.max(0, to), behavior: reducedMotion() ? 'auto' : 'smooth' });
-  }, [activeKey]);
-
-  const by = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.7, behavior: reducedMotion() ? 'auto' : 'smooth' });
-  const mask = edge.left && edge.right
-    ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
-    : edge.left ? `linear-gradient(to right, transparent, #000 ${FADE}px)`
-    : edge.right ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)` : undefined;
-  const arrow = 'absolute top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-kumo-elevated/80 text-kumo-subtle opacity-0 shadow-sm ring-1 ring-kumo-line backdrop-blur transition duration-200 ease-out hover:text-kumo-default group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none';
   return (
-    <div className="group relative min-w-0 flex-1">
-      <div
-        ref={ref}
-        onScroll={measure}
-        className="relative flex h-12 items-center gap-1 overflow-x-auto [justify-content:safe_center] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ maskImage: mask, WebkitMaskImage: mask }}
-      >
-        {children}
-      </div>
-      {edge.left && (
-        <button type="button" aria-label={tr('向左滚动')} className={`${arrow} left-0.5 -translate-x-1 group-hover:translate-x-0`} onClick={() => by(-1)}>
-          <ChevronLeft size={14} strokeWidth={2.5} />
-        </button>
-      )}
-      {edge.right && (
-        <button type="button" aria-label={tr('向右滚动')} className={`${arrow} right-0.5 translate-x-1 group-hover:translate-x-0`} onClick={() => by(1)}>
-          <ChevronRight size={14} strokeWidth={2.5} />
-        </button>
-      )}
+    <div
+      ref={ref}
+      className={`relative flex h-12 min-w-0 flex-1 items-center [justify-content:safe_center] ${scroll ? 'overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : ''}`}
+    >
+      {children}
     </div>
   );
 }
 
 function NavItem({
-  w, active, label, horizontal, right = false, bottom = false, ghost = false, dnd, onClick, onContextMenu,
+  w, active, label, horizontal, right = false, bottom = false, ghost = false, tilt: angle, dnd, onClick, onContextMenu,
 }: {
-  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; right?: boolean; bottom?: boolean; ghost?: boolean;
+  w: Workspace; active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; right?: boolean; bottom?: boolean; ghost?: boolean; tilt?: number;
   dnd?: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void;
 }) {
@@ -238,7 +224,8 @@ function NavItem({
       }}
       data-flip={w.id}
       data-flip-ws=""
-      className={`group flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${horizontal ? '' : 'w-full'} ${
+      style={angle !== undefined ? ({ '--nv-tilt': `${angle}deg` } as React.CSSProperties) : undefined}
+      className={`group flex shrink-0 items-center gap-2 px-2 py-1.5 text-left text-sm ${horizontal ? 'nv-ws-card rounded-lg' : 'w-full rounded-md'} ${
         active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       aria-label={w.name}
