@@ -170,7 +170,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
   background: oklch(from var(--nv-tone, #94a3b8) calc(0.88 + l * 0.1) calc(c * 0.28) h / 0.9);
   color: oklch(from var(--nv-tone, #94a3b8) 0.42 calc(c * 0.9) h);
   backdrop-filter: blur(16px) saturate(1.6);
-  box-shadow: inset 0 0 0 1px oklch(from var(--nv-tone, #94a3b8) 0.8 calc(c * 0.5) h / 0.55), 0 1px 3px rgb(0 0 0 / .08);
+  box-shadow: inset 0 0 0 1px oklch(0.88 0 0 / 0.7), 0 1px 3px rgb(0 0 0 / .08);
   rotate: var(--nv-tilt, 0deg);
   transform-origin: 50% 100%;
   transition: rotate .15s ease-out, translate .15s ease-out, box-shadow .15s ease-out, color .15s, background-color .15s;
@@ -178,7 +178,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-mode='dark'] .nv-ws-card {
   background: oklch(from var(--nv-tone, #94a3b8) calc(0.24 + l * 0.12) calc(c * 0.4) h / 0.9);
   color: oklch(from var(--nv-tone, #94a3b8) 0.86 calc(c * 0.55) h);
-  box-shadow: inset 0 0 0 1px oklch(from var(--nv-tone, #94a3b8) 0.5 calc(c * 0.5) h / 0.5), 0 1px 3px rgb(0 0 0 / .3);
+  box-shadow: inset 0 0 0 1px oklch(0.4 0 0 / 0.6), 0 1px 3px rgb(0 0 0 / .3);
 }
 .nv-ws-card[data-active] {
   z-index: 20; rotate: 0deg;
@@ -189,7 +189,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 }
 [data-mode='dark'] .nv-ws-card[data-active] { background: oklch(from var(--nv-tone, #94a3b8) calc(0.36 + l * 0.14) calc(c * 0.7) h / 0.95); color: oklch(from var(--nv-tone, #94a3b8) 0.95 calc(c * 0.4) h); box-shadow: 0 3px 10px rgb(0 0 0 / .35); }
 .nv-ws-card:hover, .nv-ws-card:focus-visible { z-index: 30; rotate: 0deg; translate: 0 -2px; }
-.nv-ws-card:hover:not([data-active]), .nv-ws-card:focus-visible:not([data-active]) { box-shadow: inset 0 0 0 1px oklch(from var(--nv-tone, #94a3b8) 0.7 c h / 0.7), 0 4px 12px rgb(0 0 0 / .14); }
+.nv-ws-card:hover:not([data-active]), .nv-ws-card:focus-visible:not([data-active]) { box-shadow: inset 0 0 0 1px oklch(0.85 0 0 / 0.8), 0 4px 12px rgb(0 0 0 / .14); }
+[data-mode='dark'] .nv-ws-card:hover:not([data-active]), [data-mode='dark'] .nv-ws-card:focus-visible:not([data-active]) { box-shadow: inset 0 0 0 1px oklch(0.45 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / .35); }
 /* 没选中、没悬停的卡片用中性灰底，只有图标带工作区颜色；选中和悬停才显示整张卡的颜色 */
 .nv-ws-card:not([data-active]):not(:hover):not(:focus-visible) {
   background: oklch(0.97 0 0 / 0.86);
