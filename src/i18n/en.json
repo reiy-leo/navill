@@ -691,5 +691,9 @@
  "移动分区到工作区…": "Move section to workspace…",
  "把分区「{0}」分身到工作区…": "Alias section “{0}” to workspace…",
  "归档分区「{0}」？": "Archive section “{0}”?",
- "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "All its drawers are archived and the section is removed. You can restore the drawers from the archive later."
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "All its drawers are archived and the section is removed. You can restore the drawers from the archive later.",
+ "筛选工作区、分区或抽屉": "Filter workspaces, sections or drawers",
+ "移动抽屉到…": "Move drawer to…",
+ "抽屉{0}移动到分区{1}": "Moved drawer {0} to section {1}",
+ "抽屉{0}移出分区": "Moved drawer {0} out of its section"
 }

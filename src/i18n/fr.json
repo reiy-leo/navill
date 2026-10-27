@@ -691,5 +691,9 @@
  "移动分区到工作区…": "Déplacer la section vers l’espace de travail…",
  "把分区「{0}」分身到工作区…": "Créer un alias de la section « {0} » dans l’espace de travail…",
  "归档分区「{0}」？": "Archiver la section « {0} » ?",
- "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Tous ses tiroirs sont archivés et la section disparaît. Vous pourrez restaurer les tiroirs depuis l’archive."
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Tous ses tiroirs sont archivés et la section disparaît. Vous pourrez restaurer les tiroirs depuis l’archive.",
+ "筛选工作区、分区或抽屉": "Filtrer les espaces de travail, sections ou tiroirs",
+ "移动抽屉到…": "Déplacer le tiroir vers…",
+ "抽屉{0}移动到分区{1}": "Tiroir {0} déplacé vers la section {1}",
+ "抽屉{0}移出分区": "Tiroir {0} sorti de sa section"
 }

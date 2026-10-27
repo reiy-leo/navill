@@ -2,7 +2,7 @@ import type { Bookmark, NavillDB } from '@/src/db';
 import { getShareToken, invalidateShareToken } from '@/src/lib/sync/auth';
 import { httpGloss } from '@/src/lib/sync/http';
 import { loadWorkspace, sortItems, type Item } from '@/src/lib/view';
-import { createBookmark, createDrawer, createWorkspace, updateBookmark } from '@/src/lib/store';
+import { createBookmark, createDrawer, createWorkspace, placeDrawerInSection, updateBookmark } from '@/src/lib/store';
 
 import { tr } from '@/src/i18n';
 /**
@@ -106,8 +106,9 @@ export const getPublicShare = (id: string) => pub<PublicShareDetail>(`/api/share
 export const shareUrl = (id: string) => `${SHARE_ORIGIN}/s/${id}`;
 
 /** 市场：把分享里的一个抽屉安装到指定工作区（新建抽屉 + 书签，含关联链接） */
-export async function installSharedDrawer(db: NavillDB, workspaceId: string, drawer: { name: string; bookmarks: ShareBookmark[] }) {
+export async function installSharedDrawer(db: NavillDB, workspaceId: string, drawer: { name: string; bookmarks: ShareBookmark[] }, sectionId?: string | null) {
   const d = await createDrawer(db, workspaceId, drawer.name);
+  if (sectionId) await placeDrawerInSection(db, d.id, sectionId, []);
   for (const b of drawer.bookmarks) {
     const { bookmark } = await createBookmark(db, { url: b.url, title: b.title, note: b.note }, workspaceId, d.id);
     if (b.links?.length) await updateBookmark(db, bookmark.id, { links: b.links });

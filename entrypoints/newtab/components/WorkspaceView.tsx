@@ -35,6 +35,9 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const [editSection, setEditSection] = useState<string | null>(null);
   const newBtn = useRef<HTMLButtonElement>(null);
   const [newOpen, setNewOpen] = useState(false);
+  /** 新建抽屉放进哪个分区（从分区菜单打开时） */
+  const [newIn, setNewIn] = useState<string | null>(null);
+  const newInSection = useCallback((id: string) => { setNewIn(id); setNewOpen(true); }, []);
   const dragging = useDraggingPlacement();
   const [over, setOver] = useState(false);
   const reveal = useCallback((item: Item) => {
@@ -49,12 +52,13 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const { workspace, top, drawers } = data;
 
   const base = workspace.color ?? PALETTE[0]!;
-  const newDrawer = () => setNewOpen(true);
+  const newDrawer = () => { setNewIn(null); setNewOpen(true); };
   const createNew = async (name: string, color: string) => {
     const vis = await dialogs.askVisibility(settings.currentModeId, tr('抽屉'));
     if (!vis) return;
     const c = settings.randomDrawerColor ? randomPresetColor() : color !== base ? color : undefined;
-    await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, c);
+    const d = await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, c);
+    if (newIn) await placeDrawerInSection(db, d.id, newIn, []);
   };
   const newBookmark = async () => {
     const nb = await dialogs.newBookmark();
@@ -116,7 +120,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
             <DrawerGroup workspace={workspace} section={null} drawers={loose} arrange={arrange} frozen={dragging} onReveal={reveal} />
           )}
           {sections.length > 0 && (
-            <SectionList workspace={workspace} drawers={drawers} editing={editSection} onEdited={() => setEditSection(null)}
+            <SectionList workspace={workspace} drawers={drawers} editing={editSection} onEdited={() => setEditSection(null)} onNewDrawer={newInSection}
               render={(id, list) => <DrawerGroup workspace={workspace} section={id} drawers={list} arrange={arrange} frozen={dragging} onReveal={reveal} />} />
           )}
         </>

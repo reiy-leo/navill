@@ -1,6 +1,6 @@
 import { ShareDialog } from './ShareDialog';
 import { localizeNames } from '@/src/lib/presetNames';
-import { Check, Plus, Trash2 } from 'lucide-react';
+import { Check, Plus, SquareDashed, Trash2 } from 'lucide-react';
 import { iconParts, limitIcon, MAX_ICON_EMOJIS } from '@/src/lib/emoji';
 import { clipWidth, NAME_MAX_WIDTH } from '@/src/lib/textWidth';
 import { Button, Input, InputArea, Tabs } from '@cloudflare/kumo';
@@ -18,11 +18,11 @@ import { useIconStyle } from './iconStyle';
 import { HistoryAutocomplete, HistoryHint, useHistoryPermission } from './HistoryAutocomplete';
 
 import { tr } from '@/src/i18n';
-export interface Target { workspaceId: string; drawerId: string | null; name?: string }
+export interface Target { workspaceId: string; drawerId: string | null; name?: string; /** 选了工作区里的某个分区（sections 选项打开时） */ sectionId?: string | null }
 
 interface ConfirmOpts { title: string; description?: ReactNode; okText?: string; danger?: boolean }
 interface ChoiceOpts<T extends string> { title: string; description?: ReactNode; choices: Array<{ value: T; label: string; danger?: boolean }> }
-interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
+interface PickOpts { title: string; allowTop?: boolean; excludeDrawerIds?: string[]; drawersOnly?: boolean; workspacesOnly?: boolean; /** 选工作区时也能选它下面的分区 */ sections?: boolean; /** 顶部显示名称输入框，初始值为此；此时列表改为单选 + 底部按钮 */ name?: string; okText?: string }
 
 /** 新建结果；工作区另带图标三件套 */
 type CreateResult = { name: string; color: string; description: string; emoji?: string; lucide?: string; glyph?: string };
@@ -184,57 +184,80 @@ function PickDialog({ o, onDone }: { o: PickOpts; onDone: (v: Target | null) => 
   const [q, setQ] = useState('');
   const [name, setName] = useState(o.name ?? '');
   const hasName = o.name !== undefined;
-  const [sel, setSel] = useState<string | null>(null);
+  const [sel, setSel] = useState<{ ws: string; section: string | null } | null>(null);
   const data = useLiveQuery(async () => {
     const [ws, ds] = await Promise.all([db.workspaces.orderBy('order').toArray(), db.drawers.filter((d) => !d.archivedAt).toArray()]);
     return { ws, ds };
   }, []);
-  const selId = sel ?? data?.ws[0]?.id ?? null;
-  const ok = () => selId && onDone({ workspaceId: selId, drawerId: null, name: name.trim() || o.name });
-  const done = (t: Target) => (hasName ? setSel(t.workspaceId) : onDone(t));
+  const cur = sel ?? (data?.ws[0] ? { ws: data.ws[0].id, section: null } : null);
+  const ok = () => cur && onDone({ workspaceId: cur.ws, drawerId: null, sectionId: cur.section, name: name.trim() || o.name });
+  const done = (t: Target) => (hasName ? setSel({ ws: t.workspaceId, section: t.sectionId ?? null }) : onDone(t));
   const exclude = new Set(o.excludeDrawerIds ?? []);
   const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase());
+  const row = 'flex w-full items-center gap-2 rounded-md py-1.5 pr-2 text-left text-sm hover:bg-kumo-tint';
+  const picked = (ws: string, section: string | null) => hasName && cur?.ws === ws && cur.section === section;
   return (
     <Modal
       open
       title={o.title}
       onClose={() => onDone(null)}
-      footer={hasName ? <><Button onClick={() => onDone(null)}>{tr('取消')}</Button><Button variant="primary" disabled={!selId} onClick={ok}>{o.okText ?? tr('确定')}</Button></> : undefined}
+      footer={hasName ? <><Button onClick={() => onDone(null)}>{tr('取消')}</Button><Button variant="primary" disabled={!cur} onClick={ok}>{o.okText ?? tr('确定')}</Button></> : undefined}
     >
       {hasName ? (
         <Input autoFocus size="sm" label={tr('抽屉名称')} placeholder={o.name} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && ok()} />
       ) : (
-        <Input autoFocus size="sm" placeholder={tr('筛选工作区或抽屉')} value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input autoFocus size="sm" placeholder={o.sections || !o.workspacesOnly ? tr('筛选工作区、分区或抽屉') : tr('筛选工作区或抽屉')} value={q} onChange={(e) => setQ(e.target.value)} />
       )}
       {hasName && <div className="mt-4 mb-1 text-xs text-kumo-subtle">{tr('安装到')}</div>}
-      <div className={hasName ? 'flex max-h-[184px] flex-col gap-1 overflow-y-auto [scrollbar-width:thin]' : 'mt-3 flex flex-col gap-1'}>
+      <div className={hasName ? 'flex max-h-[184px] flex-col gap-1 overflow-y-auto [scrollbar-width:thin]' : 'mt-3 flex max-h-[60vh] flex-col gap-1 overflow-y-auto [scrollbar-width:thin]'}>
         {data?.ws.map((w: Workspace) => {
+          const wsHit = match(w.name);
+          const sections = w.sections ?? [];
+          const known = new Set(sections.map((x) => x.id));
           const drawers = data.ds.filter((d: Drawer) => d.workspaceId === w.id && !exclude.has(d.id)).sort((a, b) => a.order - b.order);
-          const shown = drawers.filter((d) => match(d.name) || match(w.name));
-          if (!match(w.name) && shown.length === 0) return null;
+          const inSec = (id: string | null) => drawers.filter((d) => (id === null ? !d.sectionId || !known.has(d.sectionId) : d.sectionId === id));
+          const pickSections = !!o.sections && o.workspacesOnly;
+          // 分区：工作区名或分区名命中就整组显示；否则只显示命中的抽屉
+          const groups = [{ s: null as null | { id: string; name: string }, list: inSec(null) }, ...sections.map((s) => ({ s, list: inSec(s.id) }))]
+            .map(({ s, list }) => {
+              const secHit = !!s && match(s.name);
+              const shown = o.workspacesOnly ? [] : list.filter((d) => wsHit || secHit || match(d.name));
+              const visible = s ? (pickSections ? wsHit || secHit : shown.length > 0) : shown.length > 0;
+              return { s, shown, visible };
+            })
+            .filter((g) => g.visible);
+          if (!wsHit && groups.length === 0) return null;
           const canTop = !o.drawersOnly && (o.allowTop || o.workspacesOnly);
           return (
             <div key={w.id}>
               <button
                 disabled={!canTop}
-                className={`flex w-full shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium hover:bg-kumo-tint disabled:hover:bg-transparent ${hasName && selId === w.id ? 'bg-kumo-tint' : ''}`}
-                onClick={() => done({ workspaceId: w.id, drawerId: null })}
+                className={`flex w-full shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium hover:bg-kumo-tint disabled:hover:bg-transparent ${picked(w.id, null) ? 'bg-kumo-tint' : ''}`}
+                onClick={() => done({ workspaceId: w.id, drawerId: null, sectionId: null })}
               >
                 <WorkspaceIcon ws={w} size={20} />
                 <span className="flex-1 truncate">{w.name}</span>
-                {hasName && selId === w.id && <Check size={14} className="text-kumo-brand" />}
+                {picked(w.id, null) && <Check size={14} className="text-kumo-brand" />}
                 {canTop && !o.workspacesOnly && <span className="text-xs text-kumo-subtle">{tr('顶层')}</span>}
               </button>
-              {!o.workspacesOnly &&
-                shown.map((d) => (
-                  <button
-                    key={d.id}
-                    className="flex w-full items-center gap-2 rounded-md py-1.5 pl-9 pr-2 text-left text-sm hover:bg-kumo-tint"
-                    onClick={() => done({ workspaceId: w.id, drawerId: d.id })}
-                  >
-                    <span className="truncate">{d.name}</span>
-                  </button>
-                ))}
+              {groups.map(({ s, shown }) => (
+                <div key={s?.id ?? ''}>
+                  {s && (pickSections ? (
+                    <button className={`${row} pl-9 ${picked(w.id, s.id) ? 'bg-kumo-tint' : ''}`} onClick={() => done({ workspaceId: w.id, drawerId: null, sectionId: s.id })}>
+                      <SquareDashed size={14} className="shrink-0 text-kumo-subtle" />
+                      <span className="flex-1 truncate">{s.name}</span>
+                      {picked(w.id, s.id) && <Check size={14} className="text-kumo-brand" />}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1.5 py-1 pl-9 pr-2 text-xs text-kumo-subtle"><SquareDashed size={12} className="shrink-0" /><span className="truncate">{s.name}</span></div>
+                  ))}
+                  {shown.map((d) => (
+                    <button key={d.id} className={`${row} ${s ? 'pl-14' : 'pl-9'}`} onClick={() => done({ workspaceId: w.id, drawerId: d.id })}>
+                      <span className="truncate">{d.name}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
             </div>
           );
         })}

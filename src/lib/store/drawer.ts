@@ -66,15 +66,23 @@ export async function reorderDrawers(db: NavillDB, ids: string[]) {
   });
 }
 
-/** 移动抽屉到另一个工作区（排到末尾） */
-export async function moveDrawer(db: NavillDB, id: string, workspaceId: string) {
+/** 移动抽屉到某个工作区（排到末尾）；sectionId 给了就放进那个分区，没给就不属于任何分区 */
+export async function moveDrawer(db: NavillDB, id: string, workspaceId: string, sectionId?: string | null) {
   await logged(db, async (log) => {
     const d = await db.drawers.get(id);
-    if (!d || d.workspaceId === workspaceId) return;
+    const sec = sectionId ?? undefined;
+    if (!d || (d.workspaceId === workspaceId && d.sectionId === sec)) return;
     const ws = await db.workspaces.get(workspaceId);
-    log({ kind: 'move', targetType: 'drawer', targetId: id, summary: tr('抽屉{0}移动到工作区{1}', q(d.name), q(ws?.name)) });
     const siblings = await db.drawers.where('workspaceId').equals(workspaceId).toArray();
-    await patch<Drawer>(db, 'drawers', id, { workspaceId, sectionId: undefined, order: siblings.reduce((m, x) => Math.max(m, x.order), -1) + 1 });
+    const order = siblings.reduce((m, x) => Math.max(m, x.order), -1) + 1;
+    if (d.workspaceId === workspaceId) {
+      const s = ws?.sections?.find((x) => x.id === sec);
+      log({ kind: 'move', targetType: 'drawer', targetId: id, summary: s ? tr('抽屉{0}移动到分区{1}', q(d.name), q(s.name)) : tr('抽屉{0}移出分区', q(d.name)) });
+      await patch<Drawer>(db, 'drawers', id, { sectionId: sec, order });
+      return;
+    }
+    log({ kind: 'move', targetType: 'drawer', targetId: id, summary: tr('抽屉{0}移动到工作区{1}', q(d.name), q(ws?.name)) });
+    await patch<Drawer>(db, 'drawers', id, { workspaceId, sectionId: sec, order });
     const ps = await db.placements.where('drawerId').equals(id).toArray();
     for (const p of ps) await patch<Placement>(db, 'placements', p.id, { workspaceId });
   });

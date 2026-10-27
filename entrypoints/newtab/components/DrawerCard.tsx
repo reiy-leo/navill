@@ -138,8 +138,8 @@ export const DrawerCard = memo(function DrawerCard({
             ))}
             <DropdownMenu.Separator />
             <DropdownMenu.Item icon={Move} onClick={async () => {
-              const t = await dialogs.pickTarget({ title: tr('移动抽屉到工作区…'), workspacesOnly: true });
-              if (t) await moveDrawer(db, drawer.id, t.workspaceId);
+              const t = await dialogs.pickTarget({ title: tr('移动抽屉到…'), workspacesOnly: true, sections: true });
+              if (t) await moveDrawer(db, drawer.id, t.workspaceId, t.sectionId);
             }}>{tr('移动到…')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={CircleAlert} onClick={() => void updateDrawer(db, drawer.id, { adult: !drawer.adult })}>{drawer.adult ? tr('取消 18+') : tr('标记为 18+')}</DropdownMenu.Item>
             <DropdownMenu.Item icon={Shuffle} onClick={() => void shuffleDrawer(db, workspace.id, drawer.id)}>{tr('打乱')}</DropdownMenu.Item>

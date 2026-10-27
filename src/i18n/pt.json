@@ -691,5 +691,9 @@
  "移动分区到工作区…": "Mover seção para o espaço de trabalho…",
  "把分区「{0}」分身到工作区…": "Criar espelho da seção “{0}” no espaço de trabalho…",
  "归档分区「{0}」？": "Arquivar a seção “{0}”?",
- "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Todas as gavetas são arquivadas e a seção é removida. Você pode restaurar as gavetas pelo arquivo."
+ "里面的抽屉都会归档，分区去掉。以后可以在归档里恢复抽屉。": "Todas as gavetas são arquivadas e a seção é removida. Você pode restaurar as gavetas pelo arquivo.",
+ "筛选工作区、分区或抽屉": "Filtrar espaços de trabalho, seções ou gavetas",
+ "移动抽屉到…": "Mover gaveta para…",
+ "抽屉{0}移动到分区{1}": "Gaveta {0} movida para a seção {1}",
+ "抽屉{0}移出分区": "Gaveta {0} tirada da seção"
 }

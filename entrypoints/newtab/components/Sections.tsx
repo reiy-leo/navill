@@ -1,4 +1,4 @@
-import { Archive, ChevronDown, ChevronRight, ChevronUp, Copy, Move, Package } from 'lucide-react';
+import { Archive, ChevronDown, ChevronRight, ChevronUp, Copy, FolderPlus, Move, Package } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { db, type Section, type Workspace } from '@/src/db';
 import { archiveSection, cloneSectionTo, dissolveSection, moveSection, renameSection, reorderSections, shiftSection } from '@/src/lib/store';
@@ -45,8 +45,8 @@ function stampTilt(id: string) {
  * 工作区里的分区：浅色底的区域圈住它的抽屉，名称像章一样盖在右下角（点击改名），
  * 章左边是折叠开关；拖动章给分区排序，右键章或区域空白处打开菜单。
  */
-export function SectionList({ workspace, drawers, editing, onEdited, render }: {
-  workspace: Workspace; drawers: DrawerData[]; editing: string | null; onEdited: () => void;
+export function SectionList({ workspace, drawers, editing, onEdited, onNewDrawer, render }: {
+  workspace: Workspace; drawers: DrawerData[]; editing: string | null; onEdited: () => void; onNewDrawer: (sectionId: string) => void;
   render: (sectionId: string, drawers: DrawerData[]) => ReactNode;
 }) {
   const sections = workspace.sections ?? [];
@@ -63,7 +63,7 @@ export function SectionList({ workspace, drawers, editing, onEdited, render }: {
         <SectionRegion
           key={s.id} workspace={workspace} section={s} index={i} count={sections.length}
           ghost={ghost} hidden={hidden} collapsed={collapsed.has(s.id)} onToggle={toggle}
-          editing={editing === s.id} onEdited={onEdited} dnd={sort.bind(s.id)}
+          editing={editing === s.id} onEdited={onEdited} onNewDrawer={onNewDrawer} dnd={sort.bind(s.id)}
           drawers={drawers.filter((d) => d.drawer.sectionId === s.id).length}
         >
           {render(s.id, drawers.filter((d) => d.drawer.sectionId === s.id))}
@@ -74,10 +74,10 @@ export function SectionList({ workspace, drawers, editing, onEdited, render }: {
 }
 
 const SectionRegion = memo(function SectionRegion({
-  workspace, section, index, count, ghost, hidden, collapsed, onToggle, editing, onEdited, dnd, drawers, children,
+  workspace, section, index, count, ghost, hidden, collapsed, onToggle, editing, onEdited, onNewDrawer, dnd, drawers, children,
 }: {
   workspace: Workspace; section: Section; index: number; count: number; ghost: boolean; hidden: boolean;
-  collapsed: boolean; onToggle: (id: string) => void; editing: boolean; onEdited: () => void; drawers: number;
+  collapsed: boolean; onToggle: (id: string) => void; editing: boolean; onEdited: () => void; onNewDrawer: (sectionId: string) => void; drawers: number;
   dnd: { onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragStart: () => void };
   children: ReactNode;
 }) {
@@ -95,6 +95,7 @@ const SectionRegion = memo(function SectionRegion({
   };
   const ctx = (e: React.MouseEvent) =>
     menu(e, [
+      { label: tr('新建抽屉'), icon: FolderPlus, onSelect: () => onNewDrawer(section.id) },
       { label: collapsed ? tr('展开分区') : tr('折叠分区'), icon: collapsed ? ChevronDown : ChevronRight, onSelect: () => onToggle(section.id) },
       { divider: true },
       { label: tr('上移'), icon: ChevronUp, disabled: index === 0, onSelect: () => void shiftSection(db, workspace.id, section.id, -1) },

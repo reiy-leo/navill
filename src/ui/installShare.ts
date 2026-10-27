@@ -20,11 +20,11 @@ export function useInstallShare() {
   const fail = (e: unknown) => toast(e instanceof Error ? e.message : String(e));
 
   const installDrawer = async (d: ShareDrawer) => {
-    const t = await withPanelHidden(() => dialogs.pickTarget({ title: tr('安装抽屉'), workspacesOnly: true, name: d.name, okText: tr('安装') }));
+    const t = await withPanelHidden(() => dialogs.pickTarget({ title: tr('安装抽屉'), workspacesOnly: true, sections: true, name: d.name, okText: tr('安装') }));
     if (!t) return;
     const name = t.name || d.name;
     try {
-      await installSharedDrawer(db, t.workspaceId, { ...d, name });
+      await installSharedDrawer(db, t.workspaceId, { ...d, name }, t.sectionId);
       toast(tr('已安装「{0}」，共 {1} 个书签', name, d.bookmarks.length));
     } catch (e) { fail(e); }
   };
