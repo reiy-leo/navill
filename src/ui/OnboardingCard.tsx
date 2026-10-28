@@ -1,6 +1,6 @@
 import { Button, Tooltip } from '@cloudflare/kumo';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronDown, ChevronRight, Circle, CircleCheck, ExternalLink, PartyPopper, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Circle, CircleCheck, ExternalLink, PartyPopper, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { db } from '@/src/db';
 import { activeTasks, allDone, dataOwnUrl, doneCount, hideOnboarding, markDone, showOnboarding, watchNtpFooter, type OnboardingTask } from '@/src/lib/onboarding';
@@ -63,7 +63,7 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
   const total = activeTasks().length;
   const mod = modKey();
 
-  const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void; link?: { url: string; label: string } }> = {
+  const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void; link?: { url: string; label: string }; manual?: string }> = {
     searchKey: { title: tr('按 / 打开搜索'), hint: tr('在新标签页按 / 或 {0}L 打开搜索。', mod) },
     omnibox: { title: tr('地址栏输入 nv 搜索'), hint: tr('在地址栏输入 nv 加空格，再输入关键词，直接搜索 Navill 里的书签。') },
     tagSearch: { title: tr('用 #标签 筛选'), hint: tr('在搜索框输入 # 和标签名，只看带这个标签的书签。'), go: () => onSearch('#') },
@@ -80,8 +80,8 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
     github: { title: tr('添加你的 GitHub'), hint: tr('在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。'), go: focusGitHub },
     // 点了「了解为什么」就算完成
     dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
-    // 检测到页面突然变高（底栏没了）就算完成
-    ntpFooter: { title: tr('关掉 Chrome 底栏'), hint: tr('新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。') },
+    // 检测到页面突然变高（底栏没了）就算完成；之前已经关掉的人检测不到，所以这一项例外地可以手动勾（Rei 2026-10-28）
+    ntpFooter: { title: tr('关掉 Chrome 底栏'), hint: tr('新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。'), manual: tr('已经关了') },
   };
 
   if (collapsed) {
@@ -137,6 +137,11 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
                       </a>
                     </Tooltip>
                   )}
+                </div>
+              )}
+              {expanded && t.manual && (
+                <div className="pb-1.5 pl-8">
+                  <Button variant="secondary" size="xs" icon={<Check size="1em" />} onClick={() => void markDone(id)}>{t.manual}</Button>
                 </div>
               )}
             </li>

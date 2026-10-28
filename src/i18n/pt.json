@@ -698,5 +698,6 @@
  "抽屉{0}移出分区": "Gaveta {0} tirada da seção",
  "把「{0}」分身到…": "Criar espelho de “{0}” em…",
  "关掉 Chrome 底栏": "Oculte o rodapé do Chrome",
- "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "A barra com o nome da extensão no rodapé da nova guia é adicionada pelo Chrome, e o Navill não consegue removê-la. Clique com o botão direito na barra e escolha ocultá-la, ou clique em “Personalizar o Chrome” e desative-a em “Rodapé”."
+ "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "A barra com o nome da extensão no rodapé da nova guia é adicionada pelo Chrome, e o Navill não consegue removê-la. Clique com o botão direito na barra e escolha ocultá-la, ou clique em “Personalizar o Chrome” e desative-a em “Rodapé”.",
+ "已经关了": "Já ocultei"
 }

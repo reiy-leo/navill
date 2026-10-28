@@ -698,5 +698,6 @@
  "抽屉{0}移出分区": "Schublade {0} aus dem Abschnitt genommen",
  "把「{0}」分身到…": "Alias von „{0}“ anlegen in…",
  "关掉 Chrome 底栏": "Chrome-Fußzeile ausblenden",
- "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "Die Leiste mit dem Erweiterungsnamen unten im neuen Tab fügt Chrome selbst hinzu, Navill kann sie nicht entfernen. Klicke mit der rechten Maustaste darauf und blende sie aus, oder klicke auf „Chrome anpassen“ und schalte sie unter „Fußzeile“ aus."
+ "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "Die Leiste mit dem Erweiterungsnamen unten im neuen Tab fügt Chrome selbst hinzu, Navill kann sie nicht entfernen. Klicke mit der rechten Maustaste darauf und blende sie aus, oder klicke auf „Chrome anpassen“ und schalte sie unter „Fußzeile“ aus.",
+ "已经关了": "Schon ausgeblendet"
 }
