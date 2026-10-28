@@ -84,7 +84,8 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     const active = view === 'workspace' && w.id === current;
     return (
     <NavItem key={w.id} w={w} active={active} label={label} horizontal={top} right={right} bottom={bottom}
-      tilt={tilt(w.id, i)}
+      // 侧栏卡片很宽，倾斜 2.5° 时一端会抬高 8px 以上，超过 6px 间距，看起来叠在一起；侧栏不倾斜
+      tilt={top ? tilt(w.id, i) : 0}
       ghost={ghost} dnd={w.source === 'inbox' ? undefined : sort.bind(w.id)}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
     );
