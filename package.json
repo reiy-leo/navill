@@ -2,7 +2,7 @@
   "name": "navill",
   "description": "把浏览器书签重组为「工作区 → 抽屉 → 书签」的新标签页导航",
   "private": true,
-  "version": "0.1.18-alpha.7",
+  "version": "0.1.18-alpha.8",
   "type": "module",
   "license": "MIT",
   "packageManager": "pnpm@10.18.3",
