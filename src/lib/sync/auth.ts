@@ -16,6 +16,8 @@ export const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 interface Token { accessToken: string; expiresAt: number }
 const tokenItem = storage.defineItem<Token | null>('session:driveToken', { fallback: null });
 const signedInItem = storage.defineItem<boolean>('local:driveSignedIn', { fallback: false });
+/** 登录的 Google 账号邮箱：静默续期时作为 login_hint。浏览器里登了多个 Google 账号时，不带它 Google 不知道选哪个，只会回 interaction_required */
+const emailItem = storage.defineItem<string | null>('local:driveEmail', { fallback: null });
 
 export const isConfigured = () => Boolean(CLIENT_ID);
 export const isSignedIn = () => signedInItem.getValue();
@@ -33,6 +35,9 @@ async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Pr
   url.searchParams.set('scope', scope);
   url.searchParams.set('include_granted_scopes', 'true');
   if (!interactive) url.searchParams.set('prompt', 'none');
+  // 只在静默续期时带；弹窗登录让用户自己选账号，选完再记新的邮箱
+  const hint = interactive ? null : await emailItem.getValue();
+  if (hint) url.searchParams.set('login_hint', hint);
   const result = await browser.identity.launchWebAuthFlow({ url: url.toString(), interactive });
   if (!result) throw new Error(tr('授权已取消'));
   const params = new URLSearchParams(new URL(result).hash.slice(1));
@@ -42,14 +47,29 @@ async function launch(interactive: boolean, scope = SCOPE, item = tokenItem): Pr
   if (!accessToken) throw new Error(tr('Google 授权失败：没有拿到令牌'));
   const token = { accessToken, expiresAt: Date.now() + (Number(params.get('expires_in')) || 3600) * 1000 - 60_000 };
   await item.setValue(token);
+  if (!hint) void rememberEmail(accessToken);
   return token;
+}
+
+/** 用 Drive 的 about 接口读当前账号邮箱（drive.appdata 权限就够），记下来给以后的静默续期用 */
+async function rememberEmail(accessToken: string) {
+  try {
+    const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)', { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!res.ok) return;
+    const email = (await res.json())?.user?.emailAddress;
+    if (typeof email === 'string' && email) await emailItem.setValue(email);
+  } catch { /* 下次拿到令牌再试 */ }
 }
 
 /** 取可用令牌：缓存 → 静默续期（prompt=none）→ interactive 时弹窗 */
 export async function getToken(interactive = false): Promise<string> {
   if (!isConfigured()) throw new Error(tr('未配置 Google OAuth 客户端 ID'));
   const cached = await tokenItem.getValue();
-  if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
+  if (cached && cached.expiresAt > Date.now()) {
+    // 老版本登录的用户还没记邮箱：趁令牌有效补上
+    if (!(await emailItem.getValue())) void rememberEmail(cached.accessToken);
+    return cached.accessToken;
+  }
   if (!(await isSignedIn()) && !interactive) throw new Error(tr('未登录 Google'));
   try {
     return (await launch(false)).accessToken;
@@ -99,6 +119,7 @@ export async function signOut(): Promise<void> {
   await tokenItem.setValue(null);
   await shareTokenItem.setValue(null);
   await signedInItem.setValue(false);
+  await emailItem.setValue(null);
   await syncStatusItem.setValue({ state: 'signed-out' });
 }
 
