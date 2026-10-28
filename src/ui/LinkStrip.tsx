@@ -52,11 +52,12 @@ export function LinkStrip({ item, children, placement = 'replace', max = 5, alig
     style: { transitionDelay: `${i * 25}ms` },
   });
 
+  // end 模式的底色只在悬停时出现（平时透明，否则暗色主题下能看到一块空底）
   // 容器不接收指针事件：空白处的点击、右键落到下面的书签上；图标自己用 SHOW 打开 pointer-events
   const strip = (
     <span
       className={`pointer-events-none flex items-center gap-0.5 ${align === 'center' ? 'justify-center' : ''} ${
-        placement === 'replace' ? 'absolute inset-0' : 'absolute right-0 top-1/2 -translate-y-1/2 rounded-md bg-kumo-tint pl-1'
+        placement === 'replace' ? 'absolute inset-0' : 'absolute right-0 top-1/2 -translate-y-1/2 rounded-md pl-1 transition-colors duration-150 group-hover:bg-kumo-tint group-has-[:focus-visible]:bg-kumo-tint'
       }`}
       onClick={stop}
       onAuxClick={stop}
