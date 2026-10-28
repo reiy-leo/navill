@@ -117,16 +117,15 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
 /** 只显示图标时，顶部卡片就是一个图标块 */
-const CARD_ICON = 34;
+const CARD_ICON = 28;
+/** 顶部卡片里和名字并排的图标 */
+const CARD_ICON_SM = 18;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FADE = 32;
 
-/** 重叠卡片条：至少重叠 MIN_OVERLAP，每张卡至少露出 REVEAL（只显示图标时露出 REVEAL_ICON） */
+/** 卡片之间的间距；任何情况下都不叠压 */
 const GAP = 6;
-const MIN_OVERLAP = 8;
-const REVEAL = 40;
-const REVEAL_ICON = 20;
 
 /** 按 id 算出固定的倾斜幅度（0.6°–2.5°），方向一左一右交替，像随手放下的卡片 */
 function tilt(id: string, index: number) {
@@ -137,8 +136,8 @@ function tilt(id: string, index: number) {
 }
 
 /**
- * 顶部/底部工作区条：放得下就留间距平铺；放不下时卡片互相叠压，
- * 重叠量在 [MIN_OVERLAP, 卡宽 − REVEAL] 之间，按各卡宽度分配。叠到上限仍放不下才允许横向滚动。
+ * 顶部/底部工作区条：卡片一律留间距平铺，从不叠压。名字放不下时没选中的工作区收成图标（compact），
+ * 图标也放不下才横向滚动。
  */
 function OverlapStrip({ children, label, compact, onCompact, activeKey }: {
   children: ReactNode; label: 'both' | 'icon' | 'name'; compact: boolean; onCompact: (v: boolean) => void; activeKey?: string;
@@ -148,7 +147,6 @@ function OverlapStrip({ children, label, compact, onCompact, activeKey }: {
   const [scroll, setScroll] = useState(false);
   // 带名字平铺时需要的总宽度：收成图标后靠它判断窗口变宽时能不能放回名字
   const full = useRef(0);
-  const reveal = label === 'icon' || compact ? REVEAL_ICON : REVEAL;
   // 工作区数量或显示方式变了：先按带名字的样子重新量一次
   useLayoutEffect(() => { full.current = 0; onCompact(false); }, [count, label, onCompact]);
   const layout = useCallback(() => {
@@ -164,22 +162,11 @@ function OverlapStrip({ children, label, compact, onCompact, activeKey }: {
       if (!compact && !fits) { full.current = sum + GAP * (n - 1); onCompact(true); return; }
       if (compact && full.current && full.current <= avail) { onCompact(false); return; }
     }
-    const caps = widths.map((_, i) => (i === 0 ? 0 : Math.max(0, widths[i - 1]! - reveal)));
-    let margins: number[];
-    if (fits) margins = kids.map((_, i) => (i === 0 ? 0 : GAP));
-    else {
-      const need = sum - avail;
-      const at = (o: number) => caps.reduce((a, c, i) => a + (i === 0 ? 0 : Math.min(o, c)), 0);
-      // 重叠量 o 越大总重叠越多：二分出刚好放下的 o，再夹在上下限之间
-      let lo = 0, hi = Math.max(...caps, 0);
-      for (let k = 0; k < 24; k++) { const mid = (lo + hi) / 2; if (at(mid) < need) lo = mid; else hi = mid; }
-      const o = Math.max(MIN_OVERLAP, hi);
-      margins = caps.map((c, i) => (i === 0 ? 0 : -Math.min(o, Math.max(c, MIN_OVERLAP))));
-    }
+    const margins: number[] = kids.map((_, i) => (i === 0 ? 0 : GAP));
     kids.forEach((k, i) => { k.style.marginLeft = `${margins[i]}px`; });
     const total = sum + margins.reduce((a, b) => a + b, 0);
     setScroll(total > avail + 1);
-  }, [reveal, label, compact, onCompact]);
+  }, [label, compact, onCompact]);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -269,8 +256,8 @@ function NavItem({
       data-flip={w.id}
       data-flip-ws=""
       style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone } as React.CSSProperties) : undefined}
-      className={`group flex shrink-0 items-center text-left text-sm ${card
-        ? `nv-ws-card rounded-lg ${label === 'icon' ? 'p-0' : label === 'both' ? 'gap-1.5 py-0.5 pl-0.5 pr-2' : 'px-2.5 py-1'} ${active ? 'font-semibold' : ''}`
+      className={`group flex shrink-0 items-center text-left ${card ? '' : 'text-sm '}${card
+        ? `nv-ws-card rounded-md text-[13px] ${label === 'icon' ? 'p-0' : label === 'both' ? 'gap-1 py-0.5 pl-1 pr-1.5' : 'px-2 py-0.5'} ${active ? 'font-semibold' : ''}`
         : `gap-2 px-2 py-1.5 ${horizontal ? 'rounded-md' : 'w-full rounded-md'} ${active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       aria-label={w.name}
@@ -278,7 +265,7 @@ function NavItem({
     >
       {label !== 'name' && (
         <span className={`${card ? 'nv-ws-ico ' : ''}flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
-          <WorkspaceIcon ws={w} plain={card} size={card ? (label === 'icon' ? CARD_ICON : ICON) : ICON} />
+          <WorkspaceIcon ws={w} plain={card} size={card ? (label === 'icon' ? CARD_ICON : CARD_ICON_SM) : ICON} />
         </span>
       )}
       {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
