@@ -114,7 +114,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
-/** 只显示图标时，顶部卡片就是一个图标块 */
+/** 只显示图标时的图标尺寸：顶部卡片和左右侧栏一样大 */
 const CARD_ICON = 28;
 /** 顶部卡片里和名字并排的图标 */
 const CARD_ICON_SM = 18;
@@ -251,7 +251,7 @@ function NavItem({
     >
       {label !== 'name' && (
         <span className={`${card ? 'nv-ws-ico ' : ''}flex shrink-0 transition-opacity duration-150 ${card || active ? 'opacity-100' : 'opacity-45 group-hover:opacity-80'}`}>
-          <WorkspaceIcon ws={w} plain={card} size={card ? (label === 'icon' ? CARD_ICON : CARD_ICON_SM) : ICON} />
+          <WorkspaceIcon ws={w} plain={card} size={label === 'icon' ? CARD_ICON : card ? CARD_ICON_SM : ICON} />
         </span>
       )}
       {label !== 'icon' && <span ref={nameEl} className={`truncate ${horizontal ? 'max-w-40' : 'flex-1'}`}>{w.name}</span>}
