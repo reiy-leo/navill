@@ -80,18 +80,23 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   let slot = 0;
   const ordered = workspaces.map((w) => (w.source === 'inbox' ? { w, ghost: false } : (({ t, ghost }) => ({ w: t, ghost }))(sort.rows[slot++]!)));
   const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
-  const wsItems = ordered.map(({ w, ghost }, i) => (
-    <NavItem key={w.id} w={w} active={view === 'workspace' && w.id === current} label={label} horizontal={top} right={right} bottom={bottom}
-      tilt={top ? tilt(w.id, i) : undefined}
+  // 名字放不下时（compact）：没选中的工作区只显示图标、不倾斜，不再叠压出半截名字
+  const [compact, setCompact] = useState(false);
+  const wsItems = ordered.map(({ w, ghost }, i) => {
+    const active = view === 'workspace' && w.id === current;
+    return (
+    <NavItem key={w.id} w={w} active={active} label={top && compact && !active ? 'icon' : label} horizontal={top} right={right} bottom={bottom}
+      tilt={top ? (compact ? 0 : tilt(w.id, i)) : undefined}
       ghost={ghost} dnd={w.source === 'inbox' ? undefined : sort.bind(w.id)}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
-  ));
+    );
+  });
 
   if (top) {
     return (
       <nav ref={navRef} {...sort.container} className="relative flex items-center gap-2 pl-11 pr-20 py-1">
         <div className="shrink-0">{home}</div>
-        <OverlapStrip label={label} activeKey={view === 'workspace' ? current : view}>{wsItems}</OverlapStrip>
+        <OverlapStrip label={label} compact={compact} onCompact={setCompact} activeKey={view === 'workspace' ? current : view}>{wsItems}</OverlapStrip>
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={bottom ? 'top' : 'bottom'} align="end" />
         </div>
@@ -135,11 +140,17 @@ function tilt(id: string, index: number) {
  * 顶部/底部工作区条：放得下就留间距平铺；放不下时卡片互相叠压，
  * 重叠量在 [MIN_OVERLAP, 卡宽 − REVEAL] 之间，按各卡宽度分配。叠到上限仍放不下才允许横向滚动。
  */
-function OverlapStrip({ children, label, activeKey }: { children: ReactNode; label: 'both' | 'icon' | 'name'; activeKey?: string }) {
+function OverlapStrip({ children, label, compact, onCompact, activeKey }: {
+  children: ReactNode; label: 'both' | 'icon' | 'name'; compact: boolean; onCompact: (v: boolean) => void; activeKey?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
   const [scroll, setScroll] = useState(false);
-  const reveal = label === 'icon' ? REVEAL_ICON : REVEAL;
+  // 带名字平铺时需要的总宽度：收成图标后靠它判断窗口变宽时能不能放回名字
+  const full = useRef(0);
+  const reveal = label === 'icon' || compact ? REVEAL_ICON : REVEAL;
+  // 工作区数量或显示方式变了：先按带名字的样子重新量一次
+  useLayoutEffect(() => { full.current = 0; onCompact(false); }, [count, label, onCompact]);
   const layout = useCallback(() => {
     const el = ref.current;
     if (!el) return;
@@ -148,9 +159,14 @@ function OverlapStrip({ children, label, activeKey }: { children: ReactNode; lab
     const widths = kids.map((k) => k.offsetWidth);
     const avail = el.clientWidth;
     const sum = widths.reduce((a, b) => a + b, 0);
+    const fits = n < 2 || sum + GAP * (n - 1) <= avail;
+    if (label !== 'icon') {
+      if (!compact && !fits) { full.current = sum + GAP * (n - 1); onCompact(true); return; }
+      if (compact && full.current && full.current <= avail) { onCompact(false); return; }
+    }
     const caps = widths.map((_, i) => (i === 0 ? 0 : Math.max(0, widths[i - 1]! - reveal)));
     let margins: number[];
-    if (n < 2 || sum + GAP * (n - 1) <= avail) margins = kids.map((_, i) => (i === 0 ? 0 : GAP));
+    if (fits) margins = kids.map((_, i) => (i === 0 ? 0 : GAP));
     else {
       const need = sum - avail;
       const at = (o: number) => caps.reduce((a, c, i) => a + (i === 0 ? 0 : Math.min(o, c)), 0);
@@ -163,7 +179,7 @@ function OverlapStrip({ children, label, activeKey }: { children: ReactNode; lab
     kids.forEach((k, i) => { k.style.marginLeft = `${margins[i]}px`; });
     const total = sum + margins.reduce((a, b) => a + b, 0);
     setScroll(total > avail + 1);
-  }, [reveal]);
+  }, [reveal, label, compact, onCompact]);
 
   useLayoutEffect(() => {
     const el = ref.current;
