@@ -84,7 +84,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
     const active = view === 'workspace' && w.id === current;
     return (
     <NavItem key={w.id} w={w} active={active} label={label} horizontal={top} right={right} bottom={bottom}
-      tilt={top ? tilt(w.id, i) : undefined}
+      tilt={tilt(w.id, i)}
       ghost={ghost} dnd={w.source === 'inbox' ? undefined : sort.bind(w.id)}
       onClick={() => selectWorkspace(w.id)} onContextMenu={(e) => ctx(e, w)} />
     );
@@ -104,7 +104,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   return (
     <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 ${label === 'icon' ? 'pt-12 pb-20 w-16 items-center' : 'py-12'} ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-0.5 overflow-y-auto [justify-content:safe_center] [scrollbar-width:none]">{home}{wsItems}</div>
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-y-auto px-1 py-2 [justify-content:safe_center] [scrollbar-width:none]">{home}{wsItems}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} vertical={label === 'icon'} />
       </div>
@@ -114,9 +114,9 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
 /** 导航图标尺寸；选中与否只用颜色深浅区分，不放大 */
 const ICON = 22;
-/** 只显示图标时的图标尺寸：顶部卡片和左右侧栏一样大 */
+/** 只显示图标时，卡片就是一个图标块 */
 const CARD_ICON = 28;
-/** 顶部卡片里和名字并排的图标 */
+/** 卡片里和名字并排的图标 */
 const CARD_ICON_SM = 18;
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -201,9 +201,10 @@ function NavItem({
   onClick: () => void; onContextMenu: (e: React.MouseEvent) => void;
 }) {
   const [over, setOver] = useState(false);
-  // 顶部/底部的卡片用工作区颜色铺满；只显示图标时卡片就是图标本身
+  // 工作区卡片：只显示图标时卡片就是图标本身
   const tone = useTone(w.color) ?? '#8d8d86';
-  const card = horizontal && angle !== undefined;
+  // 顶部、底部、左右侧栏统一用卡片
+  const card = angle !== undefined;
   // 名称被截断时才在提示里显示全名
   const nameEl = useRef<HTMLSpanElement>(null);
   const [cut, setCut] = useState(false);
@@ -243,7 +244,7 @@ function NavItem({
       data-flip-ws=""
       style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone } as React.CSSProperties) : undefined}
       className={`group flex shrink-0 items-center text-left ${card ? '' : 'text-sm '}${card
-        ? `nv-ws-card rounded-lg text-[13px] ${label === 'icon' ? 'p-0.5' : label === 'both' ? 'gap-1.5 py-[7px] pl-2.5 pr-3' : 'px-3 py-[7px]'} ${active ? 'font-semibold' : ''}`
+        ? `nv-ws-card rounded-lg text-[13px] ${!horizontal && label !== 'icon' ? 'w-full ' : ''}${label === 'icon' ? 'p-0.5' : label === 'both' ? 'gap-1.5 py-[7px] pl-2.5 pr-3' : 'px-3 py-[7px]'} ${active ? 'font-semibold' : ''}`
         : `gap-2 px-2 py-1.5 ${horizontal ? 'rounded-md' : 'w-full rounded-md'} ${active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       aria-label={w.name}
