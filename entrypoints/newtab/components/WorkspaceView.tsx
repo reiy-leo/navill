@@ -154,7 +154,8 @@ const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arr
     </div>
   );
   return (
-    <div ref={area} {...sort.container}>
+    // 分区里的组铺满整个分区（抵消分区的内边距），指针在分区空白处也算在这个组里
+    <div ref={area} {...sort.container} className={section ? '-m-3 -mb-10 p-3 pb-10' : undefined}>
       {section && empty && <div className="flex min-h-16 items-center justify-center text-xs text-kumo-subtle">{tr('拖抽屉到这里')}</div>}
       {arrange === 'masonry' ? (
         <Masonry frozen={frozen}>

@@ -27,6 +27,19 @@ export function endDrag() {
   if (state.drag) set({ drag: null, over: null });
 }
 
+/**
+ * 防抖：每次重排后，指针要再移动 MOVE_PX 以上、且过了 SETTLE_MS（等 FLIP 动画走完）才允许下一次重排。
+ * 瀑布等大小不一的布局里，重排会把另一张卡片挪到静止的指针下，没有这道门槛就会两种排列来回闪。
+ */
+const MOVE_PX = 12;
+const SETTLE_MS = 240;
+let lastMove: { x: number; y: number; t: number } | null = null;
+function settled(e: { clientX: number; clientY: number }) {
+  if (!lastMove) return true;
+  return performance.now() - lastMove.t >= SETTLE_MS && Math.hypot(e.clientX - lastMove.x, e.clientY - lastMove.y) >= MOVE_PX;
+}
+const markMove = (e: { clientX: number; clientY: number }) => { lastMove = { x: e.clientX, y: e.clientY, t: performance.now() }; };
+
 if (typeof document !== 'undefined') {
   document.addEventListener('dragend', endDrag);
   // 放下后（各处理函数都跑完）再清
@@ -38,22 +51,14 @@ if (typeof document !== 'undefined') {
     const t = e.target as Element | null;
     // 目标节点刚被重渲染移除（比如空抽屉的「拖书签到这里」提示被占位替换）时，事件仍落在这个脱离文档的节点上，不能当作拖出
     if (t && !t.isConnected) return;
-    if (!t?.closest?.(`[data-sort-kind="${d.kind}"]`)) set({ ...state, over: null });
+    if (t?.closest?.(`[data-sort-kind="${d.kind}"]`)) return;
+    // 也要过防抖门槛：预览一变，布局跟着变（原位收起、目标变高），指针下面可能就成了列表外的空隙；
+    // 这时立刻撤掉预览，布局又变回去，指针又回到列表里，就会来回跳、放不下去
+    if (!settled(e)) return;
+    markMove(e);
+    set({ ...state, over: null });
   });
 }
-
-/**
- * 防抖：每次重排后，指针要再移动 MOVE_PX 以上、且过了 SETTLE_MS（等 FLIP 动画走完）才允许下一次重排。
- * 瀑布等大小不一的布局里，重排会把另一张卡片挪到静止的指针下，没有这道门槛就会两种排列来回闪。
- */
-const MOVE_PX = 12;
-const SETTLE_MS = 240;
-let lastMove: { x: number; y: number; t: number } | null = null;
-function settled(e: React.DragEvent) {
-  if (!lastMove) return true;
-  return performance.now() - lastMove.t >= SETTLE_MS && Math.hypot(e.clientX - lastMove.x, e.clientY - lastMove.y) >= MOVE_PX;
-}
-const markMove = (e: React.DragEvent) => { lastMove = { x: e.clientX, y: e.clientY, t: performance.now() }; };
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
