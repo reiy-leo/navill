@@ -79,7 +79,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
   // 「待整理」位置固定，其余工作区按拖拽预览顺序填回各自的槽位
   let slot = 0;
   const ordered = workspaces.map((w) => (w.source === 'inbox' ? { w, ghost: false } : (({ t, ghost }) => ({ w: t, ghost }))(sort.rows[slot++]!)));
-  const home = <HomeItem key="home" active={view === 'home'} label={label} horizontal={top} onClick={() => setView('home')} />;
+  const home = <HomeItem key="home" active={view === 'home'} horizontal={top} alignStart={!top && label !== 'icon'} onClick={() => setView('home')} />;
   // 名字放不下时（compact）：没选中的工作区只显示图标、不倾斜，不再叠压出半截名字
   const [compact, setCompact] = useState(false);
   const wsItems = ordered.map(({ w, ghost }, i) => {
@@ -289,15 +289,14 @@ function NavItem({
   return tip ? <Tooltip content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
 }
 
-/** 导航最前面的「主页」入口 */
-function HomeItem({ active, label, horizontal, onClick }: { active: boolean; label: 'both' | 'icon' | 'name'; horizontal: boolean; onClick: () => void }) {
+/** 导航最前面的「主页」入口：永远只显示图标，不跟工作区的显示方式走 */
+function HomeItem({ active, horizontal, alignStart, onClick }: { active: boolean; horizontal: boolean; alignStart: boolean; onClick: () => void }) {
   const btn = (
     <button type="button" onClick={onClick} aria-label={tr('主页')} data-active={active || undefined}
-      className={`flex shrink-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${horizontal ? '' : 'w-full'} ${
-        active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`}>
-      {label !== 'name' && <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} strokeWidth={active ? 2.5 : 2} /></span>}
-      {label !== 'icon' && <span className={`truncate ${horizontal ? '' : 'flex-1'}`}>{tr('主页')}</span>}
+      className={`flex shrink-0 items-center justify-center rounded-md p-1.5 transition-colors ${alignStart ? 'self-start' : ''} ${
+        active ? 'text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`}>
+      <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} strokeWidth={active ? 2.5 : 2} /></span>
     </button>
   );
-  return label === 'icon' ? <Tooltip content={tr('主页')} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip> : btn;
+  return <Tooltip content={tr('主页')} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip>;
 }
