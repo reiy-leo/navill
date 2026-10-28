@@ -15,7 +15,7 @@ import { tr } from '@/src/i18n';
 /** 市场最新分享在主页最多显示几个 */
 const LATEST = 6;
 
-/** 主页：#收藏 标签的书签、最常用的书签（图标一行），然后是市场里最新的分享（倒序，最多 6 个） */
+/** 主页：#收藏 标签的书签、最常用的书签（图标，多行排列），然后是市场里最新的分享（倒序，最多 6 个） */
 export function HomeView() {
   const { mode, setPanel } = useApp();
   const { installShare } = useInstallShare();
@@ -46,7 +46,7 @@ export function HomeView() {
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-medium">{tr('最常用')}</h2>
           <HistoryHint>{tr('开启「读取浏览记录」后，最常用会参考本机访问次数，更准')}</HistoryHint>
-          <Items items={top} view="icon" strip />
+          <Items items={top} view="icon" />
         </section>
       )}
 
