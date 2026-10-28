@@ -243,7 +243,7 @@ function NavItem({
       data-flip-ws=""
       style={card ? ({ '--nv-tilt': `${angle}deg`, '--nv-tone': tone } as React.CSSProperties) : undefined}
       className={`group flex shrink-0 items-center text-left ${card ? '' : 'text-sm '}${card
-        ? `nv-ws-card rounded-md text-[13px] ${label === 'icon' ? 'p-0' : label === 'both' ? 'gap-1 py-0.5 pl-1 pr-1.5' : 'px-2 py-0.5'} ${active ? 'font-semibold' : ''}`
+        ? `nv-ws-card rounded-lg text-[13px] ${label === 'icon' ? 'p-0.5' : label === 'both' ? 'gap-1.5 py-[7px] pl-2.5 pr-3' : 'px-3 py-[7px]'} ${active ? 'font-semibold' : ''}`
         : `gap-2 px-2 py-1.5 ${horizontal ? 'rounded-md' : 'w-full rounded-md'} ${active ? 'font-medium text-kumo-strong' : 'text-kumo-subtle hover:text-kumo-default'}`
       } transition-colors ${over ? 'ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''}`}
       aria-label={w.name}
