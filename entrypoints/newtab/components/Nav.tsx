@@ -105,7 +105,7 @@ export function Nav({ current, onSearch, onSettings }: { current?: string; onSea
 
   return (
     <nav ref={navRef} {...sort.container} className={`relative flex shrink-0 flex-col px-2 ${label === 'icon' ? 'pt-12 pb-20 w-16 items-center' : 'py-12'} ${label === 'icon' ? 'w-16 items-center' : 'w-max min-w-36 max-w-60'}`}>
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-y-auto px-1 py-2 [justify-content:safe_center] [scrollbar-width:none]">{home}{wsItems}</div>
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-1.5 overflow-y-auto px-1 py-2 [justify-content:safe_center] [&>*]:shrink-0 [scrollbar-width:none]">{home}{wsItems}</div>
       <div className={`absolute inset-x-0 bottom-2 flex items-center px-3 ${label === 'icon' ? 'justify-center' : ''}`}>
         <AppMenu onSearch={onSearch} onSettings={onSettings} onNewWorkspace={() => void add()} side={label === 'icon' ? (right ? 'left' : 'right') : 'top'} vertical={label === 'icon'} />
       </div>
@@ -261,7 +261,8 @@ function NavItem({
     </button>
   );
   const tip = [label === 'icon' || cut ? w.name : '', w.description].filter(Boolean).join(' · ');
-  return tip ? <Tooltip content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
+  // kumo Tooltip 会把按钮包进一层带 min-h-0 的触发器；侧栏卡片一多，这层会被压扁，卡片就叠在一起了，所以不让它收缩
+  return tip ? <Tooltip className="shrink-0" content={tip} side={horizontal ? (bottom ? 'top' : 'bottom') : right ? 'left' : 'right'}>{btn}</Tooltip> : btn;
 }
 
 /** 导航最前面的「主页」入口：永远只显示图标，不跟工作区的显示方式走 */
@@ -273,5 +274,5 @@ function HomeItem({ active, horizontal, alignStart, onClick }: { active: boolean
       <span className="flex shrink-0 items-center justify-center" style={{ width: ICON, height: ICON }}><House size={18} strokeWidth={active ? 2.5 : 2} /></span>
     </button>
   );
-  return <Tooltip content={tr('主页')} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip>;
+  return <Tooltip className="shrink-0" content={tr('主页')} side={horizontal ? 'bottom' : 'right'}>{btn}</Tooltip>;
 }
