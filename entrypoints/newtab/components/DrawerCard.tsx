@@ -87,7 +87,7 @@ export const DrawerCard = memo(function DrawerCard({
       data-flip={drawer.id}
       data-flip-drawer=""
       style={tint ? ({ '--ws-color': tint } as React.CSSProperties) : undefined}
-      className={`nv-drawer ${fill ? 'h-full' : ''} rounded-xl bg-kumo-elevated/75 ring-kumo-line backdrop-blur-sm ${ghost ? 'nv-ghost' : ''}`}
+      className={`nv-drawer ${fill ? 'h-full' : ''} rounded-xl bg-kumo-elevated/75 backdrop-blur-sm ${ghost ? 'nv-ghost' : ''}`}
       onDragOver={dnd.onDragOver}
       onDrop={dnd.onDrop}
     >
@@ -156,7 +156,7 @@ export const DrawerCard = memo(function DrawerCard({
           </DropdownMenu.Content>
         </DropdownMenu>
       </LayerCard.Secondary>
-      <LayerCard.Primary className={`nv-drawer-primary gap-0 rounded-xl p-2 ring-kumo-line ${fill ? 'min-h-0 flex-1' : ''}`}>
+      <LayerCard.Primary className={`nv-drawer-primary gap-0 rounded-xl p-2 ${fill ? 'min-h-0 flex-1' : ''}`}>
       <div
         ref={bodyRef}
         className={fill ? 'nv-drawer-body -mx-1 min-h-0 flex-1 overflow-y-auto px-1 [scrollbar-width:thin]' : height !== undefined || cap !== undefined ? 'nv-drawer-body -mx-1 overflow-y-auto px-1 [scrollbar-width:thin]' : 'nv-drawer-body'}

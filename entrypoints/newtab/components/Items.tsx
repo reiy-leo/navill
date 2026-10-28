@@ -123,7 +123,7 @@ const BookmarkItem = memo(function BookmarkItem({
         );
       case 'tile':
         return (
-          <div className="flex items-center gap-2 nv-tile rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
+          <div className="flex items-center gap-2 nv-tile rounded-lg bg-kumo-base/80 p-2">
             <BookmarkIcon url={b.url} src={b.faviconUrl} size={24} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{b.title}</div>
@@ -134,7 +134,7 @@ const BookmarkItem = memo(function BookmarkItem({
         );
       case 'bento':
         return (
-          <div className="flex h-full flex-col justify-between nv-tile rounded-lg border border-kumo-line bg-kumo-base/80 p-2">
+          <div className="flex h-full flex-col justify-between nv-tile rounded-lg bg-kumo-base/80 p-2">
             <div className="flex items-center justify-between">
               <BookmarkIcon url={b.url} src={b.faviconUrl} size={size === 'sm' ? 20 : 32} />
               {badge}

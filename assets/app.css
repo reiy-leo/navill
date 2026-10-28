@@ -44,6 +44,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
  * tint 色调卡片（默认）/ glass 磨砂玻璃 / bare 无框漂浮。--ws-color 为当前工作区颜色。
  * 只有抽屉用 backdrop-filter，书签底板不模糊，避免大量元素模糊导致滚动卡顿。
  */
+/* 抽屉、书签都不要描边（Rei 2026-10-28）：去掉 kumo LayerCard 自带的 ring */
+.nv-drawer, .nv-drawer-primary { --tw-ring-shadow: 0 0 #0000; }
 .nv-drawer, .nv-tile, .nv-plate { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
 
 /* 色调卡片：由工作区色按 OKLCH 推导（保留色相，明度随颜色深浅线性变化），同色相深浅档在卡片上也明显不同 */
@@ -57,14 +59,14 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
  * 抽屉整体：贴边 1px 细影 + 向下扩散的柔影（混入一点工作区色的暗调，避免发灰），把抽屉从背景上托起来；
  * primary：上沿一道内高光 + 极淡的贴边影，像一张纸放在有色托盘里。 */
 [data-surface='tint'] .nv-drawer {
-  box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 2px rgb(0 0 0 / 0.07), 0 4px 10px -2px rgb(0 0 0 / 0.06),
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.07), 0 4px 10px -2px rgb(0 0 0 / 0.06),
     0 16px 36px -12px color-mix(in oklab, color-mix(in oklab, var(--ws-color, #94a3b8) 35%, #000) 45%, transparent);
 }
-[data-mode='dark'][data-surface='tint'] .nv-drawer { box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 2px rgb(0 0 0 / 0.45), 0 4px 10px -2px rgb(0 0 0 / 0.35), 0 16px 36px -10px rgb(0 0 0 / 0.65); }
-.nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 6px -2px rgb(0 0 0 / 0.05); }
-[data-mode='dark'] .nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.3); }
+[data-mode='dark'][data-surface='tint'] .nv-drawer { box-shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 4px 10px -2px rgb(0 0 0 / 0.35), 0 16px 36px -10px rgb(0 0 0 / 0.65); }
+.nv-drawer-primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 6px -2px rgb(0 0 0 / 0.05); }
+[data-mode='dark'] .nv-drawer-primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.3); }
 [data-surface='bare'] .nv-drawer-primary { box-shadow: none; }
-[data-surface='glass'] .nv-drawer-primary { box-shadow: 0 0 0 1px var(--tw-ring-color), 0 1px 3px rgb(0 0 0 / 0.05); }
+[data-surface='glass'] .nv-drawer-primary { box-shadow: 0 1px 3px rgb(0 0 0 / 0.05); }
 /* Layer Card：外层（标题栏）是有色的 secondary，内层 primary 更亮，承载书签 */
 [data-surface='tint'] .nv-drawer-primary {
   background: oklch(from var(--ws-color, #94a3b8) calc(0.9 + l * 0.1) calc(c * (1.6 - l) * 0.11) h);
@@ -131,7 +133,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-drawer[data-head='peek']:hover > .nv-drawer-head,
 .nv-drawer[data-head='peek'][data-open] > .nv-drawer-head {
   transform: translateY(-26px);
-  box-shadow: 0 0 0 1px var(--tw-ring-color), 0 -4px 12px -6px rgb(0 0 0 / 0.12);
+  box-shadow: 0 -4px 12px -6px rgb(0 0 0 / 0.12);
 }
 [data-surface='bare'] .nv-drawer[data-head='peek']:hover > .nv-drawer-head { box-shadow: none; }
 /* 磨砂/无框时书签区是半透明的，收起的标题栏会透出来：收起时隐藏标题栏内容，伸出时淡入 */
