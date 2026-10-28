@@ -696,5 +696,7 @@
  "移动抽屉到…": "Pindahkan laci ke…",
  "抽屉{0}移动到分区{1}": "Laci {0} dipindah ke bagian {1}",
  "抽屉{0}移出分区": "Laci {0} dikeluarkan dari bagiannya",
- "把「{0}」分身到…": "Buat alias “{0}” di…"
+ "把「{0}」分身到…": "Buat alias “{0}” di…",
+ "关掉 Chrome 底栏": "Sembunyikan footer Chrome",
+ "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "Bilah berisi nama ekstensi di bagian bawah tab baru ditambahkan oleh Chrome, dan Navill tidak bisa menghapusnya. Klik kanan bilah itu lalu pilih sembunyikan, atau klik “Sesuaikan Chrome” dan matikan di bagian “Footer”."
 }

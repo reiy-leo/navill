@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { ChevronDown, ChevronRight, Circle, CircleCheck, ExternalLink, PartyPopper, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { db } from '@/src/db';
-import { allDone, dataOwnUrl, doneCount, hideOnboarding, markDone, ONBOARDING_TASKS, showOnboarding, type OnboardingTask } from '@/src/lib/onboarding';
+import { activeTasks, allDone, dataOwnUrl, doneCount, hideOnboarding, markDone, showOnboarding, watchNtpFooter, type OnboardingTask } from '@/src/lib/onboarding';
 import { modKey } from './feedback';
 import { useApp, useSelection } from './state';
 
@@ -53,11 +53,14 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
   const { settings } = useApp();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === '1');
   // 默认展开第一个未完成的任务，让人一眼看到任务要做什么
-  const [open, setOpen] = useState<OnboardingTask | null>(() => ONBOARDING_TASKS.find((t) => !state.done[t]) ?? null);
+  const [open, setOpen] = useState<OnboardingTask | null>(() => activeTasks().find((t) => !state.done[t]) ?? null);
   const toggle = (v: boolean) => { setCollapsed(v); localStorage.setItem(COLLAPSED_KEY, v ? '1' : '0'); };
   useDataDetection(state.done);
+  // 只在 Chrome 138+ 出现：用户关掉新标签页底栏时，页面会突然变高
+  const needFooter = !state.done.ntpFooter && activeTasks().includes('ntpFooter');
+  useEffect(() => (needFooter ? watchNtpFooter(() => void markDone('ntpFooter')) : undefined), [needFooter]);
   const n = doneCount(state);
-  const total = ONBOARDING_TASKS.length;
+  const total = activeTasks().length;
   const mod = modKey();
 
   const TASKS: Record<OnboardingTask, { title: string; hint: string; go?: () => void; link?: { url: string; label: string } }> = {
@@ -77,6 +80,8 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
     github: { title: tr('添加你的 GitHub'), hint: tr('在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。'), go: focusGitHub },
     // 点了「了解为什么」就算完成
     dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
+    // 检测到页面突然变高（底栏没了）就算完成
+    ntpFooter: { title: tr('关掉 Chrome 底栏'), hint: tr('新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。') },
   };
 
   if (collapsed) {
@@ -103,7 +108,7 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
         <div className="h-full rounded-full bg-kumo-brand transition-[width] duration-500" style={{ width: `${(n / total) * 100}%` }} />
       </div>
       <ul className="max-h-[50vh] overflow-y-auto px-1.5 pb-1.5">
-        {ONBOARDING_TASKS.map((id) => {
+        {activeTasks().map((id) => {
           const t = TASKS[id];
           const done = Boolean(state.done[id]);
           const expanded = open === id && !done;

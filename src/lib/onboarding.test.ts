@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { allDone, doneCount, isTagQuery, mergeOnboarding, ONBOARDING_TASKS, sameOnboarding, showOnboarding } from './onboarding';
+import { activeTasks, allDone, doneCount, isTagQuery, mergeOnboarding, ONBOARDING_TASKS, sameOnboarding, showOnboarding } from './onboarding';
 
 describe('新手任务', () => {
   it('合并：完成记录取并集并保留较早时间，关闭任一处即关闭', () => {
@@ -19,7 +19,7 @@ describe('新手任务', () => {
 
   it('全部完成或关闭后不再显示', () => {
     const all = { done: Object.fromEntries(ONBOARDING_TASKS.map((t) => [t, 1])), hidden: false };
-    expect(doneCount(all)).toBe(ONBOARDING_TASKS.length);
+    expect(doneCount(all)).toBe(activeTasks().length);
     expect(allDone(all)).toBe(true);
     expect(showOnboarding(all)).toBe(false);
     expect(showOnboarding({ done: {}, hidden: true })).toBe(false);

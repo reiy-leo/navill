@@ -696,5 +696,7 @@
  "移动抽屉到…": "Move drawer to…",
  "抽屉{0}移动到分区{1}": "Moved drawer {0} to section {1}",
  "抽屉{0}移出分区": "Moved drawer {0} out of its section",
- "把「{0}」分身到…": "Alias “{0}” to…"
+ "把「{0}」分身到…": "Alias “{0}” to…",
+ "关掉 Chrome 底栏": "Hide Chrome's footer",
+ "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "The bar at the bottom of the new tab page showing the extension name is added by Chrome, and Navill can't remove it. Right-click the bar and choose to hide it, or click “Customize Chrome” and turn it off under “Footer”."
 }

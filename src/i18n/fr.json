@@ -696,5 +696,7 @@
  "移动抽屉到…": "Déplacer le tiroir vers…",
  "抽屉{0}移动到分区{1}": "Tiroir {0} déplacé vers la section {1}",
  "抽屉{0}移出分区": "Tiroir {0} sorti de sa section",
- "把「{0}」分身到…": "Créer un alias de « {0} » dans…"
+ "把「{0}」分身到…": "Créer un alias de « {0} » dans…",
+ "关掉 Chrome 底栏": "Masquez le pied de page de Chrome",
+ "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "La barre avec le nom de l’extension en bas du nouvel onglet est ajoutée par Chrome, et Navill ne peut pas la retirer. Faites un clic droit dessus et choisissez de la masquer, ou cliquez sur « Personnaliser Chrome » et désactivez-la sous « Pied de page »."
 }
