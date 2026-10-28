@@ -11,6 +11,7 @@ const MIN_PX = 48; // 小于这个尺寸算不清晰
 const TTL_OK = 30 * 864e5;
 const TTL_FAIL = 7 * 864e5;
 const TIMEOUT = 6000;
+const HOST_TIMEOUT = 20_000;
 
 export const hostKey = (url: string) => {
   try {
@@ -27,7 +28,12 @@ async function get(url: string, accept?: string): Promise<Response | null> {
   const t = setTimeout(() => ctl.abort(), TIMEOUT);
   try {
     const r = await fetch(url, { signal: ctl.signal, credentials: 'omit', redirect: 'follow', headers: accept ? { accept } : undefined });
-    return r.ok ? r : null;
+    if (!r.ok) return null;
+    // 正文读完前也受超时限制：读进内存再返回
+    const body = await r.blob();
+    const res = new Response(body, { status: r.status, headers: r.headers });
+    Object.defineProperty(res, 'url', { value: r.url }); // 保留重定向后的地址，解析相对图标路径要用
+    return res;
   } catch { return null; } finally { clearTimeout(t); }
 }
 
@@ -112,7 +118,10 @@ function pump() {
   while (queueDb && running < 4 && waiting.length) {
     const host = waiting.shift()!;
     running++;
-    void fetchIcon(queueDb, host).finally(() => { running--; queued.delete(host); pump(); });
+    // 单个域名最多占 20 秒：fetch 的超时只管到响应头，读正文、解码卡住时也要让出位置，
+    // 否则 4 个卡住的域名会把整条队列堵死，要等页面刷新才继续（超时不记失败，下次打开再试）
+    void Promise.race([fetchIcon(queueDb, host), new Promise((r) => setTimeout(r, HOST_TIMEOUT))])
+      .finally(() => { running--; queued.delete(host); pump(); });
   }
 }
 export function requestIcon(db: NavillDB, host: string) {
