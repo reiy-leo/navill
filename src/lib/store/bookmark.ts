@@ -1,6 +1,6 @@
 import type { Bookmark, NavillDB, Placement } from '@/src/db';
 import { del, deviceId, patch, put, uid } from './core';
-import { nextOrder, removePlacement } from './placement';
+import { aliasSource, nextOrder, removePlacement } from './placement';
 import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';
@@ -27,7 +27,12 @@ export async function createBookmark(
   drawerId: string | null,
   sectionId: string | null = null,
 ) {
-  if (drawerId) sectionId = null;
+  if (drawerId) {
+    sectionId = null;
+    // 在分身抽屉里新建：写到源抽屉，原抽屉和所有分身都能看到
+    const src = await aliasSource(db, drawerId);
+    if (src) ({ workspaceId, drawerId } = src);
+  }
   const links = cleanLinks(input.links ?? []);
   return logged(db, async (log) => {
     const url = normalizeUrl(input.url);

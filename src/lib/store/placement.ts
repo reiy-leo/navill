@@ -11,6 +11,26 @@ async function where(db: NavillDB, workspaceId: string, drawerId: string | null,
   return q(sub ? `${ws?.name ?? ''} / ${sub}` : ws?.name);
 }
 
+/**
+ * 往抽屉里写书签时真正该写到哪：分身抽屉（只挂载了一个源抽屉）写回源抽屉，
+ * 这样原抽屉和其他分身都能看到；源抽屉本身也是分身时继续往上找。返回 null 表示就写这个抽屉。
+ */
+export async function aliasSource(db: NavillDB, drawerId: string): Promise<{ workspaceId: string; drawerId: string } | null> {
+  let cur = drawerId;
+  const seen = new Set<string>();
+  for (;;) {
+    seen.add(cur);
+    const gs = await db.aliasGroups.where('targetDrawerId').equals(cur).toArray();
+    if (gs.length !== 1 || seen.has(gs[0]!.sourceDrawerId)) break;
+    const src = await db.drawers.get(gs[0]!.sourceDrawerId);
+    if (!src) break;
+    cur = src.id;
+  }
+  if (cur === drawerId) return null;
+  const d = await db.drawers.get(cur);
+  return d ? { workspaceId: d.workspaceId, drawerId: d.id } : null;
+}
+
 /** 不在抽屉里的书签实际所在的分区：分区已不存在时算顶层（null） */
 export function sectionOf(p: Placement, known: Set<string>): string | null {
   return p.drawerId === null && p.sectionId && known.has(p.sectionId) ? p.sectionId : null;
@@ -66,7 +86,11 @@ const sameSpot = (p: Placement, workspaceId: string, drawerId: string | null, se
 export async function movePlacement(
   db: NavillDB, placementId: string, workspaceId: string, drawerId: string | null, index?: number, sectionId: string | null = null,
 ) {
-  if (drawerId) sectionId = null;
+  if (drawerId) {
+    sectionId = null;
+    const src = await aliasSource(db, drawerId);
+    if (src) { ({ workspaceId, drawerId } = src); index = undefined; }
+  }
   await logged(db, async (log) => {
     const p = await db.placements.get(placementId);
     if (!p) return;
@@ -94,6 +118,9 @@ export async function placeInOrder(db: NavillDB, placementId: string, ids: strin
   if (drawerId) sectionId = null;
   const p = await db.placements.get(placementId);
   if (!p) return;
+  // 拖进分身抽屉：书签放到源抽屉末尾，分身抽屉里的顺序跟着源抽屉走，不按这边的落点排
+  const src = drawerId ? await aliasSource(db, drawerId) : null;
+  if (src) { if (!sameSpot(p, src.workspaceId, src.drawerId, null)) await movePlacement(db, placementId, src.workspaceId, src.drawerId); return; }
   if (!sameSpot(p, workspaceId, drawerId, sectionId)) {
     await movePlacement(db, placementId, workspaceId, drawerId, ids.indexOf(placementId), sectionId);
     const q = await db.placements.get(placementId);
@@ -104,7 +131,11 @@ export async function placeInOrder(db: NavillDB, placementId: string, ids: strin
 
 /** 在目标位置创建分身；目标处已有该书签时跳过，返回新位置 id 或 null */
 export async function createAlias(db: NavillDB, bookmarkId: string, workspaceId: string, drawerId: string | null, sectionId: string | null = null) {
-  if (drawerId) sectionId = null;
+  if (drawerId) {
+    sectionId = null;
+    const src = await aliasSource(db, drawerId);
+    if (src) ({ workspaceId, drawerId } = src);
+  }
   return logged(db, async (log) => {
     const existing = await placementsAt(db, workspaceId, drawerId, sectionId);
     if (existing.some((x) => x.bookmarkId === bookmarkId)) return null;

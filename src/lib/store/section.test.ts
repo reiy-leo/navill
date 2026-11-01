@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDB, type NavillDB } from '@/src/db';
 import { loadWorkspace, visibilityOf } from '../view';
-import { archiveSection, cloneSectionTo, createBookmark, createDrawer, createSection, createWorkspace, dissolveSection, ensureSeed, mergeAsLink, moveSection, placeDrawerInSection, placeInOrder } from './index';
+import { aliasDrawerTo, archiveSection, cloneSectionTo, createBookmark, createDrawer, createSection, createWorkspace, dissolveSection, ensureSeed, mergeAsLink, moveSection, placeDrawerInSection, placeInOrder } from './index';
 
 let db: NavillDB;
 let n = 0;
@@ -103,5 +103,22 @@ describe('按住 Option / Alt 拖成关联链接', () => {
     expect(await mergeAsLink(db, pb.id, a.id)).toBe(true);
     expect((await db.bookmarks.get(a.id))!.links).toEqual([{ url: 'https://b.com' }, { url: 'https://c.com', title: 'C' }]);
     expect(await db.placements.get(pb.id)).toBeUndefined();
+  });
+});
+
+describe('分身抽屉里加书签', () => {
+  it('新建、拖入都写回源抽屉，原抽屉和其他分身都看得到', async () => {
+    const { ws, other, a, b } = await setup();
+    const al = (await aliasDrawerTo(db, a.id, other.id))!;
+    const al2 = (await aliasDrawerTo(db, al.id, ws.id))!;
+    const { placement } = await createBookmark(db, { url: 'n.com', title: 'N' }, other.id, al.id);
+    expect(placement).toMatchObject({ workspaceId: ws.id, drawerId: a.id });
+    const { placement: pb } = await createBookmark(db, { url: 'm.com', title: 'M' }, ws.id, b.id);
+    await placeInOrder(db, pb.id, [pb.id], ws.id, al2.id);
+    expect(await db.placements.get(pb.id)).toMatchObject({ drawerId: a.id });
+    const data = (await loadWorkspace(db, other.id, visibilityOf(undefined)))!;
+    const d = data.drawers.find((x) => x.drawer.id === al.id)!;
+    expect(d.items).toEqual([]);
+    expect(d.mounted.map((i) => i.bookmark.title).sort()).toEqual(['M', 'N', 'X']);
   });
 });
