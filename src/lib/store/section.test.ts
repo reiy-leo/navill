@@ -95,7 +95,7 @@ describe('抽屉分身到工作区', () => {
   });
 });
 
-describe('按住 Ctrl 拖成关联链接', () => {
+describe('按住 Shift 拖成关联链接', () => {
   it('被拖书签并进目标的关联链接，去重，原位置删掉', async () => {
     const ws = await createWorkspace(db, { name: '工作' });
     const { bookmark: a } = await createBookmark(db, { url: 'a.com', title: 'A', links: [{ url: 'https://b.com' }] }, ws.id, null);

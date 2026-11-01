@@ -9,7 +9,7 @@ import { insertAfter } from './dnd';
 export type SortKind = 'drawer' | 'bookmark' | 'workspace' | 'section';
 
 interface Drag { kind: SortKind; id: string; from: string; payload?: unknown }
-/** link：按住 Ctrl 拖书签时，指针下面那个书签的 key（放下后被拖的书签成为它的关联链接） */
+/** link：按住 Shift 拖书签时，指针下面那个书签的 key（放下后被拖的书签成为它的关联链接） */
 interface State { drag: Drag | null; over: { list: string; index: number } | null; link?: string | null }
 
 let state: State = { drag: null, over: null };
@@ -28,12 +28,12 @@ export function endDrag() {
   if (state.drag) set({ drag: null, over: null });
 }
 
-/** 这个书签是不是按住 Ctrl 拖动时的关联目标（只在变化时重渲染） */
+/** 这个书签是不是按住 Shift 拖动时的关联目标（只在变化时重渲染） */
 export function useLinkTarget(key: string) {
   return useSyncExternalStore(subscribe, () => state.link === key);
 }
-/** 拖书签时按住 Ctrl：放到另一个书签上就变成它的关联链接 */
-const linking = (kind: SortKind, e: React.DragEvent) => kind === 'bookmark' && e.ctrlKey;
+/** 拖书签时按住 Shift：放到另一个书签上就变成它的关联链接 */
+const linking = (kind: SortKind, e: React.DragEvent) => kind === 'bookmark' && e.shiftKey;
 
 /**
  * 防抖：每次重排后，指针要再移动 MOVE_PX 以上、且过了 SETTLE_MS（等 FLIP 动画走完）才允许下一次重排。
@@ -112,7 +112,7 @@ export function useSortable<T>({
   list: string; kind: SortKind; items: T[]; keyOf: (t: T) => string; sortable?: boolean; horizontal: boolean;
   foreign?: (payload: unknown) => T | undefined;
   onDrop?: (id: string, keys: string[]) => void;
-  /** 按住 Ctrl 放到某一项上：被拖项 id、拖动携带的 payload、目标项 */
+  /** 按住 Shift 放到某一项上：被拖项 id、拖动携带的 payload、目标项 */
   onLink?: (id: string, payload: unknown, target: T) => void;
 }) {
   const byKey = new Map(items.map((t) => [keyOf(t), t]));
