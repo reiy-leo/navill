@@ -51,7 +51,7 @@ export function Items({ items, view, list, onDrop, onReveal, emptyHint, strip }:
       const own = new Set(items.filter((i) => !i.mountedFrom).map((i) => i.placement.id));
       onDrop(id, keys.filter((k) => k === id || own.has(k)));
     }),
-    // 按住 Option / Alt 放到书签上：被拖的书签变成目标书签的关联链接
+    // 按住 Ctrl 放到书签上：被拖的书签变成目标书签的关联链接
     onLink: onDrop && ((_, payload, target) => {
       const src = payload as Item | undefined;
       if (!src || src.mountedFrom) return;
@@ -183,7 +183,7 @@ const BookmarkItem = memo(function BookmarkItem({
       onDragStart={(e) => {
         e.dataTransfer.setData(DND_PLACEMENT, p.id);
         e.dataTransfer.setData('text/uri-list', b.url);
-        // 允许 link：按住 Option / Alt 放到别的书签上时变成关联链接
+        // 允许 link：按住 Ctrl 放到别的书签上时变成关联链接
         e.dataTransfer.effectAllowed = 'linkMove';
         dnd.onDragStart();
       }}
