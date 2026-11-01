@@ -57,7 +57,11 @@ export function sortItems(items: Item[], mode: SortMode = 'manual', now = Date.n
 export const effectiveView = (d: Drawer, w: Workspace): ViewMode => d.viewMode ?? w.viewMode;
 
 export interface DrawerData { drawer: Drawer; items: Item[]; mounted: Item[] }
-export interface WorkspaceData { workspace: Workspace; top: Item[]; drawers: DrawerData[] }
+export interface WorkspaceData {
+  workspace: Workspace; top: Item[]; drawers: DrawerData[];
+  /** 分区 id → 直接放在分区里（不在抽屉中）的书签 */
+  sectionItems: Record<string, Item[]>;
+}
 
 /** 读取一个工作区的完整视图（含分身书签组展开、场景过滤、排序） */
 export async function loadWorkspace(db: NavillDB, workspaceId: string, v: Visibility): Promise<WorkspaceData | null> {
@@ -81,7 +85,11 @@ export async function loadWorkspace(db: NavillDB, workspaceId: string, v: Visibi
       return b && bookmarkVisible(b, v) ? [{ placement: p, bookmark: b }] : [];
     });
 
-  const top = sortItems(toItems(placements.filter((p) => p.drawerId === null)));
+  const known = new Set(workspace.sections?.map((s) => s.id) ?? []);
+  const loose = placements.filter((p) => p.drawerId === null);
+  const top = sortItems(toItems(loose.filter((p) => !p.sectionId || !known.has(p.sectionId))));
+  const sectionItems: Record<string, Item[]> = {};
+  for (const id of known) sectionItems[id] = sortItems(toItems(loose.filter((p) => p.sectionId === id)));
   const data: DrawerData[] = drawers.map((drawer) => {
     const own = toItems(placements.filter((p) => p.drawerId === drawer.id));
     const ownBookmarks = new Set(own.map((i) => i.bookmark.id));
@@ -98,7 +106,7 @@ export async function loadWorkspace(db: NavillDB, workspaceId: string, v: Visibi
     }
     return { drawer, items: sortItems(own, drawer.sortMode ?? 'smart'), mounted };
   });
-  return { workspace, top, drawers: data };
+  return { workspace, top, drawers: data, sectionItems };
 }
 
 /** 每个书签取一个可见位置（原书签优先）：工作区、抽屉都要在当前场景可见 */

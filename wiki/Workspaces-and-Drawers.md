@@ -19,6 +19,14 @@ Each drawer's title bar has:
 - **⋯ menu**: create an alias group, share, archive, dissolve (keeps the bookmarks at the workspace top level), delete, shuffle.
 - Double-click the title to rename. Drag the bottom edge to change its height.
 
+## Sections
+
+Sections group drawers inside a workspace. Click **New section** in the workspace title bar; the section's name sits like a stamp in its bottom-right corner (click to rename, drag to reorder).
+
+- Drag drawers in and out of a section.
+- Bookmarks can sit directly in a section too, above its drawers: drag one in, or right-click the section → **New bookmark**.
+- Right-click the section for move, alias, archive or dissolve. Dissolving or archiving a section moves its own bookmarks to the workspace top level.
+
 ## Arrange
 
 The workspace title bar's arrange button lays drawers out as **Strip** (one drawer per row, scrolls sideways), **Masonry** (default), **Bento** (grid) or **Board** (one column per drawer). It's remembered per workspace on each device.

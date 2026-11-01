@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDB, type NavillDB } from '@/src/db';
 import { loadWorkspace, visibilityOf } from '../view';
-import { archiveSection, cloneSectionTo, createBookmark, createDrawer, createSection, createWorkspace, ensureSeed, moveSection, placeDrawerInSection } from './index';
+import { archiveSection, cloneSectionTo, createBookmark, createDrawer, createSection, createWorkspace, dissolveSection, ensureSeed, mergeAsLink, moveSection, placeDrawerInSection, placeInOrder } from './index';
 
 let db: NavillDB;
 let n = 0;
@@ -63,5 +63,45 @@ describe('抽屉分身到工作区', () => {
     expect((await db.drawers.get(nd.id))!.sectionId).toBe(s.id);
     const data = (await loadWorkspace(db, other.id, visibilityOf(undefined)))!;
     expect(data.drawers.find((d) => d.drawer.id === nd.id)!.mounted.map((i) => i.bookmark.title)).toEqual(['X']);
+  });
+
+  it('分区里直接放书签：单独列出，不算顶层；拖进拖出', async () => {
+    const { ws, s } = await setup();
+    const { placement: p } = await createBookmark(db, { url: 'y.com', title: 'Y' }, ws.id, null, s.id);
+    const { placement: t } = await createBookmark(db, { url: 'z.com', title: 'Z' }, ws.id, null);
+    let data = (await loadWorkspace(db, ws.id, visibilityOf(undefined)))!;
+    expect(data.sectionItems[s.id]!.map((i) => i.bookmark.title)).toEqual(['Y']);
+    expect(data.top.map((i) => i.bookmark.title)).toEqual(['Z']);
+    await placeInOrder(db, t.id, [p.id, t.id], ws.id, null, s.id);
+    data = (await loadWorkspace(db, ws.id, visibilityOf(undefined)))!;
+    expect(data.sectionItems[s.id]!.map((i) => i.bookmark.title)).toEqual(['Y', 'Z']);
+    expect(data.top).toEqual([]);
+    await placeInOrder(db, p.id, [p.id], ws.id, null);
+    expect((await db.placements.get(p.id))!.sectionId).toBeUndefined();
+  });
+
+  it('分区里的书签：移动跟着走，分身复制，解散回顶层', async () => {
+    const { ws, other, s } = await setup();
+    const { placement: p } = await createBookmark(db, { url: 'y.com', title: 'Y' }, ws.id, null, s.id);
+    await cloneSectionTo(db, ws.id, s.id, other.id);
+    const ns = (await db.workspaces.get(other.id))!.sections![0]!;
+    expect((await loadWorkspace(db, other.id, visibilityOf(undefined)))!.sectionItems[ns.id]!.map((i) => i.bookmark.title)).toEqual(['Y']);
+    await moveSection(db, ws.id, s.id, other.id);
+    expect((await db.placements.get(p.id))!.workspaceId).toBe(other.id);
+    await dissolveSection(db, other.id, s.id);
+    const data = (await loadWorkspace(db, other.id, visibilityOf(undefined)))!;
+    expect(data.top.map((i) => i.bookmark.title)).toEqual(['Y', 'Y'].slice(0, data.top.length));
+    expect((await db.placements.get(p.id))!.sectionId).toBeUndefined();
+  });
+});
+
+describe('按住 Option / Alt 拖成关联链接', () => {
+  it('被拖书签并进目标的关联链接，去重，原位置删掉', async () => {
+    const ws = await createWorkspace(db, { name: '工作' });
+    const { bookmark: a } = await createBookmark(db, { url: 'a.com', title: 'A', links: [{ url: 'https://b.com' }] }, ws.id, null);
+    const { placement: pb } = await createBookmark(db, { url: 'b.com', title: 'B', links: [{ url: 'https://c.com', title: 'C' }, { url: 'https://a.com' }] }, ws.id, null);
+    expect(await mergeAsLink(db, pb.id, a.id)).toBe(true);
+    expect((await db.bookmarks.get(a.id))!.links).toEqual([{ url: 'https://b.com' }, { url: 'https://c.com', title: 'C' }]);
+    expect(await db.placements.get(pb.id)).toBeUndefined();
   });
 });

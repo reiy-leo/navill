@@ -9,7 +9,8 @@ import { insertAfter } from './dnd';
 export type SortKind = 'drawer' | 'bookmark' | 'workspace' | 'section';
 
 interface Drag { kind: SortKind; id: string; from: string; payload?: unknown }
-interface State { drag: Drag | null; over: { list: string; index: number } | null }
+/** link：按住 Option / Alt 拖书签时，指针下面那个书签的 key（放下后被拖的书签成为它的关联链接） */
+interface State { drag: Drag | null; over: { list: string; index: number } | null; link?: string | null }
 
 let state: State = { drag: null, over: null };
 const subs = new Set<() => void>();
@@ -26,6 +27,13 @@ export function startDrag(d: Drag) {
 export function endDrag() {
   if (state.drag) set({ drag: null, over: null });
 }
+
+/** 这个书签是不是按住 Option / Alt 拖动时的关联目标（只在变化时重渲染） */
+export function useLinkTarget(key: string) {
+  return useSyncExternalStore(subscribe, () => state.link === key);
+}
+/** 拖书签时按住 Option（Mac）/ Alt（Windows）：放到另一个书签上就变成它的关联链接 */
+const linking = (kind: SortKind, e: React.DragEvent) => kind === 'bookmark' && e.altKey;
 
 /**
  * 防抖：每次重排后，指针要再移动 MOVE_PX 以上、且过了 SETTLE_MS（等 FLIP 动画走完）才允许下一次重排。
@@ -47,6 +55,8 @@ if (typeof document !== 'undefined') {
   // 拖出了同类列表的范围：撤掉预览
   document.addEventListener('dragover', (e) => {
     const d = state.drag;
+    // 书签上的处理函数会拦住冒泡；能到这里说明指针已不在书签上
+    if (d && state.link) set({ ...state, link: null });
     if (!d || !state.over) return;
     const t = e.target as Element | null;
     // 目标节点刚被重渲染移除（比如空抽屉的「拖书签到这里」提示被占位替换）时，事件仍落在这个脱离文档的节点上，不能当作拖出
@@ -97,11 +107,13 @@ export interface SortRow<T> { t: T; key: string; ghost: boolean; hidden: boolean
  * foreign：从别的列表拖进来时，用拖动携带的 payload 生成一项用于预览。
  */
 export function useSortable<T>({
-  list, kind, items, keyOf, sortable = true, horizontal, foreign, onDrop,
+  list, kind, items, keyOf, sortable = true, horizontal, foreign, onDrop, onLink,
 }: {
   list: string; kind: SortKind; items: T[]; keyOf: (t: T) => string; sortable?: boolean; horizontal: boolean;
   foreign?: (payload: unknown) => T | undefined;
   onDrop?: (id: string, keys: string[]) => void;
+  /** 按住 Option / Alt 放到某一项上：被拖项 id、拖动携带的 payload、目标项 */
+  onLink?: (id: string, payload: unknown, target: T) => void;
 }) {
   const byKey = new Map(items.map((t) => [keyOf(t), t]));
   // 只订阅与本列表相关的那一小片状态：别的列表里移动不会让本列表重渲染
@@ -149,8 +161,8 @@ export function useSortable<T>({
   const sig = rows.map((r) => r.key + (r.hidden ? '-' : '')).join('|');
 
   // 处理函数在事件发生时读最新的值，所以可以缓存成稳定引用（子组件 memo 才有效）
-  const live = useRef({ rows, byKey, sortable, onDrop, foreign, horizontal, list, dataSig });
-  live.current = { rows, byKey, sortable, onDrop, foreign, horizontal, list, dataSig };
+  const live = useRef({ rows, byKey, sortable, onDrop, onLink, foreign, horizontal, list, dataSig });
+  live.current = { rows, byKey, sortable, onDrop, onLink, foreign, horizontal, list, dataSig };
   const cur = () => (state.drag && state.drag.kind === kind ? state.drag : null);
   const accept = (e: React.DragEvent) => {
     const dd = cur(), L = live.current;
@@ -160,6 +172,15 @@ export function useSortable<T>({
 
   const drop = (e: React.DragEvent) => {
     const dd = cur(), L = live.current;
+    if (dd && linking(kind, e)) {
+      const target = state.link ? L.byKey.get(state.link) : undefined;
+      if (!target || !L.onLink || state.link === dd.id) return;
+      e.preventDefault();
+      e.stopPropagation();
+      L.onLink(dd.id, dd.payload, target);
+      endDrag();
+      return;
+    }
     if (!dd || !accept(e) || state.over?.list !== L.list) return;
     e.preventDefault();
     e.stopPropagation();
@@ -172,9 +193,20 @@ export function useSortable<T>({
 
   const onItemOver = (key: string, e: React.DragEvent) => {
     const dd = cur(), L = live.current;
+    if (dd && linking(kind, e) && L.onLink) {
+      // 关联模式：不排序，撤掉让位预览，只标出目标
+      e.stopPropagation();
+      const target = key === dd.id ? null : key;
+      if (target) { e.preventDefault(); e.dataTransfer.dropEffect = 'link'; }
+      lastTarget.current = null;
+      if (state.link !== target || state.over) set({ ...state, over: null, link: target });
+      return;
+    }
+    if (state.link) set({ ...state, link: null });
     if (!dd || !accept(e)) return;
     e.preventDefault();
     e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
     if (key === dd.id) { lastTarget.current = null; return; }
     if (!settled(e)) return;
     const r = rest(L.rows, dd.id);
@@ -225,8 +257,10 @@ export function useSortable<T>({
     'data-sort-list': list,
     onDragOver: (e: React.DragEvent) => {
       const dd = cur(), L = live.current;
+      if (dd && linking(kind, e)) return; // 关联模式下空白处不接收
       if (!dd || !accept(e)) return;
       e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
       if (state.over?.list !== L.list) {
         // 空列表没有别的项会被挪动，不需要等动画稳定
         if (rest(L.rows, dd.id).length > 0 && !settled(e)) return;

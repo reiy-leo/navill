@@ -2,7 +2,7 @@ import { Checkbox } from '@cloudflare/kumo';
 import { Copy, Link, Star } from 'lucide-react';
 import { memo, useId, useRef } from 'react';
 import { TAG_FAVORITE, db, type ViewMode } from '@/src/db';
-import { toggleTagOn } from '@/src/lib/store';
+import { mergeAsLink, toggleTagOn } from '@/src/lib/store';
 import type { Item } from '@/src/lib/view';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
@@ -12,7 +12,8 @@ import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
 import { useApp, useSelection } from '@/src/ui/state';
 import { DND_PLACEMENT } from './dnd';
-import { useFlip, useSortable } from './sortable';
+import { useFlip, useLinkTarget, useSortable } from './sortable';
+import { toast } from '@/src/ui/toast';
 
 import { tr } from '@/src/i18n';
 interface Props {
@@ -49,6 +50,14 @@ export function Items({ items, view, list, onDrop, onReveal, emptyHint, strip }:
     onDrop: onDrop && ((id, keys) => {
       const own = new Set(items.filter((i) => !i.mountedFrom).map((i) => i.placement.id));
       onDrop(id, keys.filter((k) => k === id || own.has(k)));
+    }),
+    // 按住 Option / Alt 放到书签上：被拖的书签变成目标书签的关联链接
+    onLink: onDrop && ((_, payload, target) => {
+      const src = payload as Item | undefined;
+      if (!src || src.mountedFrom) return;
+      void mergeAsLink(db, src.placement.id, target.bookmark.id).then((ok) => {
+        if (ok) toast(tr('「{0}」已成为「{1}」的关联链接', src.bookmark.title, target.bookmark.title));
+      });
     }),
   });
   useFlip(box, sort.sig, ':scope > [data-flip]');
@@ -94,6 +103,7 @@ const BookmarkItem = memo(function BookmarkItem({
   const dialogs = useDialogs();
   const { bookmark: b, placement: p, mountedFrom } = item;
   const selected = selection.has(p.id);
+  const linkTarget = useLinkTarget(flip);
   const fav = b.tagIds.includes(TAG_FAVORITE);
   const badge = mountedFrom ? (
     <Link size={14} className="shrink-0 text-kumo-subtle" aria-label={tr('挂载')} />
@@ -155,7 +165,7 @@ const BookmarkItem = memo(function BookmarkItem({
       title={title}
       draggable={!mountedFrom && !organize}
       data-flip={flip}
-      className={`group relative block rounded-md text-kumo-default no-underline hover:bg-kumo-tint ${span} ${selected ? 'bg-kumo-tint ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''} ${hidden ? 'hidden' : ''}`}
+      className={`group relative block rounded-md text-kumo-default no-underline hover:bg-kumo-tint ${span} ${selected || linkTarget ? 'bg-kumo-tint ring-2 ring-kumo-brand' : ''} ${ghost ? 'nv-ghost' : ''} ${hidden ? 'hidden' : ''}`}
       onClick={(e) => {
         e.preventDefault();
         if (organize) {
@@ -173,7 +183,8 @@ const BookmarkItem = memo(function BookmarkItem({
       onDragStart={(e) => {
         e.dataTransfer.setData(DND_PLACEMENT, p.id);
         e.dataTransfer.setData('text/uri-list', b.url);
-        e.dataTransfer.effectAllowed = 'move';
+        // 允许 link：按住 Option / Alt 放到别的书签上时变成关联链接
+        e.dataTransfer.effectAllowed = 'linkMove';
         dnd.onDragStart();
       }}
       onDragOver={dnd.onDragOver}

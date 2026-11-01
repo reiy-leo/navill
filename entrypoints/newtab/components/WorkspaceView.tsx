@@ -60,9 +60,9 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
     const d = await createDrawer(db, workspace.id, name, vis === 'current' ? settings.currentModeId : undefined, c);
     if (newIn) await placeDrawerInSection(db, d.id, newIn, []);
   };
-  const newBookmark = async () => {
+  const newBookmark = async (sectionId: string | null = null) => {
     const nb = await dialogs.newBookmark();
-    if (nb?.url.trim()) await createBookmark(db, { ...nb, title: nb.title.trim() || undefined }, workspace.id, null);
+    if (nb?.url.trim()) await createBookmark(db, { ...nb, title: nb.title.trim() || undefined }, workspace.id, null, sectionId);
   };
   const sections = workspace.sections ?? [];
   const known = new Set(sections.map((x) => x.id));
@@ -93,7 +93,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <div className="nv-ws-tools flex items-center gap-0.5">
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus size="1em" />} aria-label={tr('新建书签')} onClick={() => void newBookmark()} /></Tooltip>
+        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus size="1em" />} aria-label={tr('新建书签')} onClick={() => void newBookmark(null)} /></Tooltip>
         <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size="1em" />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
         {workspace.source !== 'inbox' && <Tooltip content={tr('新建分区')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<SquareDashed size="1em" />} aria-label={tr('新建分区')} onClick={() => void newSection()} /></Tooltip>}
         </div>
@@ -121,7 +121,23 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
           )}
           {sections.length > 0 && (
             <SectionList workspace={workspace} drawers={drawers} editing={editSection} onEdited={() => setEditSection(null)} onNewDrawer={newInSection}
-              render={(id, list) => <DrawerGroup workspace={workspace} section={id} drawers={list} arrange={arrange} frozen={dragging} onReveal={reveal} />} />
+              onNewBookmark={(id) => void newBookmark(id)}
+              render={(id, list) => {
+                const items = data.sectionItems[id] ?? [];
+                // 分区里直接放的书签排在抽屉上面；没有书签时，拖书签过程中才露出落点
+                const strip = items.length > 0 || dragging;
+                return (
+                  <>
+                    {strip && (
+                      <div className="mb-3">
+                        <Items items={items} view={workspace.viewMode} list={`section:${id}`} emptyHint={tr('拖书签到这里')} onReveal={reveal}
+                          onDrop={(pid, ids) => void placeInOrder(db, pid, ids, workspace.id, null, id)} />
+                      </div>
+                    )}
+                    <DrawerGroup workspace={workspace} section={id} below={strip} hint={items.length === 0} drawers={list} arrange={arrange} frozen={dragging} onReveal={reveal} />
+                  </>
+                );
+              }} />
           )}
         </>
       )}
@@ -133,8 +149,12 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
  * 一组抽屉（某个分区里的，或不属于分区的），按当前排列方式摆放，组内可拖拽排序；
  * 抽屉可在组之间拖动，放下即改所属分区。
  */
-const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arrange, frozen, onReveal }: {
+const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arrange, frozen, onReveal, below, hint = true }: {
   workspace: Workspace; section: string | null; drawers: DrawerData[]; arrange: Arrange; frozen: boolean; onReveal: (i: Item) => void;
+  /** 分区上面还有书签：组只铺满书签下方，不盖住书签 */
+  below?: boolean;
+  /** 分区里没有抽屉时显示「拖抽屉到这里」 */
+  hint?: boolean;
 }) {
   const { settings } = useApp();
   const area = useRef<HTMLDivElement>(null);
@@ -155,8 +175,8 @@ const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arr
   );
   return (
     // 分区里的组铺满整个分区（抵消分区的内边距），指针在分区空白处也算在这个组里
-    <div ref={area} {...sort.container} className={section ? '-m-3 -mb-10 p-3 pb-10' : undefined}>
-      {section && empty && <div className="flex min-h-16 items-center justify-center text-xs text-kumo-subtle">{tr('拖抽屉到这里')}</div>}
+    <div ref={area} {...sort.container} className={section ? (below ? '-mx-3 -mb-10 px-3 pb-10' : '-m-3 -mb-10 p-3 pb-10') : undefined}>
+      {section && empty && hint && <div className="flex min-h-16 items-center justify-center text-xs text-kumo-subtle">{tr('拖抽屉到这里')}</div>}
       {arrange === 'masonry' ? (
         <Masonry frozen={frozen}>
           {rows.map(({ t: d, ghost, hidden }) => (

@@ -41,6 +41,8 @@ export interface Bookmark {
 export interface Placement {
   id: string; bookmarkId: string; workspaceId: string; drawerId: string | null; order: number; isAlias: boolean;
   updatedAt: number;
+  /** 不在抽屉里（drawerId 为 null）时所在的分区；为空或分区已不存在时在工作区顶层。旧版本会把它当顶层书签显示 */
+  sectionId?: string;
 }
 export interface OpenEvent { id: string; bookmarkId: string; placementId: string; openedAt: number; deviceId: string }
 export interface AliasGroup {

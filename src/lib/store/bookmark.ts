@@ -1,6 +1,6 @@
 import type { Bookmark, NavillDB, Placement } from '@/src/db';
 import { del, deviceId, patch, put, uid } from './core';
-import { nextOrder } from './placement';
+import { nextOrder, removePlacement } from './placement';
 import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';
@@ -25,7 +25,9 @@ export async function createBookmark(
   input: { url: string; title?: string; note?: string; tagIds?: string[]; faviconUrl?: string; links?: { url: string; title?: string }[] },
   workspaceId: string,
   drawerId: string | null,
+  sectionId: string | null = null,
 ) {
+  if (drawerId) sectionId = null;
   const links = cleanLinks(input.links ?? []);
   return logged(db, async (log) => {
     const url = normalizeUrl(input.url);
@@ -37,8 +39,8 @@ export async function createBookmark(
       openCount: 0, createdAt: now, updatedAt: 0,
     });
     const p = await put<Placement>(db, 'placements', {
-      id: uid(), bookmarkId: b.id, workspaceId, drawerId, order: await nextOrder(db, workspaceId, drawerId),
-      isAlias: false, updatedAt: 0,
+      id: uid(), bookmarkId: b.id, workspaceId, drawerId, order: await nextOrder(db, workspaceId, drawerId, sectionId),
+      isAlias: false, updatedAt: 0, ...(sectionId ? { sectionId } : {}),
     });
     log({ kind: 'create', targetType: 'bookmark', targetId: b.id, summary: tr('新建书签{0}', q(b.title)) });
     return { bookmark: b, placement: p };
@@ -98,4 +100,21 @@ export async function clearOpenEvents(db: NavillDB) {
     await db.meta.delete('historySeededAt');
     await db.bookmarks.toCollection().modify({ openCount: 0, lastOpenedAt: undefined });
   });
+}
+
+/**
+ * 把一个书签（按位置）并进另一个书签，作为它的关联链接：被拖的书签网址、标题加到目标末尾，
+ * 被拖书签自己的关联链接也跟着并过去（去掉重复和目标自身网址），然后删掉被拖的这个位置。
+ * 返回 false 表示没做（同一个书签、找不到）。
+ */
+export async function mergeAsLink(db: NavillDB, placementId: string, targetBookmarkId: string): Promise<boolean> {
+  const p = await db.placements.get(placementId);
+  if (!p || p.bookmarkId === targetBookmarkId) return false;
+  const [src, target] = await Promise.all([db.bookmarks.get(p.bookmarkId), db.bookmarks.get(targetBookmarkId)]);
+  if (!src || !target) return false;
+  const seen = new Set([target.url, ...(target.links ?? []).map((l) => l.url)]);
+  const add = [{ url: src.url, title: src.title }, ...(src.links ?? [])].filter((l) => !seen.has(l.url) && seen.add(l.url));
+  if (add.length) await updateBookmark(db, target.id, { links: [...(target.links ?? []), ...add] });
+  await removePlacement(db, p.id);
+  return true;
 }

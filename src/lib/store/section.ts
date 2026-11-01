@@ -4,6 +4,7 @@ import { logged, q } from '../log';
 
 import { tr } from '@/src/i18n';
 import { aliasDrawerTo } from './alias';
+import { createAlias, nextOrder, placementsAt, removePlacement } from './placement';
 
 const sectionsOf = async (db: NavillDB, workspaceId: string) => (await db.workspaces.get(workspaceId))?.sections ?? [];
 
@@ -50,9 +51,24 @@ export async function dissolveSection(db: NavillDB, workspaceId: string, id: str
     if (!s) return;
     const drawers = await db.drawers.where('workspaceId').equals(workspaceId).filter((d) => d.sectionId === id).toArray();
     for (const d of drawers) await patch<Drawer>(db, 'drawers', d.id, { sectionId: undefined });
+    await bookmarksToTop(db, workspaceId, id);
     await patch<Workspace>(db, 'workspaces', workspaceId, { sections: list.filter((x) => x.id !== id) });
     log({ kind: 'delete', targetType: 'workspace', targetId: workspaceId, summary: tr('解散分区{0}', q(s.name)) });
   });
+}
+
+/** 分区里（不在抽屉中）的书签挪到工作区顶层，排在顶层书签后面 */
+async function bookmarksToTop(db: NavillDB, workspaceId: string, sectionId: string) {
+  const items = await placementsAt(db, workspaceId, null, sectionId);
+  if (!items.length) return;
+  const top = await placementsAt(db, workspaceId, null);
+  const have = new Set(top.map((p) => p.bookmarkId));
+  let order = await nextOrder(db, workspaceId, null);
+  for (const p of items) {
+    // 顶层已有这个书签（分身）时，这一份去掉，免得重复
+    if (have.has(p.bookmarkId)) await removePlacement(db, p.id);
+    else await patch<Placement>(db, 'placements', p.id, { sectionId: undefined, order: order++ });
+  }
 }
 
 /** 抽屉放进分区（sectionId 为 null 表示不属于任何分区），keys 是放下后该分区里抽屉的顺序 */
@@ -83,6 +99,8 @@ export async function moveSection(db: NavillDB, workspaceId: string, id: string,
       await patch<Drawer>(db, 'drawers', d.id, { workspaceId: targetId, order: order++ });
       for (const p of await db.placements.where('drawerId').equals(d.id).toArray()) await patch<Placement>(db, 'placements', p.id, { workspaceId: targetId });
     }
+    // 分区里直接放的书签也一起走（分区 id 不变，顺序照旧）
+    for (const p of await placementsAt(db, workspaceId, null, id)) await patch<Placement>(db, 'placements', p.id, { workspaceId: targetId });
     await patch<Workspace>(db, 'workspaces', workspaceId, { sections: list.filter((x) => x.id !== id) });
     await patch<Workspace>(db, 'workspaces', targetId, { sections: [...(target.sections ?? []), s] });
     log({ kind: 'move', targetType: 'workspace', targetId: targetId, summary: tr('分区{0}移动到工作区{1}', q(s.name), q(target.name)) });
@@ -94,6 +112,7 @@ export async function cloneSectionTo(db: NavillDB, workspaceId: string, id: stri
   const s = (await sectionsOf(db, workspaceId)).find((x) => x.id === id);
   if (!s) return;
   const ns = await createSection(db, targetId, s.name);
+  for (const p of await placementsAt(db, workspaceId, null, id)) await createAlias(db, p.bookmarkId, targetId, null, ns.id);
   for (const d of await drawersIn(db, workspaceId, id)) await aliasDrawerTo(db, d.id, targetId, ns.id);
 }
 
@@ -106,6 +125,8 @@ export async function archiveSection(db: NavillDB, workspaceId: string, id: stri
     const now = Date.now();
     for (const d of await drawersIn(db, workspaceId, id)) await patch<Drawer>(db, 'drawers', d.id, { archivedAt: now, sectionId: undefined });
     for (const d of await db.drawers.where('workspaceId').equals(workspaceId).filter((x) => x.sectionId === id).toArray()) await patch<Drawer>(db, 'drawers', d.id, { sectionId: undefined });
+    // 分区里直接放的书签不归档，回到工作区顶层
+    await bookmarksToTop(db, workspaceId, id);
     await patch<Workspace>(db, 'workspaces', workspaceId, { sections: list.filter((x) => x.id !== id) });
     log({ kind: 'archive', targetType: 'workspace', targetId: workspaceId, summary: tr('归档分区{0}', q(s.name)) });
   });

@@ -85,7 +85,8 @@ export async function buildPayload(
     ...(opts.author?.trim() ? { author: opts.author.trim() } : {}),
     ...(opts.description?.trim() ? { description: opts.description.trim() } : {}),
     workspace: { name: w.name, ...(w.emoji ? { emoji: w.emoji } : {}), ...(w.color && /^#[0-9a-f]{6}$/i.test(w.color) ? { color: w.color } : {}) },
-    ...(kind === 'workspace' ? { loose: pick(sortItems(data.top)) } : {}),
+    // 分享格式没有分区：分区里直接放的书签并入顶层
+    ...(kind === 'workspace' ? { loose: pick(sortItems([...data.top, ...Object.values(data.sectionItems).flat()])) } : {}),
     drawers,
   };
   return { payload, count };
