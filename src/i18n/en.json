@@ -117,6 +117,7 @@
  "只删除选中的位置；原书签若有分身，由分身接任。": "Only the selected places are deleted; if the original has aliases, an alias takes over.",
  "包含归档": "Include archived",
  "没有找到": "Nothing found",
+ "这个页面不能收藏": "This page can't be saved",
  "换个关键词，或切换到「默认」场景在全部工作区中搜索。": "Try other keywords, or switch to the “Default” mode to search all workspaces.",
  " · 已归档": " · archived",
  "通用": "General",
