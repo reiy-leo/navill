@@ -701,5 +701,7 @@
  "关掉 Chrome 底栏": "Masquez le pied de page de Chrome",
  "新标签页底部那条显示扩展名的栏是 Chrome 加的，Navill 去不掉。右键这条栏选择隐藏，或点「自定义 Chrome」，在「页脚」里关掉。": "La barre avec le nom de l’extension en bas du nouvel onglet est ajoutée par Chrome, et Navill ne peut pas la retirer. Faites un clic droit dessus et choisissez de la masquer, ou cliquez sur « Personnaliser Chrome » et désactivez-la sous « Pied de page ».",
  "已经关了": "Déjà masqué",
- "「{0}」已成为「{1}」的关联链接": "« {0} » est maintenant un lien associé de « {1} »"
+ "「{0}」已成为「{1}」的关联链接": "« {0} » est maintenant un lien associé de « {1} »",
+ "换一种卡片风格": "Essayez un autre style de carte",
+ "在设置 → 外观里换「卡片风格」，试试色调卡片、磨砂玻璃和无框漂浮。": "Dans Paramètres → Apparence, changez le style de carte : essayez Cartes teintées, Verre dépoli et Sans bordure."
 }

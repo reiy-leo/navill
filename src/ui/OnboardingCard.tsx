@@ -17,11 +17,12 @@ interface Props {
   onSyncSettings: () => void;
   /** 打开 设置 → 快捷键 */
   onKeySettings: () => void;
+  onLookSettings: () => void;
   className?: string;
 }
 
 /** 主页右下角浮动的新手任务卡片：任务完成由检测自动勾选，点击任务跳转或展开说明；全部完成后不再显示 */
-export function OnboardingCard({ onSearch, onSyncSettings, onKeySettings, className = '' }: Props) {
+export function OnboardingCard({ onSearch, onSyncSettings, onKeySettings, onLookSettings, className = '' }: Props) {
   const { settings, ready } = useApp();
   const { setOrganize } = useSelection();
   const state = settings.onboarding;
@@ -47,10 +48,10 @@ export function OnboardingCard({ onSearch, onSyncSettings, onKeySettings, classN
     );
   }
   if (!visible) return null;
-  return <Card state={state} onSearch={onSearch} onSyncSettings={onSyncSettings} onKeySettings={onKeySettings} onOrganize={() => setOrganize(true)} className={className} />;
+  return <Card state={state} onSearch={onSearch} onSyncSettings={onSyncSettings} onKeySettings={onKeySettings} onLookSettings={onLookSettings} onOrganize={() => setOrganize(true)} className={className} />;
 }
 
-function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, className }: Props & { state: ReturnType<typeof useApp>['settings']['onboarding']; onOrganize: () => void }) {
+function Card({ state, onSearch, onSyncSettings, onKeySettings, onLookSettings, onOrganize, className }: Props & { state: ReturnType<typeof useApp>['settings']['onboarding']; onOrganize: () => void }) {
   const { settings } = useApp();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === '1');
   // 默认展开第一个未完成的任务，让人一眼看到任务要做什么
@@ -79,6 +80,8 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
     savePage: { title: tr('收藏正在看的网页'), hint: tr('在网页上点工具栏的 Navill 图标或按快捷键，选好位置，回车保存。快捷键可以在设置里改。'), go: onKeySettings },
     // 主页「GitHub Star」栏保存过用户名就算完成；点开滚到那一栏并聚焦输入框
     github: { title: tr('添加你的 GitHub'), hint: tr('在主页「GitHub Star」栏填上用户名，新 star 的仓库会出现在主页，一键加进 Navill。'), go: focusGitHub },
+    // 在 设置 → 外观 换过一次卡片风格就算完成；点开直接打开外观页
+    surface: { title: tr('换一种卡片风格'), hint: tr('在设置 → 外观里换「卡片风格」，试试色调卡片、磨砂玻璃和无框漂浮。'), go: onLookSettings },
     // 点了「了解为什么」就算完成
     dataOwn: { title: tr('你的数据你负责'), hint: tr('书签只存在你的设备和你自己的网盘里，丢了 Navill 也找不回来。'), link: { url: dataOwnUrl(lang), label: tr('了解为什么') } },
     // 检测到页面突然变高（底栏没了）就算完成；之前已经关掉的人检测不到，所以这一项例外地可以手动勾（Rei 2026-10-28）

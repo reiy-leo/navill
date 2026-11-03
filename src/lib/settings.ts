@@ -69,7 +69,7 @@ export const DEFAULT_SETTINGS: Settings = {
   navPosition: 'top',
   navLabel: 'both',
   workspaceIconStyle: 'emoji',
-  surface: 'tint',
+  surface: 'glass',
   background: 'gradient',
   backgroundBlur: 0,
   startWorkspace: 'last',

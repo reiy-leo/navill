@@ -26,6 +26,7 @@ import { useDialogs } from '@/src/ui/dialogs';
 import { WorkspaceIcon, ICON, ICON_BTN } from '@/src/ui/icons';
 import { Modal } from '@/src/ui/Modal';
 import { useApp } from '@/src/ui/state';
+import { markDone } from '@/src/lib/onboarding';
 import { useSyncStatus } from '@/src/ui/useSettings';
 import { clearIconCache } from '@/src/lib/icons/fetcher';
 import { removeHistory, requestHistory } from '@/src/lib/suggest';
@@ -172,6 +173,7 @@ function Look() {
   const noColor = settings.surface !== 'tint';
   // 磨砂玻璃和无框漂浮不显示抽屉和工作区的颜色，切过去时提醒一下
   const pickSurface = (surface: S['surface']) => {
+    if (surface !== settings.surface) void markDone('surface');
     set({ surface });
     if (surface !== 'tint' && settings.surface === 'tint') toast(tr('这个风格不显示抽屉颜色，换回「色调卡片」才能看到'), { type: 'info' });
   };
