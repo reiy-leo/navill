@@ -142,6 +142,22 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-surface='bare'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > * { opacity: 0; }
 /* 收起时标题栏本身也透明，否则它的底色叠在抽屉底色上，透过书签区显出一条深色（暗色主题明显） */
 [data-surface='glass'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head { background: transparent; }
+/* 磨砂玻璃（尤其有背景图时）：标题栏自己的半透明底色叠在抽屉底色上，伸出后中间会多一条深色带、像两层。
+ * 改成标题栏本身透明，由抽屉的 ::before 向上补出同样的底色和模糊，看起来是同一块玻璃长高了。 */
+[data-surface='glass'] .nv-drawer[data-head='peek'] > .nv-drawer-head { background: transparent; box-shadow: none; }
+[data-surface='glass'] .nv-drawer[data-head='peek']::before {
+  content: ''; position: absolute; inset-inline: 0; top: -26px; height: 26px; z-index: 0; pointer-events: none;
+  border-radius: 0.75rem 0.75rem 0 0; background: inherit; backdrop-filter: inherit;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  opacity: 0; transform: translateY(26px); transition: transform 200ms ease-out, opacity 150ms ease-out;
+}
+[data-mode='dark'][data-surface='glass'] .nv-drawer[data-head='peek']::before { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06); }
+[data-surface='glass'] .nv-drawer[data-head='peek']:is(:hover, [data-open])::before { opacity: 1; transform: none; }
+[data-surface='glass'] .nv-drawer[data-head='peek']:is(:hover, [data-open]) {
+  border-top-left-radius: 0; border-top-right-radius: 0;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 12px 32px -10px rgb(0 0 0 / 0.16);
+}
+[data-mode='dark'][data-surface='glass'] .nv-drawer[data-head='peek']:is(:hover, [data-open]) { box-shadow: 0 12px 32px -10px rgb(0 0 0 / 0.5); }
 @media (prefers-reduced-motion: reduce) { .nv-drawer[data-head='peek'] > .nv-drawer-head { transition: none; } }
 /* 第一行抽屉标题栏向上伸出时不压到工作区标题 */
 .nv-masonry:has(.nv-drawer[data-head='peek']) { margin-top: 1rem; }
