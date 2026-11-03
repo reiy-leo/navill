@@ -9,13 +9,14 @@ export const REPO = 'https://github.com/reiy-leo/navill';
 
 /** 关于本扩展：图标、版本、简介、主页与 GitHub 链接 */
 import { Intro } from './Intro';
+import { ICON } from './icons';
 
 export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const m = browser.runtime.getManifest() as { version: string; version_name?: string };
   const links = [
-    { href: HOMEPAGE, icon: <House size="1em" />, label: tr('主页') },
+    { href: HOMEPAGE, icon: <House size={ICON} />, label: tr('主页') },
     { href: REPO, icon: <GithubLogo />, label: 'GitHub' },
-    { href: `${REPO}/issues`, icon: <Bug size="1em" />, label: tr('反馈') },
+    { href: `${REPO}/issues`, icon: <Bug size={ICON} />, label: tr('反馈') },
   ];
   return (
     <Modal open={open} onClose={onClose} title={tr('关于')} size="base" hideTitle>

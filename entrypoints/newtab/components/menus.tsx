@@ -4,6 +4,7 @@ import type { SortMode, ViewMode } from '@/src/db';
 import type { Arrange } from '@/src/lib/settings';
 
 import { tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 export const VIEW_LABEL: Record<ViewMode, string> = { icon: tr('图标'), row: tr('行'), tile: tr('平铺'), bento: 'Bento' };
 const VIEW_ICON = { icon: LayoutGrid, row: Rows3, tile: Grid2x2, bento: PanelsTopLeft } as const;
 export const SORT_LABEL: Record<SortMode, string> = {
@@ -15,7 +16,7 @@ export function ViewMenu({ value, inherited, onChange }: { value: ViewMode; inhe
   return (
     <DropdownMenu>
       <Tooltip content={inherited ? tr('视图：{0} · 跟随工作区', VIEW_LABEL[value]) : tr('视图：{0}', VIEW_LABEL[value])} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon size="1em" />} aria-label={tr('视图：{0}', VIEW_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<Icon size={ICON} />} aria-label={tr('视图：{0}', VIEW_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(VIEW_LABEL) as ViewMode[]).map((v) => (
@@ -37,7 +38,7 @@ export function SortMenu({ value, onChange }: { value: SortMode; onChange: (v: S
   return (
     <DropdownMenu>
       <Tooltip content={tr('排序：{0}', SORT_LABEL[value])} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<ArrowUpNarrowWide size="1em" />} aria-label={tr('排序：{0}', SORT_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<ArrowUpNarrowWide size={ICON} />} aria-label={tr('排序：{0}', SORT_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(SORT_LABEL) as SortMode[]).map((v) => (
@@ -59,7 +60,7 @@ export function ArrangeMenu({ value, onChange }: { value: Arrange; onChange: (v:
   return (
     <DropdownMenu>
       <Tooltip content={tr('排列：{0}', ARRANGE_LABEL[value])} side="bottom">
-        <DropdownMenu.Trigger render={<Button variant="ghost" size="xs" shape="square" icon={<Icon size="1em" />} aria-label={tr('排列：{0}', ARRANGE_LABEL[value])} />} />
+        <DropdownMenu.Trigger render={<Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<Icon size={ICON} />} aria-label={tr('排列：{0}', ARRANGE_LABEL[value])} />} />
       </Tooltip>
       <DropdownMenu.Content>
         {(Object.keys(ARRANGE_LABEL) as Arrange[]).map((v) => (

@@ -17,6 +17,7 @@ import { Items } from './Items';
 import { SortMenu, ViewMenu } from './menus';
 
 import { tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 /** memo：数据经结构共享、拖放处理函数为稳定引用，未变的抽屉不重渲染 */
 export const DrawerCard = memo(function DrawerCard({
   data, workspace, arrange, ghost, dnd, onReveal,
@@ -124,7 +125,7 @@ export const DrawerCard = memo(function DrawerCard({
         <SortMenu value={drawer.sortMode ?? 'smart'} onChange={(v) => void updateDrawer(db, drawer.id, { sortMode: v })} />
         <DrawerColorPopover anchor={moreBtn} open={colorOpen} onOpenChange={setColorOpen} value={drawer.color} follow={workspace.color} onChange={(color) => void updateDrawer(db, drawer.id, { color })} />
         <DropdownMenu onOpenChange={setMenuOpen}>
-          <DropdownMenu.Trigger render={<Button ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<Ellipsis size="1em" strokeWidth={2.5} />} aria-label={tr('更多')} />} />
+          <DropdownMenu.Trigger render={<Button className={ICON_BTN} ref={moreBtn} variant="ghost" size="xs" shape="square" icon={<Ellipsis size={ICON} />} aria-label={tr('更多')} />} />
           <DropdownMenu.Content>
             {all.length > 0 && all.length <= OPEN_ALL_MAX && (
               <DropdownMenu.Item icon={ExternalLink} onClick={() => void openAll(all)}>{tr('全部打开')}</DropdownMenu.Item>

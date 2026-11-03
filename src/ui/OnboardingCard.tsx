@@ -8,6 +8,7 @@ import { modKey } from './feedback';
 import { useApp, useSelection } from './state';
 
 import { lang, tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from './icons';
 
 const COLLAPSED_KEY = 'navill-onboarding-collapsed';
 
@@ -98,10 +99,10 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
         <span className="text-xs text-kumo-subtle">{n}/{total}</span>
         <span className="flex-1" />
         <Tooltip content={tr('收起')} side="top" asChild>
-          <Button variant="ghost" size="xs" shape="square" icon={<ChevronDown size="1em" />} aria-label={tr('收起')} onClick={() => toggle(true)} />
+          <Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<ChevronDown size={ICON} />} aria-label={tr('收起')} onClick={() => toggle(true)} />
         </Tooltip>
         <Tooltip content={tr('不再显示')} side="top" asChild>
-          <Button variant="ghost" size="xs" shape="square" icon={<X size="1em" />} aria-label={tr('不再显示')} onClick={() => void hideOnboarding()} />
+          <Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<X size={ICON} />} aria-label={tr('不再显示')} onClick={() => void hideOnboarding()} />
         </Tooltip>
       </header>
       <div className="mx-3 mb-1 h-1 overflow-hidden rounded-full bg-kumo-tint">
@@ -141,7 +142,7 @@ function Card({ state, onSearch, onSyncSettings, onKeySettings, onOrganize, clas
               )}
               {expanded && t.manual && (
                 <div className="pb-1.5 pl-8">
-                  <Button variant="secondary" size="xs" icon={<Check size="1em" />} onClick={() => void markDone(id)}>{t.manual}</Button>
+                  <Button variant="secondary" size="xs" icon={<Check size={ICON} />} onClick={() => void markDone(id)}>{t.manual}</Button>
                 </div>
               )}
             </li>

@@ -10,7 +10,7 @@ import type { Arrange } from '@/src/lib/settings';
 import type { Workspace } from '@/src/db';
 import { SectionList } from './Sections';
 import { useDialogs } from '@/src/ui/dialogs';
-import { WorkspaceIcon } from '@/src/ui/icons';
+import { WorkspaceIcon, ICON, ICON_BTN } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 import { DrawerCard } from './DrawerCard';
 import { DND_PLACEMENT } from './dnd';
@@ -93,9 +93,9 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <div className="nv-ws-tools flex items-center gap-0.5">
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Tooltip content={tr('新建书签')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<Plus size="1em" />} aria-label={tr('新建书签')} onClick={() => void newBookmark(null)} /></Tooltip>
-        <Tooltip content={tr('新建抽屉')} side="bottom"><Button variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size="1em" />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
-        {workspace.source !== 'inbox' && <Tooltip content={tr('新建分区')} side="bottom"><Button variant="ghost" size="xs" shape="square" icon={<SquareDashed size="1em" />} aria-label={tr('新建分区')} onClick={() => void newSection()} /></Tooltip>}
+        <Tooltip content={tr('新建书签')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<Plus size={ICON} />} aria-label={tr('新建书签')} onClick={() => void newBookmark(null)} /></Tooltip>
+        <Tooltip content={tr('新建抽屉')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size={ICON} />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
+        {workspace.source !== 'inbox' && <Tooltip content={tr('新建分区')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<SquareDashed size={ICON} />} aria-label={tr('新建分区')} onClick={() => void newSection()} /></Tooltip>}
         </div>
         <NewDrawerPopover anchor={newBtn} open={newOpen} onOpenChange={setNewOpen} color={base} random={settings.randomDrawerColor} onCreate={(n, c) => void createNew(n, c)} />
       </div>

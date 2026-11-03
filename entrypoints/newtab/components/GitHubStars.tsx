@@ -9,6 +9,8 @@ import { createBookmark } from '@/src/lib/store';
 import { markDone } from '@/src/lib/onboarding';
 import { useDialogs } from '@/src/ui/dialogs';
 import { useApp } from '@/src/ui/state';
+import { SectionHead } from './SectionHead';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 
 /** 主页最多提醒几个 */
 const MAX = 6;
@@ -77,8 +79,7 @@ export function GitHubStars() {
 
   return (
     <section id="nv-github-stars" className="flex flex-col gap-3">
-      <div className="flex min-h-8 items-center justify-between gap-3">
-        <h2 className="text-base font-medium">{tr('GitHub Star')}</h2>
+      <SectionHead title={tr('GitHub Star')}>
         {showForm ? (
           <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); void save(); }}>
             <Input
@@ -93,13 +94,13 @@ export function GitHubStars() {
             <Button size="sm" type="submit" disabled={!cleanUser(draft)}>{tr('添加')}</Button>
           </form>
         ) : (
-          <div className="flex items-center gap-1 text-sm text-kumo-subtle">
+          <>
             <a href={`https://github.com/${user}?tab=stars`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{user}</a>
-            <Button size="sm" variant="ghost" shape="square" icon={<RefreshCw size={14} />} aria-label={tr('刷新')} onClick={() => { setStars(null); setNonce((n) => n + 1); }} />
-            <Button size="sm" variant="ghost" shape="square" icon={<Pencil size={14} />} aria-label={tr('改 GitHub 用户名')} onClick={() => { setDraft(user); setEditing(true); }} />
-          </div>
+            <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<RefreshCw size={ICON} />} aria-label={tr('刷新')} onClick={() => { setStars(null); setNonce((n) => n + 1); }} />
+            <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<Pencil size={ICON} />} aria-label={tr('改 GitHub 用户名')} onClick={() => { setDraft(user); setEditing(true); }} />
+          </>
         )}
-      </div>
+      </SectionHead>
       {!user ? (
         <p className="text-sm text-kumo-subtle">{tr('填上 GitHub 用户名，新 star 的仓库会出现在这里，一键加进 Navill。')}</p>
       ) : err ? (
@@ -111,14 +112,14 @@ export function GitHubStars() {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
           {list.map((s) => (
-            <div key={s.url} className="group relative flex flex-col gap-1 rounded-xl bg-kumo-elevated/75 p-3 ring-1 ring-kumo-line backdrop-blur-sm">
+            <div key={s.url} className="nv-card-tools group relative flex flex-col gap-1 rounded-xl bg-kumo-elevated/75 p-3 ring-1 ring-kumo-line backdrop-blur-sm">
               <a href={s.url} target="_blank" rel="noopener noreferrer" className="truncate pr-6 text-sm font-medium hover:underline">{s.fullName}</a>
               {s.description && <p className="line-clamp-2 text-xs text-kumo-subtle">{s.description}</p>}
               <div className="mt-auto flex items-center justify-between pt-1">
                 <span className="truncate text-xs text-kumo-subtle">{s.language}</span>
-                <Button size="xs" variant="secondary" icon={<Plus size="1em" />} onClick={() => void add(s)}>{tr('添加')}</Button>
+                <Button size="xs" variant="secondary" icon={<Plus size={ICON} />} onClick={() => void add(s)}>{tr('添加')}</Button>
               </div>
-              <Button size="xs" variant="ghost" shape="square" icon={<X size={12} />} aria-label={tr('忽略')} className="absolute right-1.5 top-1.5 opacity-60 hover:opacity-100" onClick={() => ignore(s)} />
+              <Button size="xs" variant="ghost" shape="square" icon={<X size={ICON} />} aria-label={tr('忽略')} className={`absolute right-1.5 top-1.5 ${ICON_BTN}`} onClick={() => ignore(s)} />
             </div>
           ))}
         </div>

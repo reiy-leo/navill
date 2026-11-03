@@ -9,6 +9,7 @@ import { commitImport } from '@/src/lib/import/commit';
 import { buildImportPlan, planStats, type ImportPlan, type PlanSource } from '@/src/lib/import/plan';
 
 import { tr } from '@/src/i18n';
+import { ICON_BTN } from '@/src/ui/icons';
 const SOURCE_LABEL: Record<PlanSource, string> = {
   bookmark_bar: tr('书签栏'),
   other: tr('其他书签'),
@@ -103,7 +104,7 @@ export default function ImportPreview({
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" shape="square" icon={<ArrowLeft size="1em" />} onClick={onCancel} aria-label={tr('返回')} />
+        <Button className={ICON_BTN} variant="ghost" shape="square" icon={<ArrowLeft size="1em" />} onClick={onCancel} aria-label={tr('返回')} />
         <Text variant="heading" size="lg" as="h1">
           {dedupe ? tr('重新导入预览') : tr('导入预览')}
         </Text>

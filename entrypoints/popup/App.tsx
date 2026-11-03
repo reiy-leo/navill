@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { db } from '@/src/db';
 import { createBookmark, ensureSeed } from '@/src/lib/store';
 import { markDone } from '@/src/lib/onboarding';
-import { BookmarkIcon, WorkspaceIcon } from '@/src/ui/icons';
+import { BookmarkIcon, WorkspaceIcon, ICON } from '@/src/ui/icons';
 import { AppStateProvider } from '@/src/ui/state';
 
 import { tr } from '@/src/i18n';
@@ -154,7 +154,7 @@ function Popup() {
         })}
         {rows && shown.length === 0 && <li className="px-2 py-3 text-center text-xs text-kumo-subtle">{tr('没有找到')}</li>}
       </ul>
-      <Button size="sm" variant="primary" className="w-full justify-center" icon={saved ? <Check size="1em" /> : <BookmarkPlus size="1em" />} disabled={saved || !target} onClick={() => void save()}>
+      <Button size="sm" variant="primary" className="w-full justify-center" icon={saved ? <Check size={ICON} /> : <BookmarkPlus size={ICON} />} disabled={saved || !target} onClick={() => void save()}>
         {saved ? tr('已收藏') : already ? tr('再收藏一份') : tr('收藏当前页')}
       </Button>
     </main>

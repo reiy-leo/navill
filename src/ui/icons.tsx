@@ -108,3 +108,10 @@ export const hostOf = (url: string) => {
     return url;
   }
 };
+/** 图标统一规矩（Rei 2026-11-03：首页图标大小、颜色不统一）
+ * - 按钮里的图标大小由 assets/app.css 定，size 属性会被盖掉：页面级按钮 20px；区块标题行（.nv-section-head）16px；
+ *   抽屉标题行、工作区工具、卡片里的按钮（.nv-drawer-head / .nv-ws-tools / .nv-card-tools）14px；弹窗 16px。
+ *   代码里统一写 size={ICON}，只作为 CSS 没加载时的兜底。
+ * - 只有图标的辅助按钮（刷新、编辑、关闭、忽略……）默认灰，悬停变亮：className={ICON_BTN}。不用 opacity 调淡。 */
+export const ICON = 14;
+export const ICON_BTN = 'text-kumo-subtle hover:text-kumo-default';

@@ -7,7 +7,7 @@ import type { Item } from '@/src/lib/view';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
-import { BookmarkIcon, hostOf } from '@/src/ui/icons';
+import { BookmarkIcon, hostOf, ICON, ICON_BTN } from '@/src/ui/icons';
 import { useApp } from '@/src/ui/state';
 
 import { dateLocale, tr } from '@/src/i18n';
@@ -51,8 +51,8 @@ export function ArchiveView() {
                   <div className="truncate text-sm">{d.name}</div>
                   <div className="truncate text-xs text-kumo-subtle">{workspace} · {count} {tr('个书签 · 归档于')} {new Date(d.archivedAt!).toLocaleDateString(dateLocale)}</div>
                 </div>
-                <Button size="sm" icon={<RotateCcw size="1em" />} onClick={() => void archiveDrawer(db, d.id, false)}>{tr('恢复')}</Button>
-                <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除抽屉')} onClick={async () => {
+                <Button size="sm" icon={<RotateCcw size={ICON} />} onClick={() => void archiveDrawer(db, d.id, false)}>{tr('恢复')}</Button>
+                <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<Trash2 size={ICON} />} aria-label={tr('删除抽屉')} onClick={async () => {
                   if (await dialogs.confirm({ title: tr('删除「{0}」？', d.name), description: tr('抽屉连同其中 {0} 个书签一起删除。原书签有分身时，由分身接任。', count), okText: tr('删除'), danger: true })) await deleteDrawer(db, d.id);
                 }} />
               </li>
@@ -71,8 +71,8 @@ export function ArchiveView() {
                 <div className="truncate text-sm">{it.bookmark.title}</div>
                 <div className="truncate text-xs text-kumo-subtle">{hostOf(it.bookmark.url)} {tr('· 归档于')} {new Date(it.bookmark.archivedAt!).toLocaleDateString(dateLocale)}</div>
               </div>
-              <Button size="sm" icon={<RotateCcw size="1em" />} onClick={() => void archiveBookmark(db, it.bookmark.id, false)}>{tr('恢复')}</Button>
-              <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除书签')} onClick={async () => {
+              <Button size="sm" icon={<RotateCcw size={ICON} />} onClick={() => void archiveBookmark(db, it.bookmark.id, false)}>{tr('恢复')}</Button>
+              <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<Trash2 size={ICON} />} aria-label={tr('删除书签')} onClick={async () => {
                 if (await dialogs.confirm({ title: tr('彻底删除「{0}」？', it.bookmark.title), description: tr('原书签及全部分身都会删除，不可恢复。'), okText: tr('删除'), danger: true })) await deleteBookmarkEverywhere(db, it.bookmark.id);
               }} />
             </li>

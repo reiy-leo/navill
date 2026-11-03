@@ -254,6 +254,13 @@ button.nv-stamp:hover { color: var(--text-color-kumo-default, #000); rotate: 0de
 /* 工作区标题行右侧图标：小一号 */
 .nv-ws-tools [data-kumo-component='Button'] svg { width: 14px; height: 14px; }
 
+/* 主页区块标题行（SectionHead）：图标 16px，跟旁边 13px 文字相称 */
+.nv-section-head [data-kumo-component='Button'] svg { width: 16px; height: 16px; }
+/* 卡片里的按钮（GitHub Star 的「添加」「忽略」）：和抽屉标题行一样 14px，按钮 28px */
+.nv-card-tools [data-kumo-component='Button'] svg { width: 14px; height: 14px; }
+.nv-card-tools [data-kumo-component='Button'].h-5 { height: 1.75rem; }
+.nv-card-tools [data-kumo-component='Button'].size-3\.5 { width: 1.75rem; height: 1.75rem; }
+
 /* 搜索结果跳到抽屉：边框闪一下（src/ui/reveal.ts） */
 .nv-flash { animation: nv-flash 1.8s ease-out; }
 @keyframes nv-flash {

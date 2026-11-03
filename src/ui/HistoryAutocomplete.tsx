@@ -5,7 +5,7 @@ import { db } from '@/src/db';
 import { tr } from '@/src/i18n';
 import { seedFromHistory } from '@/src/lib/store';
 import { hasHistory, requestHistory, suggest, type Suggestion } from '@/src/lib/suggest';
-import { BookmarkIcon, hostOf } from './icons';
+import { BookmarkIcon, hostOf, ICON, ICON_BTN } from './icons';
 
 /**
  * 带浏览记录补全的输入框（名称或 URL 都可以用）。
@@ -113,7 +113,7 @@ export function HistoryHint({ children, className }: { children: ReactNode; clas
       <History size={14} className="shrink-0" />
       <span className="min-w-0 flex-1">{children}</span>
       <Button size="sm" variant="secondary" onClick={() => void enableHistory()}>{tr('开启')}</Button>
-      <Button size="sm" variant="ghost" shape="square" icon={<X size={14} />} aria-label={tr('不再提示')} onClick={() => { localStorage.setItem(HINT_OFF, '1'); setOff(true); }} />
+      <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<X size={ICON} />} aria-label={tr('不再提示')} onClick={() => { localStorage.setItem(HINT_OFF, '1'); setOff(true); }} />
     </div>
   );
 }

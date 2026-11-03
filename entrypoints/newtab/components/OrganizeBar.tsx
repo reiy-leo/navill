@@ -8,6 +8,7 @@ import { useDialogs } from '@/src/ui/dialogs';
 import { useSelection } from '@/src/ui/state';
 
 import { tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 /** 「整理」多选模式的底部操作栏 */
 export function OrganizeBar() {
   const { organize, selection, clearSelection, setOrganize } = useSelection();
@@ -19,17 +20,17 @@ export function OrganizeBar() {
   return (
     <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-kumo-line bg-kumo-elevated px-3 py-2 shadow-lg">
       <span className="px-2 text-sm">{n ? tr('已选 {0} 个', n) : tr('点击书签进行选择')}</span>
-      <Button size="sm" icon={<Move size="1em" />} disabled={!n} onClick={async () => { if (await moveTo(dialogs, ids)) void markDone('organize'); clearSelection(); }}>{tr('移动到…')}</Button>
-      <Button size="sm" icon={<Copy size="1em" />} disabled={!n} onClick={async () => { if (await aliasTo(dialogs, await bookmarkIds())) void markDone('organize'); clearSelection(); }}>{tr('创建分身到…')}</Button>
-      <Button size="sm" icon={<Tag size="1em" />} disabled={!n} onClick={async () => dialogs.editTags(await bookmarkIds())}>{tr('标签…')}</Button>
-      <Button size="sm" icon={<Archive size="1em" />} disabled={!n} onClick={async () => { for (const id of await bookmarkIds()) await archiveBookmark(db, id); clearSelection(); }}>{tr('归档')}</Button>
-      <Button size="sm" variant="secondary-destructive" icon={<Trash2 size="1em" />} disabled={!n} onClick={async () => {
+      <Button size="sm" icon={<Move size={ICON} />} disabled={!n} onClick={async () => { if (await moveTo(dialogs, ids)) void markDone('organize'); clearSelection(); }}>{tr('移动到…')}</Button>
+      <Button size="sm" icon={<Copy size={ICON} />} disabled={!n} onClick={async () => { if (await aliasTo(dialogs, await bookmarkIds())) void markDone('organize'); clearSelection(); }}>{tr('创建分身到…')}</Button>
+      <Button size="sm" icon={<Tag size={ICON} />} disabled={!n} onClick={async () => dialogs.editTags(await bookmarkIds())}>{tr('标签…')}</Button>
+      <Button size="sm" icon={<Archive size={ICON} />} disabled={!n} onClick={async () => { for (const id of await bookmarkIds()) await archiveBookmark(db, id); clearSelection(); }}>{tr('归档')}</Button>
+      <Button size="sm" variant="secondary-destructive" icon={<Trash2 size={ICON} />} disabled={!n} onClick={async () => {
         if (await dialogs.confirm({ title: tr('删除选中的 {0} 处书签？', n), description: tr('只删除选中的位置；原书签若有分身，由分身接任。'), okText: tr('删除'), danger: true })) {
           for (const id of ids) await removePlacement(db, id);
           clearSelection();
         }
       }}>{tr('删除')}</Button>
-      <Button size="sm" variant="ghost" shape="square" icon={<X size="1em" />} aria-label={tr('退出整理')} onClick={() => setOrganize(false)} />
+      <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<X size={ICON} />} aria-label={tr('退出整理')} onClick={() => setOrganize(false)} />
     </div>
   );
 }

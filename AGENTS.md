@@ -65,6 +65,7 @@ docs/                PLAN.md、PRODUCT.md
 
 ## 尺寸与提示文字（2026-10-14）
 - 按钮/图标向浏览器工具栏看齐：按钮约 32px、图标 20px。`assets/app.css` 统一放大了 Kumo 的 xs/sm 按钮和按钮内 svg，照常写 `size="sm"` 即可，不要再手动缩小图标。
+- 按钮图标大小只在 `assets/app.css` 里按场景定：页面级 20px，主页区块标题行 `.nv-section-head` 16px，抽屉标题行、工作区工具、卡片 `.nv-card-tools` 14px。代码里写 `size={ICON}`。只有图标的辅助按钮加 `className={ICON_BTN}`（灰色、悬停变亮），不用 opacity 调淡。主页区块标题用 `SectionHead`。
 - 说明性文字不要常驻占版面，用 `src/ui/InfoTip.tsx`（ⓘ，悬停或点击显示）。状态类短文字（已授权、上次同步时间）可以常显。
 - 文案不用括号备注：菜单项、按钮、标签名保持简短（「创建分身」而不是「创建分身（挂载到其他抽屉）」），补充说明放 InfoTip、placeholder 或确认对话框。
 - 字号只用三档：正文、标签、按钮、输入框、下拉、页签 13px（`text-sm`）；次要说明与状态 12px（`text-xs`）；页面与弹窗标题 16px（`text-base font-medium` / 弹窗标题）。Kumo 控件的 12/14px 已在 `assets/app.css` 统一拉齐，不要再写 `text-[Npx]`。

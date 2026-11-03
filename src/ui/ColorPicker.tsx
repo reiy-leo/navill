@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode, type RefObject } from 'react';
 import { COLOR_COLUMNS, presetOf, pushRecentColor, recentColors, tone, useDarkMode, useTone } from './colors';
 
 import { tr } from '@/src/i18n';
+import { ICON_BTN } from './icons';
 /** 颜色按钮共用的弹出层：选中后关闭 */
 function ColorPopover({ open, setOpen, anchor, label, color, onColor }: {
   open: boolean; setOpen: (open: boolean) => void; anchor: RefObject<HTMLButtonElement | null>; label: string; color?: string; onColor: (hex: string) => void;
@@ -113,7 +114,7 @@ export function DrawerColorPopover({ anchor, open, onOpenChange, value, onChange
         <ColorPicker label={tr('抽屉颜色')} value={value} onChange={(hex) => set(hex)}
           extra={
             <Tooltip content={followTip} asChild>
-              <Button size="sm" shape="square" variant="ghost" icon={Link2} aria-label={tr('跟随工作区')} disabled={!value} onClick={() => set(undefined)} />
+              <Button className={ICON_BTN} size="sm" shape="square" variant="ghost" icon={Link2} aria-label={tr('跟随工作区')} disabled={!value} onClick={() => set(undefined)} />
             </Tooltip>
           } />
       </Popover.Content>

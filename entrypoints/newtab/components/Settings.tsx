@@ -23,7 +23,7 @@ import { isMac, modKey, syncFromPage } from '@/src/ui/feedback';
 import { NEEDS_DATA_CONSENT, requestBookmarksConsent, withBookmarksConsent } from '@/src/lib/consent';
 import { toast } from '@/src/ui/toast';
 import { useDialogs } from '@/src/ui/dialogs';
-import { WorkspaceIcon } from '@/src/ui/icons';
+import { WorkspaceIcon, ICON, ICON_BTN } from '@/src/ui/icons';
 import { Modal } from '@/src/ui/Modal';
 import { useApp } from '@/src/ui/state';
 import { useSyncStatus } from '@/src/ui/useSettings';
@@ -73,7 +73,7 @@ export function SettingsDialog({ open, onClose, onReimport, initialTab = 'genera
 }
 
 function TabLabel({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
-  return <span className="inline-flex items-center gap-1.5"><Icon size={15} strokeWidth={1.75} />{text}</span>;
+  return <span className="inline-flex items-center gap-1.5"><Icon size={ICON} />{text}</span>;
 }
 
 /** hint：状态类短文字（常显）；info：说明类文字（收进 ⓘ） */
@@ -119,7 +119,7 @@ function IconRows() {
         )}
       </Row>
       <Row label={tr('高清图标缓存')} hint={msg || tr('已缓存 {0} 个网站，只存本机、不同步', cached)}>
-        <Button size="sm" icon={<RefreshCw size="1em" />} onClick={async () => { const n = await clearIconCache(db); setMsg(tr('已清除 {0} 条，打开页面时会重新获取', n)); }}>{tr('重新获取')}</Button>
+        <Button size="sm" icon={<RefreshCw size={ICON} />} onClick={async () => { const n = await clearIconCache(db); setMsg(tr('已清除 {0} 条，打开页面时会重新获取', n)); }}>{tr('重新获取')}</Button>
       </Row>
     </>
   );
@@ -209,7 +209,7 @@ function Look() {
         <Switch checked={settings.randomDrawerColor} aria-label={tr('抽屉颜色随机')} onClick={() => set({ randomDrawerColor: !settings.randomDrawerColor })} />
       </Row>
       <Row label={tr('所有抽屉随机换色')} info={tr('给现有的每个抽屉随机指定一个颜色')}>
-        <Button size="sm" icon={<Dices size="1em" />} onClick={() => void randomizeAll()}>{tr('随机换色')}</Button>
+        <Button size="sm" icon={<Dices size={ICON} />} onClick={() => void randomizeAll()}>{tr('随机换色')}</Button>
       </Row>
       </Section>
     </div>
@@ -229,7 +229,7 @@ function Modes() {
             <ModeIcon mode={m} />{m.name}
           </button>
         ))}
-        <Button size="sm" variant="ghost" icon={<Plus size="1em" />} onClick={async () => { const m = await createMode(db, tr('新场景')); setFresh(m.id); setSel(m.id); }}>{tr('新建场景')}</Button>
+        <Button size="sm" variant="ghost" icon={<Plus size={ICON} />} onClick={async () => { const m = await createMode(db, tr('新场景')); setFresh(m.id); setSel(m.id); }}>{tr('新建场景')}</Button>
       </div>
       {mode && <ModeEditor key={mode.id} mode={mode} autoFocus={mode.id === fresh} onDeleted={() => setSel(MODE_DEFAULT)} />}
     </div>
@@ -252,7 +252,7 @@ function ModeEditor({ mode, onDeleted, autoFocus }: { mode: Mode; onDeleted: () 
         </IconBox>
         <Input size="sm" className="flex-1" value={name} disabled={isDefault} autoFocus={autoFocus} onFocus={(e) => autoFocus && e.currentTarget.select()} onChange={(e) => { setName(e.target.value); void renameMode(db, mode.id, e.target.value); }} aria-label={tr('场景名称')} />
         {!isDefault && (
-          <Button size="sm" variant="secondary-destructive" icon={<Trash2 size="1em" />} onClick={async () => {
+          <Button size="sm" variant="secondary-destructive" icon={<Trash2 size={ICON} />} onClick={async () => {
             if (await dialogs.confirm({ title: tr('删除场景「{0}」？', mode.name), okText: tr('删除'), danger: true })) {
               await deleteMode(db, mode.id);
               onDeleted();
@@ -319,7 +319,7 @@ function Tags() {
           <div key={t.id} className="flex items-center gap-2 border-b border-kumo-line py-2">
             <Input size="sm" className="flex-1" value={t.name} onChange={(e) => void renameTag(db, t.id, e.target.value)} aria-label={tr('标签名')} />
             {count(t.id)}
-            <Button size="xs" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('删除标签')} onClick={async () => {
+            <Button className={ICON_BTN} size="xs" variant="ghost" shape="square" icon={<Trash2 size={ICON} />} aria-label={tr('删除标签')} onClick={async () => {
               if (await dialogs.confirm({ title: tr('删除标签「{0}」？', t.name), description: tr('会从所有书签上移除。'), okText: tr('删除'), danger: true })) await deleteTag(db, t.id);
             }} />
           </div>
@@ -376,7 +376,7 @@ function Sync() {
     });
   };
   const disconnectBtn = (text: string) => (
-    <Button size="sm" icon={<LogOut size="1em" />} onClick={() => void run(async () => { await disconnectSync(db); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>{text}</Button>
+    <Button size="sm" icon={<LogOut size={ICON} />} onClick={() => void run(async () => { await disconnectSync(db); await updateSettings({ sync: { ...settings.sync, enabled: false } }); })}>{text}</Button>
   );
   return (
     <div className="flex flex-col gap-1">
@@ -414,18 +414,18 @@ function Sync() {
       <Row label={tr('自动同步')}><Switch checked={settings.sync.enabled} disabled={!signedIn} onClick={() => { if (!settings.sync.enabled) void requestBookmarksConsent(); void updateSettings({ sync: { ...settings.sync, enabled: !settings.sync.enabled } }); }} /></Row>
       <Row label={tr('同步频率')} info={tr('只在有改动时上传')}><Select aria-label={tr('同步频率')} className="w-44" value={String(settings.sync.intervalMinutes)} items={{ '5': tr('每 5 分钟'), '15': tr('每 15 分钟'), '60': tr('每 60 分钟'), '0': tr('仅手动') }} onValueChange={(v) => v && void updateSettings({ sync: { ...settings.sync, intervalMinutes: Number(v) as 0 | 5 | 15 | 60 } })} /></Row>
       <Row label={tr('立即同步')} hint={status.lastSyncAt ? tr('上次同步：{0}', new Date(status.lastSyncAt).toLocaleString(dateLocale)) : tr('尚未同步')}>
-        <Button size="sm" icon={<RefreshCw size="1em" />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>{tr('立即同步')}</Button>
+        <Button size="sm" icon={<RefreshCw size={ICON} />} disabled={!signedIn} loading={busy || status.state === 'syncing'} onClick={() => void run(() => syncFromPage(db, settings))}>{tr('立即同步')}</Button>
       </Row>
       <Row label={tr('核心数据')} info={tr('工作区、抽屉、书签、分身、场景、标签和删除记录始终同步')}><Badge variant="neutral">{tr('始终同步')}</Badge></Row>
       <Row label={tr('冲突策略')} info={tr('按条目合并，修改时间新的一方胜出')}><Badge variant="neutral">{tr('按条目合并')}</Badge></Row>
       </Section>
       <Section title={tr('日志')}>
-      <Row label={tr('日志')}><Button size="sm" icon={<List size="1em" />} onClick={() => setLogsOpen(true)}>{tr('查看日志')}</Button></Row>
+      <Row label={tr('日志')}><Button size="sm" icon={<List size={ICON} />} onClick={() => setLogsOpen(true)}>{tr('查看日志')}</Button></Row>
       </Section>
       {logsOpen && <LogViewer onClose={() => setLogsOpen(false)} />}
       <Section title={tr('云端数据')}>
       <Row label={tr('删除云端数据')} info={tr('只删除云端的 Navill 数据，本地不受影响')}>
-        <Button size="sm" variant="secondary-destructive" icon={<Trash2 size="1em" />} disabled={!signedIn} onClick={async () => {
+        <Button size="sm" variant="secondary-destructive" icon={<Trash2 size={ICON} />} disabled={!signedIn} onClick={async () => {
           if (await dialogs.confirm({ title: tr('删除云端的 Navill 数据？'), okText: tr('删除'), danger: true })) await run(() => deleteRemoteData(db));
         }}>{tr('删除')}</Button>
       </Row>
@@ -487,7 +487,7 @@ function Toasts() {
       <Row label={tr('样式')}>
         <div className="flex items-center gap-2">
           <Pick label={tr('样式')} value={t.style} items={STYLES} onChange={(style) => set({ style })} />
-          <Button size="sm" icon={<Play size="1em" />} onClick={() => toast(tr('新建书签「Navill 示例」'))}>{tr('预览')}</Button>
+          <Button size="sm" icon={<Play size={ICON} />} onClick={() => toast(tr('新建书签「Navill 示例」'))}>{tr('预览')}</Button>
         </div>
       </Row>
       </Section>
@@ -579,30 +579,30 @@ function Data({ onReimport }: { onReimport: (source: 'browser' | 'html') => void
     <div className="flex flex-col gap-1">
       {msg && <Banner variant={msg.ok ? "default" : "error"} description={msg.text} />}
       <Section title={tr('导入')}>
-      <Row label={tr('重新导入浏览器书签')} info={tr('默认追加并按 URL 去重，不影响已整理的内容')}><Button size="sm" icon={<RefreshCw size="1em" />} onClick={() => onReimport('browser')}>{tr('重新导入')}</Button></Row>
-      <Row label={tr('导入书签 HTML 文件')} info={tr('浏览器导出的标准书签文件，规则同书签栏')}><Button size="sm" icon={<FileUp size="1em" />} onClick={() => onReimport('html')}>{tr('选择文件')}</Button></Row>
+      <Row label={tr('重新导入浏览器书签')} info={tr('默认追加并按 URL 去重，不影响已整理的内容')}><Button size="sm" icon={<RefreshCw size={ICON} />} onClick={() => onReimport('browser')}>{tr('重新导入')}</Button></Row>
+      <Row label={tr('导入书签 HTML 文件')} info={tr('浏览器导出的标准书签文件，规则同书签栏')}><Button size="sm" icon={<FileUp size={ICON} />} onClick={() => onReimport('html')}>{tr('选择文件')}</Button></Row>
       </Section>
       <Section title={tr('备份与导出')}>
       <Row label={tr('导出 Navill 备份')} info={tr('JSON 文件，包含工作区、抽屉、书签、分身、场景、标签和使用统计')}>
-        <Button size="sm" icon={<Download size="1em" />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>{tr('导出')}</Button>
+        <Button size="sm" icon={<Download size={ICON} />} onClick={async () => download(`navill-${stamp()}.json`, JSON.stringify(await exportBackup(db)), 'application/json')}>{tr('导出')}</Button>
       </Row>
       <Row label={tr('恢复 Navill 备份')}>
-        <Button size="sm" icon={<FileUp size="1em" />} onClick={() => file.current?.click()}>{tr('选择文件')}</Button>
+        <Button size="sm" icon={<FileUp size={ICON} />} onClick={() => file.current?.click()}>{tr('选择文件')}</Button>
         <input ref={file} type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void restore(f); e.target.value = ''; }} />
       </Row>
       <Row label={tr('导出为浏览器书签 HTML')} info={tr('工作区 → 文件夹，抽屉 → 子文件夹')}>
-        <Button size="sm" icon={<Download size="1em" />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>{tr('导出')}</Button>
+        <Button size="sm" icon={<Download size={ICON} />} onClick={async () => download(`navill-bookmarks-${stamp()}.html`, await exportNetscapeHtml(db), 'text/html')}>{tr('导出')}</Button>
       </Row>
       </Section>
       <Section title={tr('维护')}>
       <Row label={tr('从名称解析工作区图标')} info={tr('把工作区名称里的 emoji 去掉，前两个 emoji 作为图标，每次启动也会自动执行')}>
-        <Button size="sm" icon={<Smile size="1em" />} onClick={async () => {
+        <Button size="sm" icon={<Smile size={ICON} />} onClick={async () => {
           const n = await parseWorkspaceIcons(db);
           setMsg({ ok: true, text: n ? tr('已处理 {0} 个工作区', n) : tr('没有名称里带 emoji 的工作区') });
         }}>{tr('解析')}</Button>
       </Row>
       <Row label={tr('清空使用统计')} info={tr('清除全部打开记录与次数')}>
-        <Button size="sm" variant="secondary-destructive" icon={<Trash2 size="1em" />} onClick={async () => {
+        <Button size="sm" variant="secondary-destructive" icon={<Trash2 size={ICON} />} onClick={async () => {
           if (await dialogs.confirm({ title: tr('清空使用统计？'), okText: tr('清空'), danger: true })) await clearOpenEvents(db);
         }}>{tr('清空')}</Button>
       </Row>

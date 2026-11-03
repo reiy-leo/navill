@@ -1,5 +1,5 @@
-import { Button, Empty, Loader } from '@cloudflare/kumo';
-import { ArrowRight, Star } from 'lucide-react';
+import { Button, Loader } from '@cloudflare/kumo';
+import { ArrowRight } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { TAG_FAVORITE, db } from '@/src/db';
@@ -10,8 +10,10 @@ import { useInstallShare } from '@/src/ui/installShare';
 import { useApp } from '@/src/ui/state';
 import { GitHubStars } from './GitHubStars';
 import { Items } from './Items';
+import { SectionHead } from './SectionHead';
 
 import { tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 /** 市场最新分享在主页最多显示几个 */
 const LATEST = 6;
 
@@ -34,9 +36,9 @@ export function HomeView() {
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-medium">{tr('收藏')}</h2>
+        <SectionHead title={tr('收藏')} />
         {!favs ? <div className="flex justify-center py-6"><Loader /></div> : favs.length === 0 ? (
-          <Empty icon={<Star size={36} />} title={tr('还没有收藏')} description={tr('给书签加上「收藏」标签，就会出现在这里。')} />
+          <p className="text-sm text-kumo-subtle">{tr('给书签加上「收藏」标签，就会出现在这里。')}</p>
         ) : (
           <Items items={favs} view="icon" />
         )}
@@ -44,7 +46,7 @@ export function HomeView() {
 
       {!!top?.length && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">{tr('最常用')}</h2>
+          <SectionHead title={tr('最常用')} />
           <HistoryHint>{tr('开启「读取浏览记录」后，最常用会参考本机访问次数，更准')}</HistoryHint>
           <Items items={top} view="icon" />
         </section>
@@ -53,10 +55,9 @@ export function HomeView() {
       <GitHubStars />
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-medium">{tr('市场最新分享')}</h2>
-          <Button size="sm" variant="ghost" onClick={() => setPanel('market')}>{tr('查看更多')}<ArrowRight size={14} /></Button>
-        </div>
+        <SectionHead title={tr('市场最新分享')}>
+          <Button size="sm" variant="ghost" className={ICON_BTN} onClick={() => setPanel('market')}>{tr('查看更多')}<ArrowRight size={ICON} /></Button>
+        </SectionHead>
         {err && <p className="text-sm text-kumo-danger">{err}</p>}
         {latest === null && <div className="flex justify-center py-6"><Loader /></div>}
         {latest?.length === 0 && !err && <p className="text-sm text-kumo-subtle">{tr('市场里还没有分享。')}</p>}

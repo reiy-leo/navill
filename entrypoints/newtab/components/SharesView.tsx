@@ -8,6 +8,7 @@ import { StatusBadge, copyLink } from '@/src/ui/ShareDialog';
 import { toast } from '@/src/ui/toast';
 
 import { dateLocale, tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from '@/src/ui/icons';
 /** 管理分享：列出已分享的抽屉和工作区，可复制链接、打开、取消分享 */
 export function SharesView() {
   const dialogs = useDialogs();
@@ -55,9 +56,9 @@ export function SharesView() {
                   {s.kind === 'drawer' ? tr('抽屉') : tr('工作区')} {tr('· 更新于')} {new Date(s.updatedAt).toLocaleDateString(dateLocale)}{s.rejectedNote ? tr(' · 未通过：{0}', s.rejectedNote) : ''}
                 </div>
               </div>
-              <Button size="sm" icon={<Copy size="1em" />} onClick={() => void copyLink(s.url)}>{tr('复制链接')}</Button>
-              <Button size="sm" variant="ghost" shape="square" icon={<ExternalLink size="1em" />} aria-label={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: s.url })} />
-              <Button size="sm" variant="ghost" shape="square" icon={<Trash2 size="1em" />} aria-label={tr('取消分享')} onClick={async () => {
+              <Button size="sm" icon={<Copy size={ICON} />} onClick={() => void copyLink(s.url)}>{tr('复制链接')}</Button>
+              <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<ExternalLink size={ICON} />} aria-label={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: s.url })} />
+              <Button className={ICON_BTN} size="sm" variant="ghost" shape="square" icon={<Trash2 size={ICON} />} aria-label={tr('取消分享')} onClick={async () => {
                 if (!(await dialogs.confirm({ title: tr('取消分享「{0}」？', s.title), description: tr('公开页面和全部快照都会删除，链接失效。'), okText: tr('取消分享'), danger: true }))) return;
                 try {
                   await deleteShare(s.id);

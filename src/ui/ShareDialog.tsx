@@ -12,6 +12,7 @@ import { toast } from './toast';
 
 import { ensureBookmarksConsent } from '@/src/lib/consent';
 import { tr } from '@/src/i18n';
+import { ICON } from './icons';
 const SITE_ICON = 'https://navill.rei8t.dev/icon-192.png';
 const authorItem = storage.defineItem<string>('local:shareAuthor', { fallback: '' });
 
@@ -106,8 +107,8 @@ export function ShareDialog({ kind, sourceId, name, onClose }: { kind: ShareKind
               <img src={SITE_ICON} alt="" className="size-16 rounded-2xl" />
               <span className="w-full truncate text-center text-xs text-kumo-subtle" title={share.url}>{share.url.replace(/^https:\/\//, "")}</span>
               <div className="flex gap-1">
-                <Button size="sm" shape="square" icon={<Copy size="1em" />} aria-label={tr('复制链接')} title={tr('复制链接')} onClick={() => void copyLink(share.url)} />
-                <Button size="sm" shape="square" icon={<ExternalLink size="1em" />} aria-label={tr('打开分享页')} title={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: share.url })} />
+                <Button size="sm" shape="square" icon={<Copy size={ICON} />} aria-label={tr('复制链接')} title={tr('复制链接')} onClick={() => void copyLink(share.url)} />
+                <Button size="sm" shape="square" icon={<ExternalLink size={ICON} />} aria-label={tr('打开分享页')} title={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: share.url })} />
               </div>
             </div>
           </div>

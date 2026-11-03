@@ -3,6 +3,7 @@ import { RotateCw, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { tr } from '@/src/i18n';
+import { ICON, ICON_BTN } from './icons';
 
 /** 右侧抽屉：桌面占半屏，窄屏全宽；点遮罩或 Esc 关闭 */
 export function SideDrawer({ open, onClose, onRefresh, title, children }: { open: boolean; onClose: () => void; onRefresh?: () => void; title: ReactNode; children: ReactNode }) {
@@ -49,9 +50,9 @@ export function SideDrawer({ open, onClose, onRefresh, title, children }: { open
           <div className="flex items-center gap-1">
             {onRefresh && (
               <Button variant="ghost" shape="square" size="sm" aria-label={tr('刷新')} title={tr('刷新')} onClick={() => { setSpin((n) => n + 1); onRefresh(); }}
-                icon={<RotateCw size="1em" key={spin} className={spin ? 'animate-[spin_0.5s_ease-out_1]' : ''} />} />
+                icon={<RotateCw size={ICON} key={spin} className={spin ? 'animate-[spin_0.5s_ease-out_1]' : ''} />} />
             )}
-            <Button variant="ghost" shape="square" size="sm" icon={<X size="1em" />} aria-label={tr('关闭')} onClick={onClose} />
+            <Button className={ICON_BTN} variant="ghost" shape="square" size="sm" icon={<X size={ICON} />} aria-label={tr('关闭')} onClick={onClose} />
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">{children}</div>

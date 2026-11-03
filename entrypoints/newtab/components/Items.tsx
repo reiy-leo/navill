@@ -7,7 +7,7 @@ import type { Item } from '@/src/lib/view';
 import { bookmarkMenu } from '@/src/ui/actions';
 import { useContextMenu } from '@/src/ui/ContextMenu';
 import { useDialogs } from '@/src/ui/dialogs';
-import { BookmarkIcon, hostOf } from '@/src/ui/icons';
+import { BookmarkIcon, hostOf, ICON } from '@/src/ui/icons';
 import { LinkStrip } from '@/src/ui/LinkStrip';
 import { openItem } from '@/src/ui/open';
 import { useApp, useSelection } from '@/src/ui/state';
@@ -209,7 +209,7 @@ const BookmarkItem = memo(function BookmarkItem({
             void toggleTagOn(db, [b.id], TAG_FAVORITE, !fav);
           }}
         >
-          <Star size={13} fill={fav ? 'currentColor' : 'none'} />
+          <Star size={ICON} fill={fav ? 'currentColor' : 'none'} />
         </button>
       )}
     </a>

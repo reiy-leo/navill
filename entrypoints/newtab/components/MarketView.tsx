@@ -3,7 +3,7 @@ import { Download, ExternalLink, Store } from 'lucide-react';
 import { useInstallShare } from '@/src/ui/installShare';
 import { useEffect, useState } from 'react';
 import { getPublicShare, listPublicShares, listShares, shareUrl, type PublicShare, type PublicShareDetail } from '@/src/lib/share';
-import { BookmarkIcon } from '@/src/ui/icons';
+import { BookmarkIcon, ICON, ICON_BTN } from '@/src/ui/icons';
 
 import { tr } from '@/src/i18n';
 /** 查看市场：所有审核通过的分享（包括自己的），看板展示，每个分享一列 */
@@ -71,7 +71,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
           <div className="truncate text-xs text-kumo-subtle">{share.author} · {share.kind === 'drawer' ? tr('抽屉') : tr('工作区 · {0} 个抽屉', share.drawerCount)} · {share.bookmarkCount} {tr('个书签')}</div>
           {share.description && <p className="mt-1 line-clamp-2 text-xs text-kumo-subtle">{share.description}</p>}
         </div>
-        <Button size="xs" variant="ghost" shape="square" icon={<ExternalLink size="1em" />} aria-label={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: shareUrl(share.id) })} />
+        <Button className={ICON_BTN} size="xs" variant="ghost" shape="square" icon={<ExternalLink size={ICON} />} aria-label={tr('打开分享页')} onClick={() => void browser.tabs.create({ url: shareUrl(share.id) })} />
       </header>
       <div className="nv-drawer-primary mx-1.5 mb-1.5 min-h-0 flex-1 overflow-y-auto rounded-lg p-1.5 [scrollbar-width:thin]">
         {err && <p className="p-2 text-xs text-kumo-danger">{err}</p>}
@@ -80,7 +80,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
           <div key={i} className="group/md mb-1.5 rounded-lg last:mb-0">
             <div className="flex items-center gap-1 pl-2">
               <span className="min-w-0 flex-1 truncate text-xs text-kumo-subtle">{g.name || share.title}</span>
-              <Button size="xs" variant="ghost" shape="square" icon={<Download size="1em" />} aria-label={tr('安装到…')} title={tr('安装到…')} onClick={() => void installDrawer({ name: g.name || share.title, bookmarks: g.bookmarks })} />
+              <Button className={ICON_BTN} size="xs" variant="ghost" shape="square" icon={<Download size={ICON} />} aria-label={tr('安装到…')} title={tr('安装到…')} onClick={() => void installDrawer({ name: g.name || share.title, bookmarks: g.bookmarks })} />
             </div>
             {g.bookmarks.map((b, j) => (
               <a key={j} href={b.url} title={b.note ? `${b.title}\n${b.note}` : b.title}
