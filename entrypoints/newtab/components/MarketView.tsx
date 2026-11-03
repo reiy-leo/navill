@@ -85,7 +85,7 @@ function ShareColumn({ share, mine }: { share: PublicShare; mine: boolean }) {
             {g.bookmarks.map((b, j) => (
               <a key={j} href={b.url} title={b.note ? `${b.title}\n${b.note}` : b.title}
                 className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-kumo-default no-underline hover:bg-kumo-tint">
-                <BookmarkIcon url={b.url} size={16} />
+                <BookmarkIcon url={b.url} src={b.faviconUrl} size={16} />
                 <span className="min-w-0 flex-1 truncate">{b.title}</span>
               </a>
             ))}

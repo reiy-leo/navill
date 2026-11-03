@@ -7,7 +7,7 @@ import { createBookmark, createDrawer, createWorkspace, placeDrawerInSection, up
 import { tr } from '@/src/i18n';
 /**
  * 分享到 navill.rei8t.dev。协议见 navill-web 仓库 docs/SHARE_API.md。
- * 只上传展示用字段：标题、链接、备注、关联链接；不带打开次数、时间戳、标签、场景、分身关系。
+ * 只上传展示用字段：标题、链接、备注、关联链接、自定义图标地址；不带打开次数、时间戳、标签、场景、分身关系。
  */
 export const SHARE_ORIGIN = 'https://navill.rei8t.dev';
 
@@ -17,7 +17,7 @@ export interface MyShare {
   status: 'live' | 'pending' | 'rejected' | 'taken_down';
   liveVersion: number | null; pendingVersion: number | null; rejectedNote?: string | null; updatedAt: number;
 }
-interface ShareBookmark { title: string; url: string; note?: string; links?: { url: string; title?: string }[] }
+interface ShareBookmark { title: string; url: string; note?: string; faviconUrl?: string; links?: { url: string; title?: string }[] }
 export interface SharePayload {
   v: 1; kind: ShareKind; author?: string; description?: string;
   workspace: { name: string; emoji?: string; color?: string };
@@ -60,7 +60,8 @@ const isWeb = (u: string) => /^https?:\/\//i.test(u);
 const toShare = (b: Bookmark): ShareBookmark | null => {
   if (!isWeb(b.url)) return null;
   const links = (b.links ?? []).filter((l) => isWeb(l.url)).map((l) => ({ url: l.url, ...(l.title ? { title: l.title } : {}) }));
-  return { title: b.title, url: b.url, ...(b.note ? { note: b.note } : {}), ...(links.length ? { links } : {}) };
+  const icon = b.faviconUrl && isWeb(b.faviconUrl) ? { faviconUrl: b.faviconUrl } : {};
+  return { title: b.title, url: b.url, ...(b.note ? { note: b.note } : {}), ...icon, ...(links.length ? { links } : {}) };
 };
 
 /** 生成快照。默认排除 18+ 抽屉和带 18+ 标签的书签；分身与挂载的书签展开成普通书签；归档的不分享。 */
@@ -111,7 +112,7 @@ export async function installSharedDrawer(db: NavillDB, workspaceId: string, dra
   const d = await createDrawer(db, workspaceId, drawer.name);
   if (sectionId) await placeDrawerInSection(db, d.id, sectionId, []);
   for (const b of drawer.bookmarks) {
-    const { bookmark } = await createBookmark(db, { url: b.url, title: b.title, note: b.note }, workspaceId, d.id);
+    const { bookmark } = await createBookmark(db, { url: b.url, title: b.title, note: b.note, faviconUrl: b.faviconUrl && isWeb(b.faviconUrl) ? b.faviconUrl : undefined }, workspaceId, d.id);
     if (b.links?.length) await updateBookmark(db, bookmark.id, { links: b.links });
   }
   return d;
