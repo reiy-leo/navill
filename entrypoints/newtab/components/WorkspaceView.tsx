@@ -1,7 +1,7 @@
 import { revealDrawer } from '@/src/ui/reveal';
 import { Masonry, MasonryItem } from './Masonry';
 import { Button, Empty, Loader, Tooltip } from '@cloudflare/kumo';
-import { FolderPlus, Inbox, Plus, SquareDashed } from 'lucide-react';
+import { BookmarkPlus, FolderPlus, Inbox, SquareDashed } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PALETTE, db } from '@/src/db';
 import { createBookmark, createDrawer, createSection, movePlacement, placeDrawerInSection, placeInOrder, setWorkspaceView } from '@/src/lib/store';
@@ -93,7 +93,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
         <div className="nv-ws-tools flex items-center gap-0.5">
         <ArrangeMenu value={arrange} onChange={(v) => void updateSettings({ arrange: { ...settings.arrange, [workspace.id]: v } })} />
         <ViewMenu value={workspace.viewMode} onChange={(v) => v && void setWorkspaceView(db, workspace.id, v)} />
-        <Tooltip content={tr('新建书签')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<Plus size={ICON} />} aria-label={tr('新建书签')} onClick={() => void newBookmark(null)} /></Tooltip>
+        <Tooltip content={tr('新建书签')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<BookmarkPlus size={ICON} />} aria-label={tr('新建书签')} onClick={() => void newBookmark(null)} /></Tooltip>
         <Tooltip content={tr('新建抽屉')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" ref={newBtn} icon={<FolderPlus size={ICON} />} aria-label={tr('新建抽屉')} onClick={newDrawer} /></Tooltip>
         {workspace.source !== 'inbox' && <Tooltip content={tr('新建分区')} side="bottom"><Button className={ICON_BTN} variant="ghost" size="xs" shape="square" icon={<SquareDashed size={ICON} />} aria-label={tr('新建分区')} onClick={() => void newSection()} /></Tooltip>}
         </div>
