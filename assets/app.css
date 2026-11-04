@@ -291,3 +291,8 @@ button.nv-stamp:hover { color: var(--text-color-kumo-default, #000); rotate: 0de
   0%, 45% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-kumo-brand) 70%, transparent); }
   100% { box-shadow: 0 0 0 3px transparent; }
 }
+
+/* 拖动时的插入位置：固定定位浮层（sortable.ts showMarker），不影响布局 */
+.nv-drop-marker { position: fixed; z-index: 1000; pointer-events: none; border-radius: 9999px; background: var(--color-kumo-brand, #2563eb); box-shadow: 0 0 0 2px rgb(255 255 255 / 0.6); }
+.nv-drop-marker[data-mode='box'] { background: color-mix(in srgb, var(--color-kumo-brand, #2563eb) 10%, transparent); border: 2px dashed var(--color-kumo-brand, #2563eb); border-radius: 0.75rem; box-shadow: none; }
+.nv-drop-marker[hidden] { display: none; }
