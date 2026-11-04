@@ -138,6 +138,9 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
   box-shadow: 0 -4px 12px -6px rgb(0 0 0 / 0.12);
 }
 [data-surface='bare'] .nv-drawer[data-head='peek']:hover > .nv-drawer-head { box-shadow: none; }
+/* 标题栏伸出后，下沿和抽屉上沿要接成一块：抽屉上方两个圆角改成直角，否则接缝处露出两个缺口（Rei 2026-11-04） */
+.nv-drawer[data-head='peek'] { transition: background-color 200ms ease, box-shadow 200ms ease, border-radius 200ms ease-out; }
+.nv-drawer[data-head='peek']:is(:hover, [data-open]) { border-top-left-radius: 0; border-top-right-radius: 0; }
 /* 磨砂/无框时书签区是半透明的，收起的标题栏会透出来：收起时隐藏标题栏内容，伸出时淡入 */
 .nv-drawer[data-head='peek'] > .nv-drawer-head > * { transition: opacity 150ms ease-out; }
 [data-surface='glass'] .nv-drawer[data-head='peek']:not(:hover):not([data-open]) > .nv-drawer-head > *,
