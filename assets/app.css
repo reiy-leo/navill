@@ -112,7 +112,7 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 .nv-drawer-head [data-kumo-component='Button'] svg { width: 14px; height: 14px; }
 .nv-drawer-head [data-kumo-component='Button'].size-6\.5,
 .nv-drawer-head [data-kumo-component='Button'].size-3\.5 { width: 1.75rem; height: 1.75rem; }
-.nv-drawer-head [data-kumo-component='Button']:hover { color: var(--color-kumo-default); }
+.nv-drawer-head [data-kumo-component='Button']:hover { color: var(--text-color-kumo-default); }
 
 /* 图标选择（编辑/新建弹窗）：底色跟随所选颜色 --pick */
 .nv-pick:hover { background: color-mix(in oklab, var(--pick) 14%, transparent) !important; }
@@ -240,6 +240,14 @@ button.nv-stamp:hover { color: var(--text-color-kumo-default, #000); rotate: 0de
 [data-mode='dark'] .nv-plain { background: #000; }
 .nv-bg-veil { background: rgb(255 255 255 / 0.28); }
 [data-mode='dark'] .nv-bg-veil { background: rgb(0 0 0 / 0.42); }
+/* 背景图上的文字：直接压在图上的标题行（主页区块标题、工作区标题行，.nv-on-bg）
+ * 灰字和灰图标在花哨的图上看不清：颜色提到正文色，再加一圈和底色相反的光晕。卡片里的内容有自己的底，不受影响。 */
+[data-bg='image'] .nv-on-bg .text-kumo-subtle,
+[data-bg='image'] .nv-on-bg [data-kumo-component='Button'] { color: var(--text-color-kumo-default); }
+[data-bg='image'] .nv-on-bg { text-shadow: 0 0 2px rgb(255 255 255 / 0.9), 0 0 8px rgb(255 255 255 / 0.7); }
+[data-bg='image'] .nv-on-bg svg { filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.9)) drop-shadow(0 0 4px rgb(255 255 255 / 0.6)); }
+[data-bg='image'][data-mode='dark'] .nv-on-bg { text-shadow: 0 0 2px rgb(0 0 0 / 0.9), 0 0 8px rgb(0 0 0 / 0.7); }
+[data-bg='image'][data-mode='dark'] .nv-on-bg svg { filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9)) drop-shadow(0 0 4px rgb(0 0 0 / 0.6)); }
 
 /* 抽屉底部拖拽手柄：平时透明，悬停抽屉时浮现，悬停/按住手柄再加深 */
 .nv-handle-bar { opacity: 0; transition: opacity 150ms ease; }

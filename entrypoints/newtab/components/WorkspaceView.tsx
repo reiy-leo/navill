@@ -70,7 +70,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const newSection = async () => setEditSection((await createSection(db, workspace.id)).id);
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
+      <div className="nv-on-bg flex items-center gap-2">
         <WorkspaceIcon ws={workspace} size={20} />
         <div className="flex min-w-0 flex-1 items-baseline gap-2">
           <h1 className="line-clamp-2 min-w-0 shrink-0 break-words text-base font-medium" style={{ maxWidth: '60%' }}>{workspace.name}</h1>

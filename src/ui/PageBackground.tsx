@@ -24,9 +24,16 @@ export function PageBackground({ settings, color }: { settings: Settings; color?
     return () => { live = false; };
   }, [kind]);
   useEffect(() => () => { if (src?.startsWith('blob:')) URL.revokeObjectURL(src); }, [src]);
+  // 有背景图时给根元素打标记，直接压在图上的文字和图标靠它加深颜色、加一圈描边光晕（app.css「背景图上的文字」）
+  const onImage = kind === 'bing' && !!img && !!src;
+  useEffect(() => {
+    const el = document.documentElement;
+    if (onImage) el.dataset.bg = 'image'; else delete el.dataset.bg;
+    return () => { delete el.dataset.bg; };
+  }, [onImage]);
 
   if (kind === 'plain') return <div aria-hidden className="nv-plain pointer-events-none fixed inset-0 -z-10" />;
-  if (kind === 'bing' && img && src) {
+  if (onImage && img && src) {
     const blur = settings.backgroundBlur;
     return (
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" title={img.copyright}>
