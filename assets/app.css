@@ -52,7 +52,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 [data-surface='tint'] { --nv-tint-base: #fff; }
 [data-mode='dark'][data-surface='tint'] { --nv-tint-base: var(--color-kumo-base); }
 [data-surface='tint'] .nv-drawer {
-  background: oklch(from var(--ws-color, #94a3b8) calc(0.7 + l * 0.3) calc(c * (1.6 - l) * 0.33) h);
+  /* 抽屉底色任何时候都比原色淡（Rei 2026-11-04）：浅色模式明度至少比原色高 0.06，很浅的颜色也拉得开 */
+  background: oklch(from var(--ws-color, #94a3b8) min(0.985, max(0.7 + l * 0.3, l + 0.06)) calc(c * (1.6 - l) * 0.33) h);
   --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.65 + l * 0.3) calc(c * (1.6 - l) * 0.4) h);
 }
 /* 层次：不用主色光晕，改用中性的分层投影。
@@ -78,7 +79,8 @@ body:not(:has(.navill-popup)) label:has([data-kumo-component='Switch'], [data-ku
 }
 [data-surface='tint'] .nv-plate { background: oklch(from var(--ws-color, #94a3b8) calc(0.68 + l * 0.32) calc(c * (1.6 - l) * 0.39) h); }
 /* 深色主题：颜色越浅，卡片越亮 */
-[data-mode='dark'][data-surface='tint'] .nv-drawer { background: oklch(from var(--ws-color, #94a3b8) calc(0.06 + l * 0.38) calc(c * (1.6 - l) * 0.33) h); --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.12 + l * 0.38) calc(c * (1.6 - l) * 0.4) h); }
+/* 深色模式压暗原色，同时饱和度再降一些，比原色更素 */
+[data-mode='dark'][data-surface='tint'] .nv-drawer { background: oklch(from var(--ws-color, #94a3b8) calc(0.06 + l * 0.38) calc(c * (1.6 - l) * 0.22) h); --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.12 + l * 0.38) calc(c * (1.6 - l) * 0.4) h); }
 [data-mode='dark'][data-surface='tint'] .nv-drawer-primary { background: oklch(from var(--ws-color, #94a3b8) calc(0.08 + l * 0.2) calc(c * (1.6 - l) * 0.13) h); --tw-ring-color: oklch(from var(--ws-color, #94a3b8) calc(0.12 + l * 0.38) calc(c * (1.6 - l) * 0.4) h); }
 [data-mode='dark'][data-surface='tint'] .nv-tile { background: oklch(from var(--ws-color, #94a3b8) calc(0.1 + l * 0.3) calc(c * (1.6 - l) * 0.2) h); border-color: oklch(from var(--ws-color, #94a3b8) calc(0.14 + l * 0.34) calc(c * (1.6 - l) * 0.33) h); }
 [data-mode='dark'][data-surface='tint'] .nv-plate { background: oklch(from var(--ws-color, #94a3b8) calc(0.08 + l * 0.38) calc(c * (1.6 - l) * 0.33) h); }
