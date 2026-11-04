@@ -44,9 +44,10 @@ export async function aliasTo(d: Dialogs, bookmarkIds: string[]): Promise<boolea
 }
 
 export async function moveTo(d: Dialogs, placementIds: string[]): Promise<boolean> {
-  const t = await d.pickTarget({ title: tr('移动到…'), allowTop: true });
+  // 书签也能直接放进分区（Placement.sectionId），所以列表里分区可选
+  const t = await d.pickTarget({ title: tr('移动到…'), allowTop: true, sections: true });
   if (!t) return false;
-  for (const id of placementIds) await movePlacement(db, id, t.workspaceId, t.drawerId);
+  for (const id of placementIds) await movePlacement(db, id, t.workspaceId, t.drawerId, undefined, t.sectionId ?? null);
   return true;
 }
 

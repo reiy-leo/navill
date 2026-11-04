@@ -167,9 +167,10 @@ const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arr
   useFlip(area, sort.sig, '[data-flip-drawer]');
   const rows = sort.rows;
   const empty = rows.every((r) => r.hidden);
-  // 拖到别的组时原位置收起：只隐藏不卸载，否则拖动源被移除后浏览器收不到 dragend
+  // 拖到别的组时原位置只变透明、照样占位：不卸载（否则拖动源被移除后浏览器收不到 dragend），
+  // 也不收起（收起会让下面的分区整体上移，指针下换了东西，预览来回跳、放不下去）
   const card = (d: DrawerData, ghost: boolean, hidden = false) => (
-    <div className={hidden ? 'hidden' : 'contents'}>
+    <div className={hidden ? 'contents invisible' : 'contents'}>
       <DrawerCard data={d} workspace={workspace} arrange={arrange} onReveal={onReveal} ghost={ghost} dnd={sort.bind(d.drawer.id, d)} />
     </div>
   );
@@ -191,7 +192,7 @@ const DrawerGroup = memo(function DrawerGroup({ workspace, section, drawers, arr
       ) : (
         <div className={arrange === 'board' ? 'nv-masonry -mx-6 flex items-start gap-4 overflow-x-auto px-6 pb-3 [scrollbar-width:thin]' : 'nv-masonry flex flex-col gap-4'}>
           {rows.map(({ t: d, ghost, hidden }) => (
-            <div key={d.drawer.id} id={`drawer-${d.drawer.id}`} className={`${arrange === 'board' ? 'w-[300px] shrink-0' : ''} ${hidden ? 'hidden' : ''}`}>{card(d, ghost)}</div>
+            <div key={d.drawer.id} id={`drawer-${d.drawer.id}`} className={`${arrange === 'board' ? 'w-[300px] shrink-0' : ''} ${hidden ? 'invisible' : ''}`}>{card(d, ghost)}</div>
           ))}
         </div>
       )}
