@@ -3,6 +3,8 @@
 @import "tailwindcss";
 
 html, body, #root { height: 100%; }
+/* 弹窗按内容定高：浏览器弹窗跟着内容变高变矮，最高 600px（Rei 2026-11-05） */
+html:has(.navill-popup), html:has(.navill-popup) body, html:has(.navill-popup) #root { height: auto; }
 body { margin: 0; }
 
 /* 弹窗里的文本输入默认占满宽度（放在 base 层，className 里的宽度工具类可以覆盖） */

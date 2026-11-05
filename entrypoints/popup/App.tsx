@@ -1,4 +1,4 @@
-import { Button, Input } from '@cloudflare/kumo';
+import { Button, Input, InputArea } from '@cloudflare/kumo';
 import { BookmarkPlus, Check, Search, SquareDashed } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -26,6 +26,7 @@ type Row = { key: string; kind: Kind; depth: number; label: string; parent: stri
 function Popup() {
   const [tab, setTab] = useState<{ title: string; url: string } | null>(null);
   const [title, setTitle] = useState('');
+  const [note, setNote] = useState('');
   const [q, setQ] = useState('');
   const [target, setTarget] = useState('');
   const [saved, setSaved] = useState(false);
@@ -106,7 +107,7 @@ function Popup() {
     if (!tab || !target || saved) return;
     const [wid, did, sid] = target.split('|');
     localStorage.setItem(LAST_TARGET_KEY, target);
-    await createBookmark(db, { url: tab.url, title: title.trim() || tab.title }, wid!, did || null, sid || null);
+    await createBookmark(db, { url: tab.url, title: title.trim() || tab.title, note: note.trim() || undefined }, wid!, did || null, sid || null);
     await markDone('savePage');
     setSaved(true);
     setTimeout(() => window.close(), 700);
@@ -129,11 +130,22 @@ function Popup() {
         <BookmarkIcon url={tab.url} size={16} />
         <Input autoFocus size="sm" className="min-w-0 flex-1" aria-label={tr('名称')} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={onKey} />
       </div>
+      {/* 备注：回车换行，⌘/Ctrl+回车收藏 */}
+      <InputArea
+        size="sm"
+        rows={2}
+        className="w-full resize-none"
+        placeholder={tr('备注')}
+        aria-label={tr('备注')}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !e.nativeEvent.isComposing) { e.preventDefault(); void save(); } }}
+      />
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-kumo-subtle" size={14} />
         <Input size="sm" className="w-full pl-7" placeholder={tr('筛选工作区、分区或抽屉')} aria-label={tr('收藏到')} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} />
       </div>
-      <ul ref={listRef} role="listbox" aria-label={tr('收藏到')} className="flex max-h-64 flex-col overflow-y-auto [scrollbar-width:thin]">
+      <ul ref={listRef} role="listbox" aria-label={tr('收藏到')} className="flex max-h-96 flex-col overflow-y-auto [scrollbar-width:thin]">
         {shown.map((r) => {
           const ws = r.kind === 'ws' ? data?.ws.find((w) => `${w.id}||` === r.key) : undefined;
           const on = r.key === target;
