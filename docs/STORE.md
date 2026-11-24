@@ -17,6 +17,8 @@
 
 你还可以把整理好的抽屉或工作区分享出去，别人一键就能安装使用。
 
+注意：安装后，Navill 会替换浏览器的新标签页。卸载或停用扩展即可恢复默认新标签页。
+
 ### English
 Import your browser bookmarks and reorganize them by purpose into workspaces, such as Movies, AI, Work, Software, Data Analysis, and Color Management. Split a workspace further into drawers, or leave it as is; drawers come in several layouts.
 
@@ -27,3 +29,5 @@ Alias bookmarks and drawers into other drawers or workspaces, so the same item c
 Sync bookmarks and settings to Google Drive or WebDAV to keep them consistent across browsers.
 
 Share a drawer or workspace you have organized, and others can install it in one click.
+
+Note: Navill replaces your browser's new tab page. Uninstall or disable the extension to restore the default new tab page.
