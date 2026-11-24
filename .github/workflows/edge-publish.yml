@@ -1,0 +1,54 @@
+# 手动重试：只把某个正式版重新提交到 Edge Add-ons（审核没过、改完商店描述后重新提交时用，不会碰 Chrome / AMO）。
+# 两种触发：Actions 页手动运行并填 tag（如 v0.1.18）；或推一个 edge-v0.1.18 这样的 tag。
+# 提交会带上 Partner Center 里已保存的商店描述草稿。
+name: Edge Add-ons 重试
+
+on:
+  push:
+    tags: ['edge-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '正式版 tag，例如 v0.1.18'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  edge:
+    runs-on: ${{ vars.CI_RUNNER == 'github' && 'ubuntu-latest' || fromJSON('["self-hosted","celesto-micro"]') }}
+    steps:
+      - name: 确定版本
+        id: v
+        env:
+          RAW: ${{ inputs.tag || github.ref_name }}
+        run: |
+          T="${RAW#edge-}"
+          echo "tag=$T" >> "$GITHUB_OUTPUT"
+          echo "version=${T#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.tag }}
+      - name: 取最新的提交脚本
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: _main
+          sparse-checkout: scripts
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 提交 Edge Add-ons
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+        run: |
+          WXT_EXTENSION_KEY=none pnpm zip:edge
+          ZIP=".output/navill-${{ steps.v.outputs.version }}-edge.zip"
+          node -e 'if(require("./.output/edge-mv3/manifest.json").key){console.error("商店包不应包含 key");process.exit(1)}'
+          _main/scripts/edge-publish.sh "$ZIP" "Navill ${{ steps.v.outputs.tag }} 重新提交：商店描述已补充说明扩展会替换新标签页（政策 1.1.8）。测试步骤：安装后新标签页即为 Navill，可从浏览器书签导入。"
